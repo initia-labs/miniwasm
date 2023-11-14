@@ -14,7 +14,7 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
-	github.com/initia-labs/OPinit v0.1.2-beta.0.0.20231110050713-dbe3be22dfc4
+	github.com/initia-labs/OPinit v0.1.0-beta.1
 	github.com/initia-labs/initia v0.1.2-beta.0.0.20231110030553-37758f169dd6
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
