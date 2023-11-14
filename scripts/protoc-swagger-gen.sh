@@ -2,8 +2,6 @@
 
 set -eo pipefail
 
-git config --global url."https://x-access-token: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@github.com/".insteadOf "https://github.com/"
-
 # clone dependency proto files
 COSMOS_URL=github.com/cosmos/cosmos-sdk
 IBC_URL=github.com/cosmos/ibc-go
@@ -15,8 +13,8 @@ COSMWASM_URL=github.com/CosmWasm/wasmd
 COSMOS_SDK_VERSION=$(cat ./go.mod | grep "$COSMOS_URL v" | sed -n -e "s/^.* //p")
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -n -e "s/^.* //p")
 COSMWASM_VERSION=$(cat ./go.mod | grep "$COSMWASM_URL v" | sed -n -e "s/^.* //p")
-INITIA_VERSION=main
-OPINIT_VERSION=main
+INITIA_VERSION=$(cat ./go.mod | grep "$INITIA_URL v" | sed -n -e "s/^.* //p")
+OPINIT_VERSION=$(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
 
 mkdir -p ./third_party
 cd third_party
