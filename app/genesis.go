@@ -13,6 +13,9 @@ import (
 	ibctypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	"github.com/initia-labs/miniwasm/types"
+
+	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
 )
 
 // GenesisState - The genesis state of the blockchain is represented here as a map of raw json
@@ -29,7 +32,18 @@ func NewDefaultGenesisState(cdc codec.JSONCodec, mbm module.BasicManager) Genesi
 	return GenesisState(mbm.DefaultGenesis(cdc)).
 		ConfigureMinGasPrices(cdc).
 		ConfigureICA(cdc).
-		ConfigureIBCAllowedClients(cdc)
+		ConfigureIBCAllowedClients(cdc).
+		ConfigureAuctionFee(cdc)
+}
+
+func (genState GenesisState) ConfigureAuctionFee(cdc codec.JSONCodec) GenesisState {
+	var auctionGenState auctiontypes.GenesisState
+	cdc.MustUnmarshalJSON(genState[auctiontypes.ModuleName], &auctionGenState)
+	auctionGenState.Params.ReserveFee.Denom = types.BaseDenom
+	auctionGenState.Params.MinBidIncrement.Denom = types.BaseDenom
+	genState[auctiontypes.ModuleName] = cdc.MustMarshalJSON(&auctionGenState)
+
+	return genState
 }
 
 // ConfigureMinGasPrices generates the default state for the application.
