@@ -98,7 +98,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	// initia imports
-	initiaservice "github.com/initia-labs/initia/service"
+
 	ibctestingtypes "github.com/initia-labs/initia/x/ibc/testing/types"
 	icaauth "github.com/initia-labs/initia/x/intertx"
 	icaauthkeeper "github.com/initia-labs/initia/x/intertx/keeper"
@@ -993,17 +993,17 @@ func (app *MinitiaApp) Simulate(txBytes []byte) (sdk.GasInfo, *sdk.Result, error
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *MinitiaApp) RegisterTxService(clientCtx client.Context) {
-	initiaservice.RegisterTxService(
+	authtx.RegisterTxService(
 		app.BaseApp.GRPCQueryRouter(), clientCtx,
-		authtx.NewTxServer(clientCtx, app.Simulate, app.interfaceRegistry),
+		app.Simulate, app.interfaceRegistry,
 	)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *MinitiaApp) RegisterTendermintService(clientCtx client.Context) {
-	initiaservice.RegisterTendermintService(
-		app.BaseApp.GRPCQueryRouter(),
-		tmservice.NewQueryServer(clientCtx, app.interfaceRegistry, app.Query),
+	tmservice.RegisterTendermintService(
+		clientCtx, app.BaseApp.GRPCQueryRouter(),
+		app.interfaceRegistry, app.Query,
 	)
 }
 
