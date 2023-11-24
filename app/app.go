@@ -965,6 +965,7 @@ func (app *MinitiaApp) GetSubspace(moduleName string) paramstypes.Subspace {
 // API server.
 func (app *MinitiaApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
+	clientCtx = clientCtx.WithTxConfig(MakeClientEncodingConfig().TxConfig)
 
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -993,6 +994,7 @@ func (app *MinitiaApp) Simulate(txBytes []byte) (sdk.GasInfo, *sdk.Result, error
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *MinitiaApp) RegisterTxService(clientCtx client.Context) {
+	clientCtx = clientCtx.WithTxConfig(MakeClientEncodingConfig().TxConfig)
 	authtx.RegisterTxService(
 		app.BaseApp.GRPCQueryRouter(), clientCtx,
 		app.Simulate, app.interfaceRegistry,
@@ -1001,6 +1003,7 @@ func (app *MinitiaApp) RegisterTxService(clientCtx client.Context) {
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *MinitiaApp) RegisterTendermintService(clientCtx client.Context) {
+	clientCtx = clientCtx.WithTxConfig(MakeClientEncodingConfig().TxConfig)
 	tmservice.RegisterTendermintService(
 		clientCtx, app.BaseApp.GRPCQueryRouter(),
 		app.interfaceRegistry, app.Query,
@@ -1008,6 +1011,7 @@ func (app *MinitiaApp) RegisterTendermintService(clientCtx client.Context) {
 }
 
 func (app *MinitiaApp) RegisterNodeService(clientCtx client.Context) {
+	clientCtx = clientCtx.WithTxConfig(MakeClientEncodingConfig().TxConfig)
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 

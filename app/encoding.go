@@ -27,3 +27,22 @@ func MakeEncodingConfig() params.EncodingConfig {
 
 	return encodingConfig
 }
+
+// MakeClientEncodingConfig creates an EncodingConfig for testing
+func MakeClientEncodingConfig() params.EncodingConfig {
+	encodingConfig := params.MakeClientEncodingConfig()
+	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	if !legacyCodecRegistered {
+		// authz module use this codec to get signbytes.
+		// authz MsgExec can execute all message types,
+		// so legacy.Cdc need to register all amino messages to get proper signature
+		ModuleBasics.RegisterLegacyAminoCodec(legacy.Cdc)
+		legacyCodecRegistered = true
+	}
+
+	return encodingConfig
+}
