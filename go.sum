@@ -210,8 +210,8 @@ github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4/go.mod h1:hN
 github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 h1:UQHMgLO+TxOElx5B5HZ4hJQsoJ/PvUvKRhJHDQXO8P8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d h1:nalkkPQcITbvhmL4+C4cKA87NW0tfm3Kl9VXRoPywFg=
-github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
+github.com/ChainSafe/go-schnorrkel v1.0.0 h1:3aDA67lAykLaG1y3AOjs88dMxC88PgUuHRrLeDnvGIM=
+github.com/ChainSafe/go-schnorrkel v1.0.0/go.mod h1:dpzHYVxLZcp8pjlV+O+UR8K0Hp/z7vcchBSbMBEhCw4=
 github.com/CosmWasm/wasmd v0.44.0 h1:2sbcoCAvfjCs1O0SWt53xULKjkV06dbSFthEViIC6Zg=
 github.com/CosmWasm/wasmd v0.44.0/go.mod h1:tDyYN050qUcdd7LOxGeo2e185sEShyO3nJGl2Cf59+k=
 github.com/CosmWasm/wasmvm v1.5.0 h1:3hKeT9SfwfLhxTGKH3vXaKFzBz1yuvP8SlfwfQXbQfw=
@@ -663,8 +663,8 @@ github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLf
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/initia-labs/OPinit v0.1.0-beta.3 h1:DY/ItJTUAujNhqrzjgAFFzSLn/IGrIN1FVno8iZVsbw=
 github.com/initia-labs/OPinit v0.1.0-beta.3/go.mod h1:MPnFU2x4xzeT3L8K3lc0wkOl09o/oekEabPHIwWdqJg=
-github.com/initia-labs/cometbft v0.0.0-20231123095509-55acbb29663d h1:jQAn17nm+6Fb2xdz6CJ278VVHDkZrp6c8Lok9eAmizI=
-github.com/initia-labs/cometbft v0.0.0-20231123095509-55acbb29663d/go.mod h1:Y2MMMN//O5K4YKd8ze4r9jmk4Y7h0ajqILXbH5JQFVs=
+github.com/initia-labs/cometbft v0.0.0-20231208072048-4757eaa3fd6e h1:JIUreu80yVGkRHXxI0NkinwzNK2ux/CYZnSETosKMec=
+github.com/initia-labs/cometbft v0.0.0-20231208072048-4757eaa3fd6e/go.mod h1:Cmg5Hp4sNpapm7j+x0xRyt2g0juQfmB752ous+pA0G8=
 github.com/initia-labs/cosmos-sdk v0.47.7-0.20231123105913-ebb56e6fbd16 h1:QoF6V/9XvEuaThvP/jM0MvHlwVe3kn9/hvTPMXH/1ro=
 github.com/initia-labs/cosmos-sdk v0.47.7-0.20231123105913-ebb56e6fbd16/go.mod h1:xTc1chW8HyUWCfrgGbjS5jNu9RzlPVrBNfbL9RmZUio=
 github.com/initia-labs/initia v0.1.2-beta.5 h1:4e3AMBYhQO/pv/naWS2rtF2843oAL64SkviUCKMu2wo=
