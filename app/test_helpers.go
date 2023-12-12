@@ -79,7 +79,7 @@ func SetupWithGenesisAccounts(
 ) *MinitiaApp {
 	app, genesisState := setup(nil, true)
 
-	if genAccs == nil || len(genAccs) == 0 {
+	if len(genAccs) == 0 {
 		privAcc := secp256k1.GenPrivKey()
 		genAccs = []authtypes.GenesisAccount{
 			authtypes.NewBaseAccount(privAcc.PubKey().Address().Bytes(), privAcc.PubKey(), 0, 0),
