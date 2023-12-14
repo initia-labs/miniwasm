@@ -98,7 +98,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	// initia imports
-
+	initialanes "github.com/initia-labs/initia/app/lanes"
 	ibctestingtypes "github.com/initia-labs/initia/x/ibc/testing/types"
 	icaauth "github.com/initia-labs/initia/x/intertx"
 	icaauthkeeper "github.com/initia-labs/initia/x/intertx/keeper"
@@ -114,8 +114,6 @@ import (
 	signer_extraction "github.com/skip-mev/block-sdk/adapters/signer_extraction_adapter"
 	"github.com/skip-mev/block-sdk/block"
 	blockbase "github.com/skip-mev/block-sdk/block/base"
-	baselane "github.com/skip-mev/block-sdk/lanes/base"
-	freelane "github.com/skip-mev/block-sdk/lanes/free"
 	mevlane "github.com/skip-mev/block-sdk/lanes/mev"
 	"github.com/skip-mev/block-sdk/x/auction"
 	auctionante "github.com/skip-mev/block-sdk/x/auction/ante"
@@ -205,8 +203,6 @@ type MinitiaApp struct {
 	appCodec          codec.Codec
 	txConfig          client.TxConfig
 	interfaceRegistry types.InterfaceRegistry
-
-	invCheckPeriod uint
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -717,9 +713,11 @@ func NewMinitiaApp(
 		MaxTxs:          0,
 		SignerExtractor: signerExtractor,
 	}
+	factor := mevlane.NewDefaultAuctionFactory(app.txConfig.TxDecoder(), signerExtractor)
 	mevLane := mevlane.NewMEVLane(
 		mevConfig,
-		mevlane.NewDefaultAuctionFactory(app.txConfig.TxDecoder(), signerExtractor),
+		factor,
+		factor.MatchHandler(),
 	)
 
 	freeConfig := blockbase.LaneConfig{
@@ -727,14 +725,10 @@ func NewMinitiaApp(
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
 		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          10,
+		MaxTxs:          100,
 		SignerExtractor: signerExtractor,
 	}
-	freeLane := freelane.NewFreeLane(
-		freeConfig,
-		blockbase.DefaultTxPriority(),
-		applanes.FreeLaneMatchHandler(),
-	)
+	freeLane := initialanes.NewFreeLane(freeConfig, applanes.FreeLaneMatchHandler())
 
 	defaultLaneConfig := blockbase.LaneConfig{
 		Logger:          app.Logger(),
@@ -744,16 +738,16 @@ func NewMinitiaApp(
 		MaxTxs:          0,
 		SignerExtractor: signerExtractor,
 	}
-	defaultLane := baselane.NewDefaultLane(defaultLaneConfig)
+	defaultLane := initialanes.NewDefaultLane(defaultLaneConfig)
 
 	lanes := []block.Lane{mevLane, freeLane, defaultLane}
-	mempool := block.NewLanedMempool(app.Logger(), true, lanes...)
-	app.SetMempool(mempool)
-
-	anteHandler := app.setAnteHandler(mevLane, freeLane, wasmConfig, keys[wasmtypes.StoreKey])
-	for _, lane := range lanes {
-		lane.SetAnteHandler(anteHandler)
+	mempool, err := block.NewLanedMempool(app.Logger(), lanes)
+	if err != nil {
+		panic(err)
 	}
+
+	app.SetMempool(mempool)
+	anteHandler := app.setAnteHandler(mevLane, freeLane, wasmConfig, keys[wasmtypes.StoreKey])
 
 	// override the base-app's ABCI methods (CheckTx, PrepareProposal, ProcessProposal)
 	proposalHandlers := mevabci.NewProposalHandler(
