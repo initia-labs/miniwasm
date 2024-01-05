@@ -4,11 +4,13 @@ go 1.21.5
 
 require (
 	cosmossdk.io/api v0.7.2
+	cosmossdk.io/client/v2 v2.0.0-beta.1
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.1
+	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/feegrant v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
 	// we also need to update `LIBWASMVM_VERSION` of images/private/Dockerfile#5
@@ -25,18 +27,13 @@ require (
 	github.com/initia-labs/OPinit v0.2.0-beta.0
 	github.com/initia-labs/initia v0.2.0-beta.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.17.0
 	github.com/rakyll/statik v0.1.7
 	github.com/skip-mev/block-sdk v0.0.0-20231213233341-deceeb0e993b
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4
-)
-
-require (
-	cosmossdk.io/client/v2 v2.0.0-beta.1
-	cosmossdk.io/tools/confix v0.1.1
-	github.com/prometheus/client_golang v1.17.0
 )
 
 require (

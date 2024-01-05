@@ -79,6 +79,13 @@ func SetupWithGenesisAccounts(
 ) *MinitiaApp {
 	app, genesisState := setup(nil, true)
 
+	if len(genAccs) == 0 {
+		privAcc := secp256k1.GenPrivKey()
+		genAccs = []authtypes.GenesisAccount{
+			authtypes.NewBaseAccount(privAcc.PubKey().Address().Bytes(), privAcc.PubKey(), 0, 0),
+		}
+	}
+
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
@@ -95,15 +102,7 @@ func SetupWithGenesisAccounts(
 		valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 	}
 
-	if len(genAccs) == 0 {
-		privAcc := secp256k1.GenPrivKey()
-		genAccs = []authtypes.GenesisAccount{
-			authtypes.NewBaseAccount(privAcc.PubKey().Address().Bytes(), privAcc.PubKey(), 0, 0),
-		}
-	}
-
 	validators := make([]opchildtypes.Validator, 0, len(valSet.Validators))
-
 	for _, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		if err != nil {
