@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"context"
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +19,7 @@ func NewWasmBridgeHook(wasmKeeper *wasmkeeper.Keeper) WasmBridgeHook {
 	return WasmBridgeHook{wasmKeeper}
 }
 
-func (mbh WasmBridgeHook) Hook(ctx sdk.Context, sender sdk.AccAddress, msgBytes []byte) error {
+func (mbh WasmBridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBytes []byte) error {
 	msg := wasmtypes.MsgExecuteContract{}
 	err := json.Unmarshal(msgBytes, &msg)
 	if err != nil {
@@ -26,7 +27,7 @@ func (mbh WasmBridgeHook) Hook(ctx sdk.Context, sender sdk.AccAddress, msgBytes 
 	}
 
 	ms := wasmkeeper.NewMsgServerImpl(mbh.wasmKeeper)
-	_, err = ms.ExecuteContract(sdk.WrapSDKContext(ctx), &msg)
+	_, err = ms.ExecuteContract(ctx, &msg)
 
 	return err
 }

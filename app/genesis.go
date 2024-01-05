@@ -5,15 +5,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icagenesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icagenesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-	"github.com/initia-labs/miniwasm/types"
 
 	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
 )
@@ -28,19 +27,19 @@ import (
 type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState(cdc codec.JSONCodec, mbm module.BasicManager) GenesisState {
+func NewDefaultGenesisState(cdc codec.JSONCodec, mbm module.BasicManager, denom string) GenesisState {
 	return GenesisState(mbm.DefaultGenesis(cdc)).
 		ConfigureMinGasPrices(cdc).
 		ConfigureICA(cdc).
 		ConfigureIBCAllowedClients(cdc).
-		ConfigureAuctionFee(cdc)
+		ConfigureAuctionFee(cdc, denom)
 }
 
-func (genState GenesisState) ConfigureAuctionFee(cdc codec.JSONCodec) GenesisState {
+func (genState GenesisState) ConfigureAuctionFee(cdc codec.JSONCodec, denom string) GenesisState {
 	var auctionGenState auctiontypes.GenesisState
 	cdc.MustUnmarshalJSON(genState[auctiontypes.ModuleName], &auctionGenState)
-	auctionGenState.Params.ReserveFee.Denom = types.BaseDenom
-	auctionGenState.Params.MinBidIncrement.Denom = types.BaseDenom
+	auctionGenState.Params.ReserveFee.Denom = denom
+	auctionGenState.Params.MinBidIncrement.Denom = denom
 	genState[auctiontypes.ModuleName] = cdc.MustMarshalJSON(&auctionGenState)
 
 	return genState
