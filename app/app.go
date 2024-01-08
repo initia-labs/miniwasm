@@ -299,7 +299,7 @@ func NewMinitiaApp(
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
-	wasmKeeper := &wasmkeeper.Keeper{}
+	app.WasmKeeper = &wasmkeeper.Keeper{}
 
 	accountKeeper := authkeeper.NewAccountKeeper(
 		appCodec,
@@ -434,7 +434,7 @@ func NewMinitiaApp(
 		transferIBCModule,
 		// ics4wrapper: transfer -> move -> fee
 		feeMiddleware,
-		wasmKeeper,
+		app.WasmKeeper,
 	)
 
 	// create ibcfee middleware for transfer
@@ -522,7 +522,7 @@ func NewMinitiaApp(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	*wasmKeeper = wasmkeeper.NewKeeper(
+	*app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
 		app.AccountKeeper,
@@ -543,7 +543,6 @@ func NewMinitiaApp(
 		authorityAddr,
 		wasmOpts...,
 	)
-	app.WasmKeeper = wasmKeeper
 
 	// x/auction module keeper initialization
 
