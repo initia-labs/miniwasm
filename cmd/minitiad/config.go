@@ -6,6 +6,7 @@ import (
 
 	tmcfg "github.com/cometbft/cometbft/config"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+	indexerconfig "github.com/initia-labs/indexer/config"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
@@ -15,7 +16,8 @@ import (
 // minitiaAppConfig initia specify app config
 type minitiaAppConfig struct {
 	serverconfig.Config
-	WasmConfig wasmtypes.WasmConfig `mapstructure:"wasm"`
+	WasmConfig    wasmtypes.WasmConfig        `mapstructure:"wasm"`
+	IndexerConfig indexerconfig.IndexerConfig `mapstructure:"indexer"`
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -40,12 +42,13 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.MinGasPrices = fmt.Sprintf("0%s", types.BaseDenom)
 
 	minitiaAppConfig := minitiaAppConfig{
-		Config:     *srvCfg,
-		WasmConfig: wasmtypes.DefaultWasmConfig(),
+		Config:        *srvCfg,
+		WasmConfig:    wasmtypes.DefaultWasmConfig(),
+		IndexerConfig: indexerconfig.DefaultIndexerConfig(),
 	}
 
 	minitiaAppTemplate := serverconfig.DefaultConfigTemplate +
-		wasmtypes.DefaultConfigTemplate()
+		wasmtypes.DefaultConfigTemplate() + indexerconfig.DefaultConfigTemplate
 
 	return minitiaAppTemplate, minitiaAppConfig
 }
