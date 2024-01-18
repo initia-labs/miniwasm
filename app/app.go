@@ -93,10 +93,17 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	// initia imports
 	initialanes "github.com/initia-labs/initia/app/lanes"
 	"github.com/initia-labs/initia/app/params"
+	"github.com/initia-labs/initia/x/ibc/fetchprice"
+	fetchpriceconsumer "github.com/initia-labs/initia/x/ibc/fetchprice/consumer"
+	fetchpriceconsumerkeeper "github.com/initia-labs/initia/x/ibc/fetchprice/consumer/keeper"
+	fetchpriceconsumertypes "github.com/initia-labs/initia/x/ibc/fetchprice/consumer/types"
+	fetchpricetypes "github.com/initia-labs/initia/x/ibc/fetchprice/types"
 	ibctestingtypes "github.com/initia-labs/initia/x/ibc/testing/types"
 	icaauth "github.com/initia-labs/initia/x/intertx"
 	icaauthkeeper "github.com/initia-labs/initia/x/intertx/keeper"
@@ -183,31 +190,33 @@ type MinitiaApp struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper         *authkeeper.AccountKeeper
-	BankKeeper            *bankkeeper.BaseKeeper
-	CapabilityKeeper      *capabilitykeeper.Keeper
-	UpgradeKeeper         *upgradekeeper.Keeper
-	GroupKeeper           *groupkeeper.Keeper
-	ConsensusParamsKeeper *consensusparamkeeper.Keeper
-	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	TransferKeeper        *ibctransferkeeper.Keeper
-	AuthzKeeper           *authzkeeper.Keeper
-	FeeGrantKeeper        *feegrantkeeper.Keeper
-	ICAHostKeeper         *icahostkeeper.Keeper
-	ICAControllerKeeper   *icacontrollerkeeper.Keeper
-	ICAAuthKeeper         *icaauthkeeper.Keeper
-	IBCFeeKeeper          *ibcfeekeeper.Keeper
-	WasmKeeper            *wasmkeeper.Keeper
-	OPChildKeeper         *opchildkeeper.Keeper
-	AuctionKeeper         *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
+	AccountKeeper            *authkeeper.AccountKeeper
+	BankKeeper               *bankkeeper.BaseKeeper
+	CapabilityKeeper         *capabilitykeeper.Keeper
+	UpgradeKeeper            *upgradekeeper.Keeper
+	GroupKeeper              *groupkeeper.Keeper
+	ConsensusParamsKeeper    *consensusparamkeeper.Keeper
+	IBCKeeper                *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	TransferKeeper           *ibctransferkeeper.Keeper
+	AuthzKeeper              *authzkeeper.Keeper
+	FeeGrantKeeper           *feegrantkeeper.Keeper
+	ICAHostKeeper            *icahostkeeper.Keeper
+	ICAControllerKeeper      *icacontrollerkeeper.Keeper
+	ICAAuthKeeper            *icaauthkeeper.Keeper
+	IBCFeeKeeper             *ibcfeekeeper.Keeper
+	WasmKeeper               *wasmkeeper.Keeper
+	OPChildKeeper            *opchildkeeper.Keeper
+	AuctionKeeper            *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
+	FetchPriceConsumerKeeper *fetchpriceconsumerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
-	ScopedICAAuthKeeper       capabilitykeeper.ScopedKeeper
-	ScopedWasmKeeper          capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper                capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper           capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper            capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper      capabilitykeeper.ScopedKeeper
+	ScopedICAAuthKeeper            capabilitykeeper.ScopedKeeper
+	ScopedWasmKeeper               capabilitykeeper.ScopedKeeper
+	ScopedFetchPriceConsumerKeeper capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -250,7 +259,8 @@ func NewMinitiaApp(
 		ibcexported.StoreKey, upgradetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, authzkeeper.StoreKey, feegrant.StoreKey,
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
-		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey, auctiontypes.StoreKey,
+		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
+		auctiontypes.StoreKey, fetchpriceconsumertypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -295,6 +305,7 @@ func NewMinitiaApp(
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
 	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
+	scopedFetchPriceConsumerKeeper := app.CapabilityKeeper.ScopeToModule(fetchpriceconsumertypes.SubModuleName)
 
 	app.CapabilityKeeper.Seal()
 
@@ -497,6 +508,33 @@ func NewMinitiaApp(
 	wasmIBCModule := wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCFeeKeeper)
 	wasmIBCStack := ibcfee.NewIBCMiddleware(wasmIBCModule, *app.IBCFeeKeeper)
 
+	///////////////////////////////////////
+	// fetchprice provider configuration //
+	///////////////////////////////////////
+	var fetchpriceConsumerStack porttypes.IBCModule
+	{
+		app.FetchPriceConsumerKeeper = fetchpriceconsumerkeeper.NewKeeper(
+			appCodec,
+			runtime.NewKVStoreService(keys[fetchpriceconsumertypes.StoreKey]),
+			ac,
+			// ics4wrapper: fetchprice consumer -> fee
+			app.IBCFeeKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			app.IBCKeeper.PortKeeper,
+			scopedFetchPriceConsumerKeeper,
+		)
+
+		fetchpriceConsumerModule := fetchpriceconsumer.NewIBCModule(
+			appCodec,
+			*app.FetchPriceConsumerKeeper,
+		)
+		fetchpriceConsumerStack = ibcfee.NewIBCMiddleware(
+			// receive: fee -> fetchprice consumer
+			fetchpriceConsumerModule,
+			*app.IBCFeeKeeper,
+		)
+	}
+
 	//////////////////////////////
 	// IBC router Configuration //
 	//////////////////////////////
@@ -507,7 +545,8 @@ func NewMinitiaApp(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
-		AddRoute(wasmtypes.ModuleName, wasmIBCStack)
+		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
+		AddRoute(fetchpricetypes.ModuleName, fetchpriceConsumerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -586,6 +625,9 @@ func NewMinitiaApp(
 		icaModule,
 		icaAuthModule,
 		ibcfee.NewAppModule(*app.IBCFeeKeeper),
+		ibctm.NewAppModule(),
+		solomachine.NewAppModule(),
+		fetchprice.NewAppModule(appCodec, app.FetchPriceConsumerKeeper, nil),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -633,7 +675,8 @@ func NewMinitiaApp(
 		opchildtypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, group.ModuleName,
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName, ibcexported.ModuleName,
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
-		ibcfeetypes.ModuleName, consensusparamtypes.ModuleName, auctiontypes.ModuleName, wasmtypes.ModuleName,
+		ibcfeetypes.ModuleName, consensusparamtypes.ModuleName, auctiontypes.ModuleName,
+		wasmtypes.ModuleName, fetchpricetypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
