@@ -546,7 +546,7 @@ func NewMinitiaApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
 		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
-		AddRoute(fetchpricetypes.ModuleName, fetchpriceConsumerStack)
+		AddRoute(fetchpriceconsumertypes.SubModuleName, fetchpriceConsumerStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
