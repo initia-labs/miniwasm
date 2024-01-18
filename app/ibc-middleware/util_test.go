@@ -3,6 +3,7 @@ package ibc_middleware
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -28,7 +29,7 @@ func Test_validateAndParseMemo(t *testing.T) {
 		Msg:      []byte("{}"),
 		Funds: sdk.Coins{{
 			Denom:  "foo",
-			Amount: sdk.NewInt(100),
+			Amount: math.NewInt(100),
 		}},
 	}, msg)
 

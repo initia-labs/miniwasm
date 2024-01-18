@@ -1,14 +1,14 @@
 package ante
 
 import (
-	"cosmossdk.io/errors"
+	corestoretypes "cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	opchildante "github.com/initia-labs/OPinit/x/opchild/ante"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
@@ -27,16 +27,16 @@ type HandlerOptions struct {
 	ante.HandlerOptions
 	Codec         codec.BinaryCodec
 	IBCkeeper     *ibckeeper.Keeper
-	RollupKeeper  opchildtypes.AnteKeeper
+	OPChildKeeper opchildtypes.AnteKeeper
 	AuctionKeeper auctionkeeper.Keeper
 	TxEncoder     sdk.TxEncoder
 	MevLane       auctionante.MEVLane
 	FreeLane      block.Lane
 
 	// wasm ante options
-	WasmKeeper        *wasmkeeper.Keeper
-	WasmConfig        *wasmtypes.WasmConfig
-	TXCounterStoreKey storetypes.StoreKey
+	WasmKeeper            *wasmkeeper.Keeper
+	WasmConfig            *wasmtypes.WasmConfig
+	TXCounterStoreService corestoretypes.KVStoreService
 }
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence
@@ -44,23 +44,27 @@ type HandlerOptions struct {
 // signer.
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, errors.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
 
 	if options.BankKeeper == nil {
-		return nil, errors.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
 	}
 
 	if options.SignModeHandler == nil {
-		return nil, errors.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
 
 	if options.WasmConfig == nil {
-		return nil, errors.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
 
 	if options.WasmKeeper == nil {
-		return nil, errors.Wrap(sdkerrors.ErrLogic, "wasm keeper is required for ante builder")
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm keeper is required for ante builder")
+	}
+
+	if options.TXCounterStoreService == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
 	}
 
 	sigGasConsumer := options.SigGasConsumer
@@ -70,7 +74,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	txFeeChecker := options.TxFeeChecker
 	if txFeeChecker == nil {
-		txFeeChecker = opchildante.NewMempoolFeeChecker(options.RollupKeeper).CheckTxFeeWithMinGasPrices
+		txFeeChecker = opchildante.NewMempoolFeeChecker(options.OPChildKeeper).CheckTxFeeWithMinGasPrices
 	}
 
 	freeLaneFeeChecker := func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
@@ -82,7 +86,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		// return fee without fee check
 		feeTx, ok := tx.(sdk.FeeTx)
 		if !ok {
-			return nil, 0, errors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+			return nil, 0, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 		}
 
 		return feeTx.GetFee(), 1 /* FIFO */, nil
@@ -93,7 +97,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// NOTE - WASM simulation gas limit can affect other module messages.
 		wasmkeeper.NewLimitSimulationGasDecorator(options.WasmConfig.SimulationGasLimit),
-		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreKey),
+		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
 		wasmkeeper.NewGasRegisterDecorator(options.WasmKeeper.GetGasRegister()),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

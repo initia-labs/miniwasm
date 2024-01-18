@@ -6,45 +6,48 @@ import (
 	"os"
 	"path"
 
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
-
-	dbm "github.com/cometbft/cometbft-db"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+
 	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"cosmossdk.io/log"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
+
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	cosmosgenutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
+	"github.com/initia-labs/initia/app/params"
 	minitiaapp "github.com/initia-labs/miniwasm/app"
-	"github.com/initia-labs/miniwasm/app/params"
 )
 
 // NewRootCmd creates a new root command for initiad. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := minitiaapp.MakeEncodingConfig()
-
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetCoinType(minitiaapp.CoinType)
 
@@ -57,8 +60,11 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	sdkConfig.SetBech32PrefixForAccount(minitiaapp.AccountAddressPrefix, accountPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
-	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen()) // same with wasm one
+	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	sdkConfig.Seal()
+
+	encodingConfig := minitiaapp.MakeEncodingConfig()
+	basicManager := minitiaapp.BasicManager()
 
 	// Get the executable name and configure the viper instance so that environmental
 	// variables are checked based off that name. The underscore character is used
@@ -72,7 +78,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	// Configure the viper instance
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -121,43 +127,68 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, basicManager)
+
+	// add keyring to autocli opts
+	autoCliOpts := minitiaapp.AutoCliOpts()
+	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.Keyring, _ = keyring.NewAutoCLIKeyring(initClientCtx.Keyring)
+	autoCliOpts.ClientCtx = initClientCtx
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	return rootCmd, encodingConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
-	// TODO check gaia before make release candidate
-	// authclient.Codec = encodingConfig.Marshaler
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
+	a := appCreator{encodingConfig}
 
 	rootCmd.AddCommand(
-		InitCmd(minitiaapp.ModuleBasics, minitiaapp.DefaultNodeHome),
-		AddGenesisAccountCmd(minitiaapp.DefaultNodeHome),
-		AddGenesisValidatorCmd(minitiaapp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome),
-		cosmosgenutilcli.ValidateGenesisCmd(minitiaapp.ModuleBasics),
-		tmcli.NewCompletionCmd(rootCmd, true),
+		InitCmd(basicManager, minitiaapp.DefaultNodeHome),
 		debug.Cmd(),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(a.newApp, minitiaapp.DefaultNodeHome),
+		snapshot.Cmd(a.newApp),
 	)
 
-	a := appCreator{encodingConfig}
 	server.AddCommands(rootCmd, minitiaapp.DefaultNodeHome, a.newApp, a.appExport, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		server.StatusCommand(),
+		genesisCommand(encodingConfig, basicManager),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(minitiaapp.DefaultNodeHome),
+		keys.Commands(),
 	)
-
-	// add rosetta commands
-	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
-	wasm.AddModuleInitFlags(startCmd)
+}
+
+func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.BasicManager) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "genesis",
+		Short:                      "Application's genesis-related subcommands",
+		DisableFlagParsing:         false,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	ac := encodingConfig.TxConfig.SigningContext().AddressCodec()
+
+	cmd.AddCommand(
+		genutilcli.AddGenesisAccountCmd(minitiaapp.DefaultNodeHome, ac),
+		AddGenesisValidatorCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(basicManager),
+		genutilcli.GenTxCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome, ac),
+	)
+
+	return cmd
 }
 
 func queryCommand() *cobra.Command {
@@ -171,15 +202,13 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
-		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		rpc.QueryEventForTxCmd(),
+		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
+		server.QueryBlocksCmd(),
 		authcmd.QueryTxCmd(),
+		server.QueryBlockResultsCmd(),
 	)
-
-	minitiaapp.ModuleBasics.AddQueryCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
@@ -199,15 +228,11 @@ func txCommand() *cobra.Command {
 		authcmd.GetMultiSignCommand(),
 		authcmd.GetMultiSignBatchCmd(),
 		authcmd.GetValidateSignaturesCommand(),
-		flags.LineBreak,
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		flags.LineBreak,
+		authcmd.GetSimulateCmd(),
 	)
-
-	minitiaapp.ModuleBasics.AddTxCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
