@@ -72,6 +72,12 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	// ibc imports
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	icq "github.com/cosmos/ibc-apps/modules/async-icq/v8"
+	icqkeeper "github.com/cosmos/ibc-apps/modules/async-icq/v8/keeper"
+	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -97,12 +103,11 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	// initia imports
-	initialanes "github.com/initia-labs/initia/app/lanes"
-	"github.com/initia-labs/initia/app/params"
+
+	initiaapplanes "github.com/initia-labs/initia/app/lanes"
+	initiaappparams "github.com/initia-labs/initia/app/params"
 	"github.com/initia-labs/initia/x/ibc/fetchprice"
-	fetchpriceconsumer "github.com/initia-labs/initia/x/ibc/fetchprice/consumer"
-	fetchpriceconsumerkeeper "github.com/initia-labs/initia/x/ibc/fetchprice/consumer/keeper"
-	fetchpriceconsumertypes "github.com/initia-labs/initia/x/ibc/fetchprice/consumer/types"
+	fetchpricekeeper "github.com/initia-labs/initia/x/ibc/fetchprice/keeper"
 	fetchpricetypes "github.com/initia-labs/initia/x/ibc/fetchprice/types"
 	ibctestingtypes "github.com/initia-labs/initia/x/ibc/testing/types"
 	icaauth "github.com/initia-labs/initia/x/intertx"
@@ -124,6 +129,9 @@ import (
 	auctionante "github.com/skip-mev/block-sdk/x/auction/ante"
 	auctionkeeper "github.com/skip-mev/block-sdk/x/auction/keeper"
 	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
+	"github.com/skip-mev/slinky/x/oracle"
+	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 
 	// CosmWasm imports
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -134,6 +142,7 @@ import (
 	appante "github.com/initia-labs/miniwasm/app/ante"
 	apphook "github.com/initia-labs/miniwasm/app/hook"
 	wasmibcmiddleware "github.com/initia-labs/miniwasm/app/ibc-middleware"
+	appkeepers "github.com/initia-labs/miniwasm/app/keepers"
 	applanes "github.com/initia-labs/miniwasm/app/lanes"
 
 	// unnamed import of statik for swagger UI support
@@ -154,6 +163,9 @@ var (
 		// distributed to proposers
 		auctiontypes.ModuleName: nil,
 		opchildtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+
+		// slinky oracle permissions
+		oracletypes.ModuleName: nil,
 
 		// this is only for testing
 		authtypes.Minter: {authtypes.Minter},
@@ -190,33 +202,37 @@ type MinitiaApp struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper            *authkeeper.AccountKeeper
-	BankKeeper               *bankkeeper.BaseKeeper
-	CapabilityKeeper         *capabilitykeeper.Keeper
-	UpgradeKeeper            *upgradekeeper.Keeper
-	GroupKeeper              *groupkeeper.Keeper
-	ConsensusParamsKeeper    *consensusparamkeeper.Keeper
-	IBCKeeper                *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	TransferKeeper           *ibctransferkeeper.Keeper
-	AuthzKeeper              *authzkeeper.Keeper
-	FeeGrantKeeper           *feegrantkeeper.Keeper
-	ICAHostKeeper            *icahostkeeper.Keeper
-	ICAControllerKeeper      *icacontrollerkeeper.Keeper
-	ICAAuthKeeper            *icaauthkeeper.Keeper
-	IBCFeeKeeper             *ibcfeekeeper.Keeper
-	WasmKeeper               *wasmkeeper.Keeper
-	OPChildKeeper            *opchildkeeper.Keeper
-	AuctionKeeper            *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
-	FetchPriceConsumerKeeper *fetchpriceconsumerkeeper.Keeper
+	AccountKeeper         *authkeeper.AccountKeeper
+	BankKeeper            *bankkeeper.BaseKeeper
+	CapabilityKeeper      *capabilitykeeper.Keeper
+	UpgradeKeeper         *upgradekeeper.Keeper
+	GroupKeeper           *groupkeeper.Keeper
+	ConsensusParamsKeeper *consensusparamkeeper.Keeper
+	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	TransferKeeper        *ibctransferkeeper.Keeper
+	AuthzKeeper           *authzkeeper.Keeper
+	FeeGrantKeeper        *feegrantkeeper.Keeper
+	ICAHostKeeper         *icahostkeeper.Keeper
+	ICAControllerKeeper   *icacontrollerkeeper.Keeper
+	ICAAuthKeeper         *icaauthkeeper.Keeper
+	IBCFeeKeeper          *ibcfeekeeper.Keeper
+	WasmKeeper            *wasmkeeper.Keeper
+	OPChildKeeper         *opchildkeeper.Keeper
+	AuctionKeeper         *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
+	PacketForwardKeeper   *packetforwardkeeper.Keeper
+	ICQKeeper             *icqkeeper.Keeper
+	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the slinky oracle
+	FetchPriceKeeper      *fetchpricekeeper.Keeper
 
 	// make scoped keepers public for test purposes
-	ScopedIBCKeeper                capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper           capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper            capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper      capabilitykeeper.ScopedKeeper
-	ScopedICAAuthKeeper            capabilitykeeper.ScopedKeeper
-	ScopedWasmKeeper               capabilitykeeper.ScopedKeeper
-	ScopedFetchPriceConsumerKeeper capabilitykeeper.ScopedKeeper
+	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
+	ScopedICAAuthKeeper       capabilitykeeper.ScopedKeeper
+	ScopedWasmKeeper          capabilitykeeper.ScopedKeeper
+	ScopedICQKeeper           capabilitykeeper.ScopedKeeper
+	ScopedFetchPriceKeeper    capabilitykeeper.ScopedKeeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -239,7 +255,7 @@ func NewMinitiaApp(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *MinitiaApp {
-	encodingConfig := params.MakeEncodingConfig()
+	encodingConfig := initiaappparams.MakeEncodingConfig()
 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
@@ -260,7 +276,8 @@ func NewMinitiaApp(
 		capabilitytypes.StoreKey, authzkeeper.StoreKey, feegrant.StoreKey,
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
-		auctiontypes.StoreKey, fetchpriceconsumertypes.StoreKey,
+		auctiontypes.StoreKey, packetforwardtypes.StoreKey, icqtypes.StoreKey,
+		oracletypes.StoreKey, fetchpricetypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -285,7 +302,8 @@ func NewMinitiaApp(
 	vc := authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
 	cc := authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())
 
-	authorityAddr, err := ac.BytesToString(authtypes.NewModuleAddress(opchildtypes.ModuleName))
+	authorityAccAddr := authtypes.NewModuleAddress(opchildtypes.ModuleName)
+	authorityAddr, err := ac.BytesToString(authorityAccAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -305,7 +323,8 @@ func NewMinitiaApp(
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
 	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
-	scopedFetchPriceConsumerKeeper := app.CapabilityKeeper.ScopeToModule(fetchpriceconsumertypes.SubModuleName)
+	app.ScopedICQKeeper = app.CapabilityKeeper.ScopeToModule(icqtypes.ModuleName)
+	app.ScopedFetchPriceKeeper = app.CapabilityKeeper.ScopeToModule(fetchpricetypes.ModuleName)
 
 	app.CapabilityKeeper.Seal()
 
@@ -387,6 +406,14 @@ func NewMinitiaApp(
 	)
 	app.GroupKeeper = &groupKeeper
 
+	// initialize oracle keeper
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		authorityAccAddr,
+	)
+	app.OracleKeeper = &oracleKeeper
+
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -412,94 +439,117 @@ func NewMinitiaApp(
 	////////////////////////////
 	// Transfer configuration //
 	////////////////////////////
-	// Send   : transfer -> wasm   -> fee    -> channel
-	// Receive: channel  -> fee    -> wasm   -> transfer
+	// Send   : transfer -> packet forward -> wasm   -> fee            -> channel
+	// Receive: channel  -> fee            -> wasm   -> packet forward -> transfer
 
-	wasmMiddleware := &wasmibcmiddleware.IBCMiddleware{}
-	feeMiddleware := &ibcfee.IBCMiddleware{}
+	var transferStack porttypes.IBCModule
+	{
+		packetForwardKeeper := &packetforwardkeeper.Keeper{}
+		wasmMiddleware := &wasmibcmiddleware.IBCMiddleware{}
 
-	// Create Transfer Keepers
-	transferKeeper := ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		nil, // we don't need migration
-		// ics4wrapper: transfer -> router
-		wasmMiddleware,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-		authorityAddr,
-	)
-	app.TransferKeeper = &transferKeeper
-	transferModule := ibctransfer.NewAppModule(*app.TransferKeeper)
-	transferIBCModule := ibctransfer.NewIBCModule(*app.TransferKeeper)
+		// Create Transfer Keepers
+		transferKeeper := ibctransferkeeper.NewKeeper(
+			appCodec,
+			keys[ibctransfertypes.StoreKey],
+			nil, // we don't need migration
+			// ics4wrapper: transfer -> packet forward
+			packetForwardKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			app.IBCKeeper.PortKeeper,
+			app.AccountKeeper,
+			app.BankKeeper,
+			scopedTransferKeeper,
+			authorityAddr,
+		)
+		app.TransferKeeper = &transferKeeper
+		transferIBCModule := ibctransfer.NewIBCModule(*app.TransferKeeper)
 
-	// channel -> ibcfee -> move -> transfer
-	transferStack := feeMiddleware
+		// create packet forward middleware
+		*packetForwardKeeper = *packetforwardkeeper.NewKeeper(
+			appCodec,
+			keys[packetforwardtypes.StoreKey],
+			app.TransferKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			appkeepers.NewCommunityPoolKeeper(app.BankKeeper, authtypes.FeeCollectorName),
+			app.BankKeeper,
+			// ics4wrapper: transfer -> packet forward -> wasm
+			wasmMiddleware,
+			authorityAddr,
+		)
+		app.PacketForwardKeeper = packetForwardKeeper
+		packetForwardMiddleware := packetforward.NewIBCMiddleware(
+			// receive: packet forward -> transfer
+			transferIBCModule,
+			app.PacketForwardKeeper,
+			0,
+			packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+			packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
+		)
 
-	// create move middleware for transfer
-	*wasmMiddleware = wasmibcmiddleware.NewIBCMiddleware(
-		// receive: move -> transfer
-		transferIBCModule,
-		// ics4wrapper: transfer -> move -> fee
-		feeMiddleware,
-		app.WasmKeeper,
-	)
+		// create move middleware for transfer
+		*wasmMiddleware = wasmibcmiddleware.NewIBCMiddleware(
+			// receive: wasm -> packet forward -> transfer
+			packetForwardMiddleware,
+			// ics4wrapper: transfer -> packet forward -> wasm -> fee
+			app.IBCFeeKeeper,
+			app.WasmKeeper,
+		)
 
-	// create ibcfee middleware for transfer
-	*feeMiddleware = ibcfee.NewIBCMiddleware(
-		// receive: fee -> move -> transfer
-		wasmMiddleware,
-		// ics4wrapper: transfer -> move -> fee -> channel
-		*app.IBCFeeKeeper,
-	)
+		// create ibcfee middleware for transfer
+		transferStack = ibcfee.NewIBCMiddleware(
+			// receive: fee -> wasm -> packet forward -> transfer
+			wasmMiddleware,
+			// ics4wrapper: transfer -> packet forward -> wasm -> fee -> channel
+			*app.IBCFeeKeeper,
+		)
+	}
 
 	///////////////////////
 	// ICA configuration //
 	///////////////////////
 
-	icaHostKeeper := icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey],
-		nil, // we don't need migration
-		app.IBCFeeKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		scopedICAHostKeeper,
-		app.MsgServiceRouter(),
-		authorityAddr,
-	)
-	app.ICAHostKeeper = &icaHostKeeper
+	var icaHostStack porttypes.IBCModule
+	var icaControllerStack porttypes.IBCModule
+	{
+		icaHostKeeper := icahostkeeper.NewKeeper(
+			appCodec, keys[icahosttypes.StoreKey],
+			nil, // we don't need migration
+			app.IBCFeeKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			app.IBCKeeper.PortKeeper,
+			app.AccountKeeper,
+			app.ScopedICAHostKeeper,
+			app.MsgServiceRouter(),
+			authorityAddr,
+		)
+		app.ICAHostKeeper = &icaHostKeeper
 
-	icaControllerKeeper := icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey],
-		nil, // we don't need migration
-		app.IBCFeeKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper,
-		app.MsgServiceRouter(),
-		authorityAddr,
-	)
-	app.ICAControllerKeeper = &icaControllerKeeper
+		icaControllerKeeper := icacontrollerkeeper.NewKeeper(
+			appCodec, keys[icacontrollertypes.StoreKey],
+			nil, // we don't need migration
+			app.IBCFeeKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			app.IBCKeeper.PortKeeper,
+			app.ScopedICAControllerKeeper,
+			app.MsgServiceRouter(),
+			authorityAddr,
+		)
+		app.ICAControllerKeeper = &icaControllerKeeper
 
-	icaAuthKeeper := icaauthkeeper.NewKeeper(
-		appCodec,
-		*app.ICAControllerKeeper,
-		scopedICAAuthKeeper,
-		ac,
-	)
-	app.ICAAuthKeeper = &icaAuthKeeper
+		icaAuthKeeper := icaauthkeeper.NewKeeper(
+			appCodec,
+			*app.ICAControllerKeeper,
+			app.ScopedICAAuthKeeper,
+			ac,
+		)
+		app.ICAAuthKeeper = &icaAuthKeeper
 
-	icaModule := ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper)
-	icaAuthModule := icaauth.NewAppModule(appCodec, *app.ICAAuthKeeper)
-	icaAuthIBCModule := icaauth.NewIBCModule(*app.ICAAuthKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(*app.ICAHostKeeper)
-	icaHostStack := ibcfee.NewIBCMiddleware(icaHostIBCModule, *app.IBCFeeKeeper)
-	icaControllerIBCModule := icacontroller.NewIBCMiddleware(icaAuthIBCModule, *app.ICAControllerKeeper)
-	icaControllerStack := ibcfee.NewIBCMiddleware(icaControllerIBCModule, *app.IBCFeeKeeper)
+		icaAuthIBCModule := icaauth.NewIBCModule(*app.ICAAuthKeeper)
+		icaHostIBCModule := icahost.NewIBCModule(*app.ICAHostKeeper)
+		icaHostStack = ibcfee.NewIBCMiddleware(icaHostIBCModule, *app.IBCFeeKeeper)
+		icaControllerIBCModule := icacontroller.NewIBCMiddleware(icaAuthIBCModule, *app.ICAControllerKeeper)
+		icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerIBCModule, *app.IBCFeeKeeper)
+	}
 
 	//////////////////////////////
 	// Wasm IBC Configuration   //
@@ -508,29 +558,53 @@ func NewMinitiaApp(
 	wasmIBCModule := wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCFeeKeeper)
 	wasmIBCStack := ibcfee.NewIBCMiddleware(wasmIBCModule, *app.IBCFeeKeeper)
 
-	///////////////////////////////////////
-	// fetchprice provider configuration //
-	///////////////////////////////////////
-	var fetchpriceConsumerStack porttypes.IBCModule
+	///////////////////////
+	// ICQ configuration //
+	///////////////////////
+	var icqStack porttypes.IBCModule
 	{
-		app.FetchPriceConsumerKeeper = fetchpriceconsumerkeeper.NewKeeper(
+		icqKeeper := icqkeeper.NewKeeper(
 			appCodec,
-			runtime.NewKVStoreService(keys[fetchpriceconsumertypes.StoreKey]),
-			ac,
-			// ics4wrapper: fetchprice consumer -> fee
+			app.keys[icqtypes.StoreKey],
+			// ics4wrapper: icq -> fee -> channel
 			app.IBCFeeKeeper,
 			app.IBCKeeper.ChannelKeeper,
 			app.IBCKeeper.PortKeeper,
-			scopedFetchPriceConsumerKeeper,
+			app.ScopedICQKeeper,
+			bApp.GRPCQueryRouter(),
+			authorityAddr,
+		)
+		app.ICQKeeper = &icqKeeper
+
+		// Create Async ICQ module
+		icqModule := icq.NewIBCModule(*app.ICQKeeper)
+		icqStack = ibcfee.NewIBCMiddleware(icqModule, *app.IBCFeeKeeper)
+	}
+
+	//////////////////////////////
+	// FetchPrice configuration //
+	//////////////////////////////
+
+	var fetchpriceStack porttypes.IBCModule
+	{
+		app.FetchPriceKeeper = fetchpricekeeper.NewKeeper(
+			appCodec,
+			runtime.NewKVStoreService(app.keys[fetchpricetypes.StoreKey]),
+			// ics4wrapper: fetchprice -> fee -> channel
+			app.IBCFeeKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			app.IBCKeeper.PortKeeper,
+			app.AccountKeeper,
+			app.OracleKeeper,
+			app.ScopedFetchPriceKeeper,
+			authorityAddr,
 		)
 
-		fetchpriceConsumerModule := fetchpriceconsumer.NewIBCModule(
-			appCodec,
-			*app.FetchPriceConsumerKeeper,
-		)
-		fetchpriceConsumerStack = ibcfee.NewIBCMiddleware(
-			// receive: fee -> fetchprice consumer
-			fetchpriceConsumerModule,
+		// Create FetchPrice module
+		fetchpriceModule := fetchprice.NewIBCModule(*app.FetchPriceKeeper)
+		fetchpriceStack = ibcfee.NewIBCMiddleware(
+			// receive: fee -> fetchprice
+			fetchpriceModule,
 			*app.IBCFeeKeeper,
 		)
 	}
@@ -546,7 +620,8 @@ func NewMinitiaApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
 		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
-		AddRoute(fetchpriceconsumertypes.SubModuleName, fetchpriceConsumerStack)
+		AddRoute(icqtypes.ModuleName, icqStack).
+		AddRoute(fetchpricetypes.ModuleName, fetchpriceStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -621,13 +696,17 @@ func NewMinitiaApp(
 		auction.NewAppModule(app.appCodec, *app.AuctionKeeper),
 		// ibc modules
 		ibc.NewAppModule(app.IBCKeeper),
-		transferModule,
-		icaModule,
-		icaAuthModule,
+		ibctransfer.NewAppModule(*app.TransferKeeper),
+		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
+		icaauth.NewAppModule(appCodec, *app.ICAAuthKeeper),
 		ibcfee.NewAppModule(*app.IBCFeeKeeper),
 		ibctm.NewAppModule(),
 		solomachine.NewAppModule(),
-		fetchprice.NewAppModule(appCodec, app.FetchPriceConsumerKeeper, nil),
+		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
+		icq.NewAppModule(*app.ICQKeeper, nil),
+		fetchprice.NewAppModule(appCodec, *app.FetchPriceKeeper),
+		// slinky modules
+		oracle.NewAppModule(appCodec, *app.OracleKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -676,7 +755,8 @@ func NewMinitiaApp(
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName, ibcexported.ModuleName,
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
 		ibcfeetypes.ModuleName, consensusparamtypes.ModuleName, auctiontypes.ModuleName,
-		wasmtypes.ModuleName, fetchpricetypes.ModuleName,
+		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
+		icqtypes.ModuleName, fetchpricetypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -692,7 +772,7 @@ func NewMinitiaApp(
 	}
 
 	// register upgrade handler for later use
-	// app.RegisterUpgradeHandlers(app.configurator)
+	app.RegisterUpgradeHandlers(app.configurator)
 
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
 
@@ -742,7 +822,7 @@ func NewMinitiaApp(
 		MaxTxs:          100,
 		SignerExtractor: signerExtractor,
 	}
-	freeLane := initialanes.NewFreeLane(freeConfig, applanes.FreeLaneMatchHandler())
+	freeLane := initiaapplanes.NewFreeLane(freeConfig, applanes.FreeLaneMatchHandler())
 
 	defaultLaneConfig := blockbase.LaneConfig{
 		Logger:          app.Logger(),
@@ -752,7 +832,7 @@ func NewMinitiaApp(
 		MaxTxs:          0,
 		SignerExtractor: signerExtractor,
 	}
-	defaultLane := initialanes.NewDefaultLane(defaultLaneConfig)
+	defaultLane := initiaapplanes.NewDefaultLane(defaultLaneConfig)
 
 	lanes := []block.Lane{mevLane, freeLane, defaultLane}
 	mempool, err := block.NewLanedMempool(app.Logger(), lanes)
@@ -1026,14 +1106,6 @@ func (app *MinitiaApp) RegisterTendermintService(clientCtx client.Context) {
 
 func (app *MinitiaApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
-}
-
-// RegisterUpgradeHandlers returns upgrade handlers
-func (app *MinitiaApp) RegisterUpgradeHandlers(cfg module.Configurator) {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		NewUpgradeHandler(app).CreateUpgradeHandler(),
-	)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
