@@ -3,6 +3,8 @@ package types
 import (
 	"cosmossdk.io/core/address"
 
+	sdkmath "cosmossdk.io/math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -75,13 +77,7 @@ func (m MsgMint) Validate(accAddrCodec address.Codec) error {
 		return ErrEmptySender
 	}
 
-	if addr, err := accAddrCodec.StringToBytes(m.MintToAddress); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptyMintToAddress
-	}
-
-	if !m.Amount.IsValid() || m.Amount.IsPositive() {
+	if !m.Amount.IsValid() || m.Amount.Amount.Equal(sdkmath.ZeroInt()) {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
@@ -112,7 +108,7 @@ func (m MsgBurn) Validate(accAddrCodec address.Codec) error {
 		return ErrEmptySender
 	}
 
-	if !m.Amount.IsValid() || m.Amount.IsPositive() {
+	if !m.Amount.IsValid() || m.Amount.Amount.Equal(sdkmath.ZeroInt()) {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 
@@ -148,7 +144,7 @@ func (m MsgForceTransfer) Validate(accAddrCodec address.Codec) error {
 		return ErrEmptyTransferToAddress
 	}
 
-	if !m.Amount.IsValid() || m.Amount.IsPositive() {
+	if !m.Amount.IsValid() || m.Amount.Amount.Equal(sdkmath.ZeroInt()) {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
 	}
 

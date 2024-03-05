@@ -148,10 +148,12 @@ func TestMsgCreateDenom(t *testing.T) {
 	ac := authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 
 	signers, _, err := codec.GetMsgV1Signers(&msg)
-	require.NoError(t, err, "can get signers from msg", signers)
+	require.NoError(t, err, "can get signers from msg")
 
+	signer, err := ac.BytesToString(signers[0])
+	require.NoError(t, err, "can parse signer to string")
 	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0], addr1)
+	require.Equal(t, signer, addr1.String())
 
 	tests := []struct {
 		name       string
@@ -217,8 +219,10 @@ func TestMsgMint(t *testing.T) {
 
 	signers, _, err := codec.GetMsgV1Signers(&msg)
 	require.NoError(t, err, "can get signers from msg", signers)
+	signer, err := ac.BytesToString(signers[0])
+	require.NoError(t, err, "can parse signer to string")
 	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0], addr1)
+	require.Equal(t, signer, addr1.String())
 
 	tests := []struct {
 		name       string
@@ -285,8 +289,10 @@ func TestMsgBurn(t *testing.T) {
 
 	signers, _, err := codec.GetMsgV1Signers(baseMsg)
 	require.NoError(t, err, "can get signers from msg", signers)
+	signer, err := ac.BytesToString(signers[0])
+	require.NoError(t, err, "can parse signer to string")
 	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0], addr1)
+	require.Equal(t, signer, addr1.String())
 
 	tests := []struct {
 		name       string
@@ -361,8 +367,10 @@ func TestMsgChangeAdmin(t *testing.T) {
 
 	signers, _, err := codec.GetMsgV1Signers(baseMsg)
 	require.NoError(t, err, "can get signers from msg", signers)
+	signer, err := ac.BytesToString(signers[0])
+	require.NoError(t, err, "can parse signer to string")
 	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0], addr1)
+	require.Equal(t, signer, addr1.String())
 
 	tests := []struct {
 		name       string
@@ -468,8 +476,10 @@ func TestMsgSetDenomMetadata(t *testing.T) {
 
 	signers, _, err := codec.GetMsgV1Signers(baseMsg)
 	require.NoError(t, err, "can get signers from msg", signers)
+	signer, err := ac.BytesToString(signers[0])
+	require.NoError(t, err, "can parse signer to string")
 	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0], addr1)
+	require.Equal(t, signer, addr1.String())
 
 	tests := []struct {
 		name       string

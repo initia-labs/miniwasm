@@ -58,7 +58,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -706,7 +705,7 @@ func NewMinitiaApp(
 
 	app.ModuleManager = module.NewManager(
 		auth.NewAppModule(appCodec, *app.AccountKeeper, nil, nil),
-		bank.NewAppModule(appCodec, *app.BankKeeper, app.AccountKeeper, nil),
+		appkeepers.NewBankAppModule(appCodec, *&app.BankKeeper, app.AccountKeeper, nil),
 		opchild.NewAppModule(appCodec, *app.OPChildKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
@@ -793,8 +792,6 @@ func NewMinitiaApp(
 	if err != nil {
 		panic(err)
 	}
-	// custom bank msg server to use custom functions
-	banktypes.RegisterMsgServer(app.MsgServiceRouter(), appkeepers.NewBankMsgServerImpl(app.BankKeeper))
 
 	// register upgrade handler for later use
 	app.RegisterUpgradeHandlers(app.configurator)
