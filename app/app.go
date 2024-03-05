@@ -59,7 +59,6 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -172,7 +171,8 @@ var (
 		oracletypes.ModuleName: nil,
 
 		// this is only for testing
-		authtypes.Minter: {authtypes.Minter},
+		authtypes.Minter:             {authtypes.Minter},
+		tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -207,7 +207,7 @@ type MinitiaApp struct {
 
 	// keepers
 	AccountKeeper         *authkeeper.AccountKeeper
-	BankKeeper            *bankkeeper.BaseKeeper
+	BankKeeper            *appkeepers.BaseKeeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	GroupKeeper           *groupkeeper.Keeper
@@ -333,8 +333,6 @@ func NewMinitiaApp(
 
 	app.CapabilityKeeper.Seal()
 
-	communityPoolKeeper := appkeepers.NewCommunityPoolKeeper(app.BankKeeper, authtypes.FeeCollectorName)
-
 	// add keepers
 	app.WasmKeeper = &wasmkeeper.Keeper{}
 
@@ -349,7 +347,7 @@ func NewMinitiaApp(
 	)
 	app.AccountKeeper = &accountKeeper
 
-	bankKeeper := bankkeeper.NewBaseKeeper(
+	bankKeeper := appkeepers.NewBaseKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		app.AccountKeeper,
@@ -358,6 +356,8 @@ func NewMinitiaApp(
 		logger,
 	)
 	app.BankKeeper = &bankKeeper
+
+	communityPoolKeeper := appkeepers.NewCommunityPoolKeeper(app.BankKeeper, authtypes.FeeCollectorName)
 
 	////////////////////////////////
 	// OPChildKeeper Configuration //
@@ -691,6 +691,8 @@ func NewMinitiaApp(
 	app.TokenFactoryKeeper = &tokenfactoryKeeper
 	app.TokenFactoryKeeper.SetContractKeeper(contractKeeper)
 
+	app.BankKeeper.SetHooks(app.TokenFactoryKeeper.Hooks())
+
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
@@ -775,7 +777,7 @@ func NewMinitiaApp(
 		opchildtypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, group.ModuleName,
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName, ibcexported.ModuleName,
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
-		ibcfeetypes.ModuleName, consensusparamtypes.ModuleName, auctiontypes.ModuleName,
+		ibcfeetypes.ModuleName, auctiontypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, fetchpricetypes.ModuleName, tokenfactorytypes.ModuleName,
 	}
@@ -791,6 +793,8 @@ func NewMinitiaApp(
 	if err != nil {
 		panic(err)
 	}
+	// custom bank msg server to use custom functions
+	banktypes.RegisterMsgServer(app.MsgServiceRouter(), appkeepers.NewBankMsgServerImpl(app.BankKeeper))
 
 	// register upgrade handler for later use
 	app.RegisterUpgradeHandlers(app.configurator)

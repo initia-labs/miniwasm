@@ -1,92 +1,105 @@
 package keeper_test
 
-// import (
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+import (
+	"fmt"
+	"testing"
 
-// 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
-// )
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/require"
 
-// func (s *KeeperTestSuite) TestGenesis() {
-// 	genesisState := types.GenesisState{
-// 		FactoryDenoms: []types.GenesisDenom{
-// 			{
-// 				Denom: "factory/osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44/bitcoin",
-// 				AuthorityMetadata: types.DenomAuthorityMetadata{
-// 					Admin: "osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44",
-// 				},
-// 			},
-// 			{
-// 				Denom: "factory/osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44/diff-admin",
-// 				AuthorityMetadata: types.DenomAuthorityMetadata{
-// 					Admin: "osmo15czt5nhlnvayqq37xun9s9yus0d6y26dw9xnzn",
-// 				},
-// 			},
-// 			{
-// 				Denom: "factory/osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44/litecoin",
-// 				AuthorityMetadata: types.DenomAuthorityMetadata{
-// 					Admin: "osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44",
-// 				},
-// 			},
-// 		},
-// 	}
+	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
+)
 
-// 	s.SetupTestForInitGenesis()
-// 	app := s.App
+func TestGenesis(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
 
-// 	// Test both with bank denom metadata set, and not set.
-// 	for i, denom := range genesisState.FactoryDenoms {
-// 		// hacky, sets bank metadata to exist if i != 0, to cover both cases.
-// 		if i != 0 {
-// 			app.BankKeeper.SetDenomMetaData(s.Ctx, banktypes.Metadata{
-// 				DenomUnits: []*banktypes.DenomUnit{{
-// 					Denom:    denom.GetDenom(),
-// 					Exponent: 0,
-// 				}},
-// 				Base:    denom.GetDenom(),
-// 				Display: denom.GetDenom(),
-// 				Name:    denom.GetDenom(),
-// 				Symbol:  denom.GetDenom(),
-// 			})
-// 		}
-// 	}
+	tokenFactoryKeeper := input.TokenFactoryKeeper
+	bankKeeper := input.BankKeeper
+	accountKeeper := input.AccountKeeper
 
-// 	// check before initGenesis that the module account is nil
-// 	tokenfactoryModuleAccount := app.AccountKeeper.GetAccount(s.Ctx, app.AccountKeeper.GetModuleAddress(types.ModuleName))
-// 	s.Require().Nil(tokenfactoryModuleAccount)
+	creator, err := input.AddressCodec.BytesToString(addrs[0])
+	require.NoError(t, err, "address encoding")
 
-// 	app.TokenFactoryKeeper.SetParams(s.Ctx, types.Params{DenomCreationFee: sdk.Coins{sdk.NewInt64Coin("uosmo", 100)}})
-// 	app.TokenFactoryKeeper.InitGenesis(s.Ctx, genesisState)
+	another, err := input.AddressCodec.BytesToString(addrs[1])
+	require.NoError(t, err, "address encoding")
 
-// 	// check that the module account is now initialized
-// 	tokenfactoryModuleAccount = app.AccountKeeper.GetAccount(s.Ctx, app.AccountKeeper.GetModuleAddress(types.ModuleName))
-// 	s.Require().NotNil(tokenfactoryModuleAccount)
+	genesisState := types.GenesisState{
+		FactoryDenoms: []types.GenesisDenom{
+			{
+				Denom: fmt.Sprintf("factory/%s/bitcoin", creator),
+				AuthorityMetadata: types.DenomAuthorityMetadata{
+					Admin: creator,
+				},
+			},
+			{
+				Denom: fmt.Sprintf("factory/%s/diff-admin", creator),
+				AuthorityMetadata: types.DenomAuthorityMetadata{
+					Admin: another,
+				},
+			},
+			{
+				Denom: fmt.Sprintf("factory/%s/litecoin", creator),
+				AuthorityMetadata: types.DenomAuthorityMetadata{
+					Admin: creator,
+				},
+			},
+		},
+	}
 
-// 	exportedGenesis := app.TokenFactoryKeeper.ExportGenesis(s.Ctx)
-// 	s.Require().NotNil(exportedGenesis)
-// 	s.Require().Equal(genesisState, *exportedGenesis)
+	// Test both with bank denom metadata set, and not set.
+	for i, denom := range genesisState.FactoryDenoms {
+		// hacky, sets bank metadata to exist if i != 0, to cover both cases.
+		if i != 0 {
+			bankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+				DenomUnits: []*banktypes.DenomUnit{{
+					Denom:    denom.GetDenom(),
+					Exponent: 0,
+				}},
+				Base:    denom.GetDenom(),
+				Display: denom.GetDenom(),
+				Name:    denom.GetDenom(),
+				Symbol:  denom.GetDenom(),
+			})
+		}
+	}
 
-// 	// verify that the exported bank genesis is valid
-// 	app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
-// 	exportedBankGenesis := app.BankKeeper.ExportGenesis(s.Ctx)
-// 	s.Require().NoError(exportedBankGenesis.Validate())
+	// check before initGenesis that the module account is nil
+	tokenfactoryModuleAccount := accountKeeper.GetAccount(ctx, accountKeeper.GetModuleAddress(types.ModuleName))
+	require.Nil(t, tokenfactoryModuleAccount)
 
-// 	app.BankKeeper.InitGenesis(s.Ctx, exportedBankGenesis)
-// 	for i, denom := range genesisState.FactoryDenoms {
-// 		// hacky, check whether bank metadata is not replaced if i != 0, to cover both cases.
-// 		if i != 0 {
-// 			metadata, found := app.BankKeeper.GetDenomMetaData(s.Ctx, denom.GetDenom())
-// 			s.Require().True(found)
-// 			s.Require().EqualValues(metadata, banktypes.Metadata{
-// 				DenomUnits: []*banktypes.DenomUnit{{
-// 					Denom:    denom.GetDenom(),
-// 					Exponent: 0,
-// 				}},
-// 				Base:    denom.GetDenom(),
-// 				Display: denom.GetDenom(),
-// 				Name:    denom.GetDenom(),
-// 				Symbol:  denom.GetDenom(),
-// 			})
-// 		}
-// 	}
-// }
+	tokenFactoryKeeper.SetParams(ctx, types.Params{DenomCreationFee: sdk.Coins{sdk.NewInt64Coin("uinit", 100)}})
+	tokenFactoryKeeper.InitGenesis(ctx, genesisState)
+
+	// check that the module account is now initialized
+	tokenfactoryModuleAccount = accountKeeper.GetAccount(ctx, accountKeeper.GetModuleAddress(types.ModuleName))
+	require.NotNil(t, tokenfactoryModuleAccount)
+
+	exportedGenesis := tokenFactoryKeeper.ExportGenesis(ctx)
+	require.NotNil(t, exportedGenesis)
+	require.Equal(t, genesisState, *exportedGenesis)
+
+	// verify that the exported bank genesis is valid
+	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	exportedBankGenesis := bankKeeper.ExportGenesis(ctx)
+	require.NoError(t, exportedBankGenesis.Validate())
+
+	bankKeeper.InitGenesis(ctx, exportedBankGenesis)
+	for i, denom := range genesisState.FactoryDenoms {
+		// hacky, check whether bank metadata is not replaced if i != 0, to cover both cases.
+		if i != 0 {
+			metadata, found := bankKeeper.GetDenomMetaData(ctx, denom.GetDenom())
+			require.True(t, found)
+			require.EqualValues(t, metadata, banktypes.Metadata{
+				DenomUnits: []*banktypes.DenomUnit{{
+					Denom:    denom.GetDenom(),
+					Exponent: 0,
+				}},
+				Base:    denom.GetDenom(),
+				Display: denom.GetDenom(),
+				Name:    denom.GetDenom(),
+				Symbol:  denom.GetDenom(),
+			})
+		}
+	}
+}

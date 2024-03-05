@@ -115,7 +115,6 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					},
 				},
 			},
-			EnhanceCustomCommand: false, // use custom commands only until v0.51
 		},
 	}
 }

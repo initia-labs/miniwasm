@@ -12,7 +12,7 @@ option go_package = "github.com/initia-labs/miniwasm/x/tokenfactory/types";
 // Msg defines the tokefactory module's gRPC message service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  
+
   rpc CreateDenom(MsgCreateDenom) returns (MsgCreateDenomResponse);
   rpc Mint(MsgMint) returns (MsgMintResponse);
   rpc Burn(MsgBurn) returns (MsgBurnResponse);
@@ -36,7 +36,7 @@ service Msg {
 message MsgCreateDenom {
   option (cosmos.msg.v1.signer) = "sender";
 
-  option (amino.name) = "miniwasm/tokenfactory/create-denom";
+  option (amino.name) = "tokenfactory/MsgCreateDenom";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   // subdenom can be up to 44 "alphanumeric" characters long.
@@ -56,7 +56,7 @@ message MsgCreateDenomResponse {
 // the denom does not have any admin.
 message MsgMint {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/mint";
+  option (amino.name) = "tokenfactory/MsgMint";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.base.v1beta1.Coin amount = 2 [
@@ -77,7 +77,7 @@ message MsgMintResponse {}
 // the denom does not have any admin.
 message MsgBurn {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/burn";
+  option (amino.name) = "tokenfactory/MsgBurn";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.base.v1beta1.Coin amount = 2 [
@@ -96,7 +96,7 @@ message MsgBurnResponse {}
 // adminship of a denom to a new account
 message MsgChangeAdmin {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/change-admin";
+  option (amino.name) = "tokenfactory/MsgChangeAdmin";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   string denom = 2 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
@@ -111,7 +111,7 @@ message MsgChangeAdminResponse {}
 // assign a CosmWasm contract to call with a BeforeSend hook
 message MsgSetBeforeSendHook {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/set-bef-send-hook";
+  option (amino.name) = "tokenfactory/MsgSetBeforeSendHook";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   string denom = 2 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
@@ -129,7 +129,7 @@ message MsgSetBeforeSendHookResponse {}
 // the denom's bank metadata
 message MsgSetDenomMetadata {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/set-denom-metadata";
+  option (amino.name) = "tokenfactory/MsgSetDenomMetadata";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.bank.v1beta1.Metadata metadata = 2 [
@@ -144,7 +144,7 @@ message MsgSetDenomMetadataResponse {}
 
 message MsgForceTransfer {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "miniwasm/tokenfactory/force-transfer";
+  option (amino.name) = "tokenfactory/MsgForceTransfer";
 
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.base.v1beta1.Coin amount = 2 [
