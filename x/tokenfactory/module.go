@@ -24,6 +24,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"github.com/initia-labs/miniwasm/x/tokenfactory/client/cli"
 	"github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 )
@@ -87,8 +88,8 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)) //nolint:errcheck
 }
 
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return &cobra.Command{}
+func (am AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd(am.cdc.InterfaceRegistry().SigningContext().AddressCodec())
 }
 
 // ----------------------------------------------------------------------------
