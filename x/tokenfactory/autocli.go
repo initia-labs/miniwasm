@@ -2,14 +2,14 @@ package tokenfactory
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
-	tokenfactoryv1beta1 "github.com/initia-labs/miniwasm/api/miniwasm/tokenfactory/v1beta1"
+	tokenfactoryv1 "github.com/initia-labs/miniwasm/api/miniwasm/tokenfactory/v1"
 )
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{
-			Service: tokenfactoryv1beta1.Query_ServiceDesc.ServiceName,
+			Service: tokenfactoryv1.Query_ServiceDesc.ServiceName,
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
 					RpcMethod: "DenomAuthorityMetadata",
@@ -44,7 +44,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			EnhanceCustomCommand: true, // We still have manual commands in gov that we want to keep
 		},
 		// Tx: &autocliv1.ServiceCommandDescriptor{
-		// 	Service: tokenfactoryv1beta1.Msg_ServiceDesc.ServiceName,
+		// 	Service: tokenfactoryv1.Msg_ServiceDesc.ServiceName,
 		// 	RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 		// 		{
 		// 			RpcMethod: "CreateDenom",
