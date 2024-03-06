@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -13,11 +15,12 @@ import (
 
 // bridge hook implementation for move
 type WasmBridgeHook struct {
+	ac         address.Codec
 	wasmKeeper *wasmkeeper.Keeper
 }
 
-func NewWasmBridgeHook(wasmKeeper *wasmkeeper.Keeper) WasmBridgeHook {
-	return WasmBridgeHook{wasmKeeper}
+func NewWasmBridgeHook(ac address.Codec, wasmKeeper *wasmkeeper.Keeper) WasmBridgeHook {
+	return WasmBridgeHook{ac, wasmKeeper}
 }
 
 func (mbh WasmBridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBytes []byte) error {
@@ -27,6 +30,13 @@ func (mbh WasmBridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBy
 	err := decoder.Decode(&msg)
 	if err != nil {
 		return err
+	}
+
+	senderAddr, err := mbh.ac.StringToBytes(msg.Sender)
+	if err != nil {
+		return err
+	} else if !sender.Equals(sdk.AccAddress(senderAddr)) {
+		return sdkerrors.ErrUnauthorized
 	}
 
 	ms := wasmkeeper.NewMsgServerImpl(mbh.wasmKeeper)
