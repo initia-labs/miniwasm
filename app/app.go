@@ -369,7 +369,7 @@ func NewMinitiaApp(
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
-		apphook.NewWasmBridgeHook(app.WasmKeeper).Hook,
+		apphook.NewWasmBridgeHook(ac, app.WasmKeeper).Hook,
 		app.MsgServiceRouter(),
 		authorityAddr,
 		vc,
