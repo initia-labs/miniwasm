@@ -1,11 +1,11 @@
 syntax = "proto3";
-package miniwasm.tokenfactory.v1beta1;
+package miniwasm.tokenfactory.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "miniwasm/tokenfactory/v1beta1/authorityMetadata.proto";
-import "miniwasm/tokenfactory/v1beta1/params.proto";
+import "miniwasm/tokenfactory/v1/authorityMetadata.proto";
+import "miniwasm/tokenfactory/v1/params.proto";
 
 option go_package = "github.com/initia-labs/miniwasm/x/tokenfactory/types";
 
@@ -14,7 +14,7 @@ service Query {
   // Params defines a gRPC query method that returns the tokenfactory module's
   // parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/miniwasm/tokenfactory/v1beta1/params";
+    option (google.api.http).get = "/miniwasm/tokenfactory/v1/params";
   }
 
   // DenomAuthorityMetadata defines a gRPC query method for fetching
@@ -22,7 +22,7 @@ service Query {
   rpc DenomAuthorityMetadata(QueryDenomAuthorityMetadataRequest)
       returns (QueryDenomAuthorityMetadataResponse) {
     option (google.api.http).get =
-        "/miniwasm/tokenfactory/v1beta1/denoms/{denom}/authority_metadata";
+        "/miniwasm/tokenfactory/v1/denoms/{denom}/authority_metadata";
   }
 
   // DenomsFromCreator defines a gRPC query method for fetching all
@@ -30,7 +30,7 @@ service Query {
   rpc DenomsFromCreator(QueryDenomsFromCreatorRequest)
       returns (QueryDenomsFromCreatorResponse) {
     option (google.api.http).get =
-        "/miniwasm/tokenfactory/v1beta1/denoms_from_creator/{creator}";
+        "/miniwasm/tokenfactory/v1/denoms_from_creator/{creator}";
   }
 
   // BeforeSendHookAddress defines a gRPC query method for
@@ -38,7 +38,7 @@ service Query {
   rpc BeforeSendHookAddress(QueryBeforeSendHookAddressRequest)
       returns (QueryBeforeSendHookAddressResponse) {
     option (google.api.http).get =
-        "/miniwasm/tokenfactory/v1beta1/denoms/{denom}/before_send_hook";
+        "/miniwasm/tokenfactory/v1/denoms/{denom}/before_send_hook";
   }
 }
 

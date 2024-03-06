@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: miniwasm/tokenfactory/v1beta1/tx.proto
+// source: miniwasm/tokenfactory/v1/tx.proto
 
-package tokenfactoryv1beta1
+package tokenfactoryv1
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_CreateDenom_FullMethodName       = "/miniwasm.tokenfactory.v1beta1.Msg/CreateDenom"
-	Msg_Mint_FullMethodName              = "/miniwasm.tokenfactory.v1beta1.Msg/Mint"
-	Msg_Burn_FullMethodName              = "/miniwasm.tokenfactory.v1beta1.Msg/Burn"
-	Msg_ChangeAdmin_FullMethodName       = "/miniwasm.tokenfactory.v1beta1.Msg/ChangeAdmin"
-	Msg_SetDenomMetadata_FullMethodName  = "/miniwasm.tokenfactory.v1beta1.Msg/SetDenomMetadata"
-	Msg_SetBeforeSendHook_FullMethodName = "/miniwasm.tokenfactory.v1beta1.Msg/SetBeforeSendHook"
-	Msg_ForceTransfer_FullMethodName     = "/miniwasm.tokenfactory.v1beta1.Msg/ForceTransfer"
-	Msg_UpdateParams_FullMethodName      = "/miniwasm.tokenfactory.v1beta1.Msg/UpdateParams"
+	Msg_CreateDenom_FullMethodName       = "/miniwasm.tokenfactory.v1.Msg/CreateDenom"
+	Msg_Mint_FullMethodName              = "/miniwasm.tokenfactory.v1.Msg/Mint"
+	Msg_Burn_FullMethodName              = "/miniwasm.tokenfactory.v1.Msg/Burn"
+	Msg_ChangeAdmin_FullMethodName       = "/miniwasm.tokenfactory.v1.Msg/ChangeAdmin"
+	Msg_SetDenomMetadata_FullMethodName  = "/miniwasm.tokenfactory.v1.Msg/SetDenomMetadata"
+	Msg_SetBeforeSendHook_FullMethodName = "/miniwasm.tokenfactory.v1.Msg/SetBeforeSendHook"
+	Msg_ForceTransfer_FullMethodName     = "/miniwasm.tokenfactory.v1.Msg/ForceTransfer"
+	Msg_UpdateParams_FullMethodName      = "/miniwasm.tokenfactory.v1.Msg/UpdateParams"
 )
 
 // MsgClient is the client API for Msg service.
@@ -331,7 +331,7 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Msg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "miniwasm.tokenfactory.v1beta1.Msg",
+	ServiceName: "miniwasm.tokenfactory.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -368,5 +368,5 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "miniwasm/tokenfactory/v1beta1/tx.proto",
+	Metadata: "miniwasm/tokenfactory/v1/tx.proto",
 }

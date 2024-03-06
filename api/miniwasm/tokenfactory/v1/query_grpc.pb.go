@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: miniwasm/tokenfactory/v1beta1/query.proto
+// source: miniwasm/tokenfactory/v1/query.proto
 
-package tokenfactoryv1beta1
+package tokenfactoryv1
 
 import (
 	context "context"
@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName                 = "/miniwasm.tokenfactory.v1beta1.Query/Params"
-	Query_DenomAuthorityMetadata_FullMethodName = "/miniwasm.tokenfactory.v1beta1.Query/DenomAuthorityMetadata"
-	Query_DenomsFromCreator_FullMethodName      = "/miniwasm.tokenfactory.v1beta1.Query/DenomsFromCreator"
-	Query_BeforeSendHookAddress_FullMethodName  = "/miniwasm.tokenfactory.v1beta1.Query/BeforeSendHookAddress"
+	Query_Params_FullMethodName                 = "/miniwasm.tokenfactory.v1.Query/Params"
+	Query_DenomAuthorityMetadata_FullMethodName = "/miniwasm.tokenfactory.v1.Query/DenomAuthorityMetadata"
+	Query_DenomsFromCreator_FullMethodName      = "/miniwasm.tokenfactory.v1.Query/DenomsFromCreator"
+	Query_BeforeSendHookAddress_FullMethodName  = "/miniwasm.tokenfactory.v1.Query/BeforeSendHookAddress"
 )
 
 // QueryClient is the client API for Query service.
@@ -211,7 +211,7 @@ func _Query_BeforeSendHookAddress_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Query_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "miniwasm.tokenfactory.v1beta1.Query",
+	ServiceName: "miniwasm.tokenfactory.v1.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -232,5 +232,5 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "miniwasm/tokenfactory/v1beta1/query.proto",
+	Metadata: "miniwasm/tokenfactory/v1/query.proto",
 }
