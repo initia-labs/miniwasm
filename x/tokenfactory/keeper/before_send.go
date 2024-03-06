@@ -79,6 +79,16 @@ func (k Keeper) callBeforeSendListener(ctx context.Context, from, to sdk.AccAddr
 		}
 	}()
 
+	fromAddr, err := k.ac.BytesToString(from)
+	if err != nil {
+		return err
+	}
+
+	toAddr, err := k.ac.BytesToString(to)
+	if err != nil {
+		return err
+	}
+
 	for _, coin := range amount {
 		cosmwasmAddress := k.GetBeforeSendHook(ctx, coin.Denom)
 		if cosmwasmAddress != "" {
@@ -96,8 +106,8 @@ func (k Keeper) callBeforeSendListener(ctx context.Context, from, to sdk.AccAddr
 			if blockBeforeSend {
 				msg := types.BlockBeforeSendSudoMsg{
 					BlockBeforeSend: types.BlockBeforeSendMsg{
-						From: from.String(),
-						To:   to.String(),
+						From: fromAddr,
+						To:   toAddr,
 						Amount: wasmvmtypes.Coin{
 							Denom:  coin.GetDenom(),
 							Amount: coin.Amount.String(),
@@ -108,8 +118,8 @@ func (k Keeper) callBeforeSendListener(ctx context.Context, from, to sdk.AccAddr
 			} else {
 				msg := types.TrackBeforeSendSudoMsg{
 					TrackBeforeSend: types.TrackBeforeSendMsg{
-						From: from.String(),
-						To:   to.String(),
+						From: fromAddr,
+						To:   toAddr,
 						Amount: wasmvmtypes.Coin{
 							Denom:  coin.GetDenom(),
 							Amount: coin.Amount.String(),

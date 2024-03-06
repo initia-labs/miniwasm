@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	appkeepers "github.com/initia-labs/miniwasm/app/keepers"
+	bankkeeper "github.com/initia-labs/miniwasm/x/bank/keeper"
 	tokenFactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -96,7 +96,7 @@ func TestBeforeSendHook(t *testing.T) {
 			ctx, input := createDefaultTestInput(t)
 
 			msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
-			bankMsgServer := appkeepers.NewBankMsgServerImpl(input.BankKeeper)
+			bankMsgServer := bankkeeper.NewMsgServerImpl(input.BankKeeper)
 
 			// upload and instantiate wasm code
 			wasmCode, err := os.ReadFile(tc.wasmFile)

@@ -1,4 +1,4 @@
-package keepers
+package keeper
 
 import (
 	"context"
@@ -15,15 +15,15 @@ import (
 )
 
 type msgServer struct {
-	*BaseKeeper
+	*Keeper
 }
 
 var _ types.MsgServer = msgServer{}
 
 // NewMsgServerImpl returns an implementation of the bank MsgServer interface
 // for the provided Keeper.
-func NewBankMsgServerImpl(keeper *BaseKeeper) types.MsgServer {
-	return &msgServer{BaseKeeper: keeper}
+func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
+	return &msgServer{Keeper: keeper}
 }
 
 func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSendResponse, error) {

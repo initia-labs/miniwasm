@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
+	"github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 
@@ -316,6 +318,63 @@ func TestSetDenomMetaDataMsg(t *testing.T) {
 				}
 			}
 			require.Equal(t, tc.expectedMessageEvents, len(actualEvents))
+		})
+	}
+}
+
+func TestMsgUpdateParams(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+
+	// default params
+	params := types.DefaultParams()
+
+	testCases := []struct {
+		name      string
+		input     *types.MsgUpdateParams
+		expErr    bool
+		expErrMsg string
+	}{
+		{
+			name: "invalid authority",
+			input: &types.MsgUpdateParams{
+				Authority: "invalid",
+				Params:    params,
+			},
+			expErr:    true,
+			expErrMsg: "invalid authority",
+		},
+		{
+			name: "send denom creation fee param",
+			input: &types.MsgUpdateParams{
+				Authority: input.BankKeeper.GetAuthority(),
+				Params: types.Params{
+					DenomCreationFee: []sdk.Coin{{Denom: "foo", Amount: math.NewInt(-1)}},
+				},
+			},
+			expErr:    true,
+			expErrMsg: "invalid denom creation fee",
+		},
+		{
+			name: "all good",
+			input: &types.MsgUpdateParams{
+				Authority: input.TokenFactoryKeeper.GetAuthority(),
+				Params:    params,
+			},
+			expErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := keeper.NewMsgServerImpl(*input.TokenFactoryKeeper).UpdateParams(ctx, tc.input)
+
+			if tc.expErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.expErrMsg)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }

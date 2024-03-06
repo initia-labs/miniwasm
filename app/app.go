@@ -143,6 +143,8 @@ import (
 	appkeepers "github.com/initia-labs/miniwasm/app/keepers"
 	applanes "github.com/initia-labs/miniwasm/app/lanes"
 
+	"github.com/initia-labs/miniwasm/x/bank"
+	bankkeeper "github.com/initia-labs/miniwasm/x/bank/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory"
 	tokenfactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
@@ -163,15 +165,15 @@ var (
 		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		// x/auction's module account must be instantiated upon genesis to accrue auction rewards not
 		// distributed to proposers
-		auctiontypes.ModuleName: nil,
-		opchildtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		auctiontypes.ModuleName:      nil,
+		opchildtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 
 		// slinky oracle permissions
 		oracletypes.ModuleName: nil,
 
 		// this is only for testing
-		authtypes.Minter:             {authtypes.Minter},
-		tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		authtypes.Minter: {authtypes.Minter},
 	}
 )
 
@@ -206,7 +208,7 @@ type MinitiaApp struct {
 
 	// keepers
 	AccountKeeper         *authkeeper.AccountKeeper
-	BankKeeper            *appkeepers.BaseKeeper
+	BankKeeper            *bankkeeper.Keeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	GroupKeeper           *groupkeeper.Keeper
@@ -346,7 +348,7 @@ func NewMinitiaApp(
 	)
 	app.AccountKeeper = &accountKeeper
 
-	bankKeeper := appkeepers.NewBaseKeeper(
+	bankKeeper := bankkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		app.AccountKeeper,
@@ -680,12 +682,13 @@ func NewMinitiaApp(
 	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
 
 	tokenfactoryKeeper := tokenfactorykeeper.NewKeeper(
+		ac,
 		appCodec,
 		runtime.NewKVStoreService(keys[tokenfactorytypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
 		communityPoolKeeper,
-		ac,
+		authorityAddr,
 	)
 	app.TokenFactoryKeeper = &tokenfactoryKeeper
 	app.TokenFactoryKeeper.SetContractKeeper(contractKeeper)
@@ -705,7 +708,7 @@ func NewMinitiaApp(
 
 	app.ModuleManager = module.NewManager(
 		auth.NewAppModule(appCodec, *app.AccountKeeper, nil, nil),
-		appkeepers.NewBankAppModule(appCodec, *&app.BankKeeper, app.AccountKeeper, nil),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
 		opchild.NewAppModule(appCodec, *app.OPChildKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),

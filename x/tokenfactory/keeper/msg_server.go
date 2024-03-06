@@ -3,7 +3,9 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 )
@@ -45,6 +47,10 @@ func (server msgServer) CreateDenom(ctx context.Context, msg *types.MsgCreateDen
 }
 
 func (server msgServer) Mint(ctx context.Context, msg *types.MsgMint) (*types.MsgMintResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	// pay some extra gas cost to give a better error here.
 	_, denomExists := server.bankKeeper.GetDenomMetaData(ctx, msg.Amount.Denom)
 	if !denomExists {
@@ -82,6 +88,10 @@ func (server msgServer) Mint(ctx context.Context, msg *types.MsgMint) (*types.Ms
 }
 
 func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.MsgBurnResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
 	if err != nil {
 		return nil, err
@@ -119,6 +129,10 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 }
 
 func (server msgServer) ForceTransfer(ctx context.Context, msg *types.MsgForceTransfer) (*types.MsgForceTransferResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
 	if err != nil {
 		return nil, err
@@ -147,6 +161,10 @@ func (server msgServer) ForceTransfer(ctx context.Context, msg *types.MsgForceTr
 }
 
 func (server msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdmin) (*types.MsgChangeAdminResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Denom)
 	if err != nil {
 		return nil, err
@@ -174,6 +192,10 @@ func (server msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdm
 }
 
 func (server msgServer) SetDenomMetadata(ctx context.Context, msg *types.MsgSetDenomMetadata) (*types.MsgSetDenomMetadataResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	// Defense in depth validation of metadata
 	err := msg.Metadata.Validate()
 	if err != nil {
@@ -204,6 +226,10 @@ func (server msgServer) SetDenomMetadata(ctx context.Context, msg *types.MsgSetD
 }
 
 func (server msgServer) SetBeforeSendHook(ctx context.Context, msg *types.MsgSetBeforeSendHook) (*types.MsgSetBeforeSendHookResponse, error) {
+	if err := msg.Validate(server.ac); err != nil {
+		return nil, err
+	}
+
 	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Denom)
 	if err != nil {
 		return nil, err
@@ -228,4 +254,21 @@ func (server msgServer) SetBeforeSendHook(ctx context.Context, msg *types.MsgSet
 	})
 
 	return &types.MsgSetBeforeSendHookResponse{}, nil
+}
+
+func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), req.Authority)
+	}
+
+	if err := req.Params.Validate(); err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.SetParams(ctx, req.Params); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

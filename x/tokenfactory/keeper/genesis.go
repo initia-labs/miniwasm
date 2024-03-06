@@ -15,7 +15,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	if genState.Params.DenomCreationFee == nil {
 		genState.Params.DenomCreationFee = sdk.NewCoins()
 	}
-	k.SetParams(ctx, genState.Params)
+
+	if err := k.SetParams(ctx, genState.Params); err != nil {
+		panic(err)
+	}
 
 	for _, genDenom := range genState.GetFactoryDenoms() {
 		creator, _, err := types.DeconstructDenom(k.ac, genDenom.GetDenom())
@@ -36,7 +39,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 // ExportGenesis returns the tokenfactory module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	genDenoms := []types.GenesisDenom{}
-
 	k.CreatorDenoms.Walk(ctx, nil, func(key collections.Pair[string, string]) (stop bool, err error) {
 		denom := key.K2()
 

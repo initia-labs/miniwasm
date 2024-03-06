@@ -49,6 +49,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	bankkeeper "github.com/initia-labs/miniwasm/x/bank/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory"
 	tokenfactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
@@ -146,13 +147,13 @@ func initialTotalSupply() sdk.Coins {
 
 type TestFaucet struct {
 	t                testing.TB
-	bankKeeper       appkeepers.BaseKeeper
+	bankKeeper       bankkeeper.Keeper
 	sender           sdk.AccAddress
 	balance          sdk.Coins
 	minterModuleName string
 }
 
-func NewTestFaucet(t testing.TB, ctx sdk.Context, bankKeeper appkeepers.BaseKeeper, minterModuleName string, minitiaSupply ...sdk.Coin) *TestFaucet {
+func NewTestFaucet(t testing.TB, ctx sdk.Context, bankKeeper bankkeeper.Keeper, minterModuleName string, minitiaSupply ...sdk.Coin) *TestFaucet {
 	require.NotEmpty(t, minitiaSupply)
 	r := &TestFaucet{t: t, bankKeeper: bankKeeper, minterModuleName: minterModuleName}
 	_, _, addr := keyPubAddr()
@@ -193,7 +194,7 @@ func (f *TestFaucet) NewFundedAccount(ctx sdk.Context, amounts ...sdk.Coin) sdk.
 
 type TestKeepers struct {
 	AccountKeeper       *authkeeper.AccountKeeper
-	BankKeeper          *appkeepers.BaseKeeper
+	BankKeeper          *bankkeeper.Keeper
 	ContractKeeper      *wasmkeeper.PermissionedKeeper
 	WasmKeeper          *wasmkeeper.Keeper
 	TokenFactoryKeeper  *tokenfactorykeeper.Keeper
@@ -281,7 +282,7 @@ func _createTestInput(
 		blockedAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	bankKeeper := appkeepers.NewBaseKeeper(
+	bankKeeper := bankkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		accountKeeper,
@@ -324,7 +325,7 @@ func _createTestInput(
 		msgRouter,
 		nil,
 		minitiaapp.DefaultNodeHome,
-		wasm.DefaultWasmConfig(),
+		wasmtypes.DefaultWasmConfig(),
 		"iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,cosmwasm_1_4,cosmwasm_2_0",
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -334,17 +335,18 @@ func _createTestInput(
 	keepers.ContractKeeper = contractKeeper
 
 	tokenfactoryKeeper := tokenfactorykeeper.NewKeeper(
+		ac,
 		appCodec,
 		runtime.NewKVStoreService(keys[tokenfactorytypes.StoreKey]),
 		accountKeeper,
 		keepers.BankKeeper,
 		keepers.CommunityPoolKeeper,
-		ac,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	tokenfactoryKeeper.SetContractKeeper(contractKeeper)
 	keepers.TokenFactoryKeeper = &tokenfactoryKeeper
 	keepers.BankKeeper.SetHooks(keepers.TokenFactoryKeeper.Hooks())
 
-	banktypes.RegisterMsgServer(msgRouter, appkeepers.NewBankMsgServerImpl(keepers.BankKeeper))
+	banktypes.RegisterMsgServer(msgRouter, bankkeeper.NewMsgServerImpl(keepers.BankKeeper))
 	return ctx, keepers
 }

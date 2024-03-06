@@ -42,8 +42,13 @@ func NewCreateDenomCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgCreateDenom(
-				clientCtx.GetFromAddress().String(),
+				fromAddr,
 				args[0],
 			)
 
@@ -69,6 +74,11 @@ func NewMintCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			amount, err := sdk.ParseCoinNormalized(args[0])
 			if err != nil {
 				return err
@@ -80,7 +90,7 @@ func NewMintCmd(ac address.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgMintTo(
-				clientCtx.GetFromAddress().String(),
+				fromAddr,
 				amount,
 				mintToAddress,
 			)
@@ -107,6 +117,11 @@ func NewBurnCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			amount, err := sdk.ParseCoinNormalized(args[0])
 			if err != nil {
 				return err
@@ -118,7 +133,7 @@ func NewBurnCmd(ac address.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgBurnFrom(
-				clientCtx.GetFromAddress().String(),
+				fromAddr,
 				amount,
 				burnFromAddress,
 			)
@@ -145,8 +160,13 @@ func NewChangeAdminCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgChangeAdmin(
-				clientCtx.GetFromAddress().String(),
+				fromAddr,
 				args[0],
 				args[1],
 			)
@@ -174,6 +194,11 @@ func NewSetBeforeSendHookCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
+			fromAddr, err := ac.BytesToString(clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
 			txf, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -181,7 +206,7 @@ func NewSetBeforeSendHookCmd(ac address.Codec) *cobra.Command {
 			txf = txf.WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 
 			msg := types.NewMsgSetBeforeSendHook(
-				clientCtx.GetFromAddress().String(),
+				fromAddr,
 				args[0],
 				args[1],
 			)

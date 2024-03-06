@@ -1,4 +1,4 @@
-package keepers
+package keeper
 
 import (
 	"context"
@@ -17,32 +17,32 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type BaseKeeper struct {
+type Keeper struct {
 	bankkeeper.BaseKeeper
 
 	ak    types.AccountKeeper
 	hooks BankHooks
 }
 
-func NewBaseKeeper(
+func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,
 	ak types.AccountKeeper,
 	blockedAddrs map[string]bool,
 	authority string,
 	logger log.Logger,
-) BaseKeeper {
+) Keeper {
 	if _, err := ak.AddressCodec().StringToBytes(authority); err != nil {
 		panic(fmt.Errorf("invalid bank authority address: %w", err))
 	}
 
-	return BaseKeeper{
+	return Keeper{
 		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeService, ak, blockedAddrs, authority, logger),
 		ak:         ak,
 	}
 }
 
-func (k BaseKeeper) DelegateCoins(ctx context.Context, delegatorAddr, moduleAccAddr sdk.AccAddress, amt sdk.Coins) error {
+func (k Keeper) DelegateCoins(ctx context.Context, delegatorAddr, moduleAccAddr sdk.AccAddress, amt sdk.Coins) error {
 	moduleAcc := k.ak.GetAccount(ctx, moduleAccAddr)
 	if moduleAcc == nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleAccAddr)
@@ -62,7 +62,7 @@ func (k BaseKeeper) DelegateCoins(ctx context.Context, delegatorAddr, moduleAccA
 	return k.BaseKeeper.DelegateCoins(ctx, delegatorAddr, moduleAccAddr, amt)
 }
 
-func (k BaseKeeper) UndelegateCoins(ctx context.Context, moduleAccAddr, delegatorAddr sdk.AccAddress, amt sdk.Coins) error {
+func (k Keeper) UndelegateCoins(ctx context.Context, moduleAccAddr, delegatorAddr sdk.AccAddress, amt sdk.Coins) error {
 	moduleAcc := k.ak.GetAccount(ctx, moduleAccAddr)
 	if moduleAcc == nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleAccAddr)
@@ -87,7 +87,7 @@ func (k BaseKeeper) UndelegateCoins(ctx context.Context, moduleAccAddr, delegato
 // It will panic if either module account does not exist.
 // SendCoinsFromModuleToModule is the only send method that does not call both BlockBeforeSend and TrackBeforeSend hook.
 // It only calls the TrackBeforeSend hook.
-func (k BaseKeeper) SendCoinsFromModuleToModule(
+func (k Keeper) SendCoinsFromModuleToModule(
 	ctx context.Context, senderModule, recipientModule string, amt sdk.Coins,
 ) error {
 	senderAddr := k.ak.GetModuleAddress(senderModule)
@@ -104,7 +104,7 @@ func (k BaseKeeper) SendCoinsFromModuleToModule(
 	return k.SendCoinsWithoutBlockHook(ctx, senderAddr, recipientAcc.GetAddress(), amt)
 }
 
-func (k BaseKeeper) SendCoinsFromModuleToAccount(
+func (k Keeper) SendCoinsFromModuleToAccount(
 	ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
 ) error {
 	senderAddr := k.ak.GetModuleAddress(senderModule)
@@ -121,7 +121,7 @@ func (k BaseKeeper) SendCoinsFromModuleToAccount(
 
 // SendCoinsFromAccountToModule transfers coins from an AccAddress to a ModuleAccount.
 // It will panic if the module account does not exist.
-func (k BaseKeeper) SendCoinsFromAccountToModule(
+func (k Keeper) SendCoinsFromAccountToModule(
 	ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins,
 ) error {
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
@@ -135,7 +135,7 @@ func (k BaseKeeper) SendCoinsFromAccountToModule(
 // DelegateCoinsFromAccountToModule delegates coins and transfers them from a
 // delegator account to a module account. It will panic if the module account
 // does not exist or is unauthorized.
-func (k BaseKeeper) DelegateCoinsFromAccountToModule(
+func (k Keeper) DelegateCoinsFromAccountToModule(
 	ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins,
 ) error {
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
@@ -153,7 +153,7 @@ func (k BaseKeeper) DelegateCoinsFromAccountToModule(
 // UndelegateCoinsFromModuleToAccount undelegates the unbonding coins and transfers
 // them from a module account to the delegator account. It will panic if the
 // module account does not exist or is unauthorized.
-func (k BaseKeeper) UndelegateCoinsFromModuleToAccount(
+func (k Keeper) UndelegateCoinsFromModuleToAccount(
 	ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
 ) error {
 	acc := k.ak.GetModuleAccount(ctx, senderModule)
@@ -174,21 +174,21 @@ type BankHooks interface {
 }
 
 // TrackBeforeSend executes the TrackBeforeSend hook if registered.
-func (k BaseKeeper) TrackBeforeSend(ctx context.Context, from, to sdk.AccAddress, amount sdk.Coins) {
+func (k Keeper) TrackBeforeSend(ctx context.Context, from, to sdk.AccAddress, amount sdk.Coins) {
 	if k.hooks != nil {
 		k.hooks.TrackBeforeSend(ctx, from, to, amount)
 	}
 }
 
 // BlockBeforeSend executes the BlockBeforeSend hook if registered.
-func (k BaseKeeper) BlockBeforeSend(ctx context.Context, from, to sdk.AccAddress, amount sdk.Coins) error {
+func (k Keeper) BlockBeforeSend(ctx context.Context, from, to sdk.AccAddress, amount sdk.Coins) error {
 	if k.hooks != nil {
 		return k.hooks.BlockBeforeSend(ctx, from, to, amount)
 	}
 	return nil
 }
 
-func (k *BaseKeeper) SetHooks(bh BankHooks) *BaseKeeper {
+func (k *Keeper) SetHooks(bh BankHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set bank hooks twice")
 	}
@@ -197,13 +197,13 @@ func (k *BaseKeeper) SetHooks(bh BankHooks) *BaseKeeper {
 }
 
 // SendCoinsWithoutBlockHook calls sendCoins without calling the `BlockBeforeSend` hook.
-func (k BaseKeeper) SendCoinsWithoutBlockHook(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+func (k Keeper) SendCoinsWithoutBlockHook(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
 	// call the TrackBeforeSend hooks
 	k.TrackBeforeSend(ctx, fromAddr, toAddr, amt)
 	return k.BaseSendKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
 }
 
-func (k BaseKeeper) SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error {
+func (k Keeper) SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error {
 	// BlockBeforeSend hook should always be called before the TrackBeforeSend hook.
 	err := k.BlockBeforeSend(ctx, fromAddr, toAddr, amt)
 	if err != nil {

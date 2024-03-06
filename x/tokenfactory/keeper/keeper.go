@@ -17,6 +17,7 @@ import (
 )
 
 type Keeper struct {
+	ac           address.Codec
 	cdc          codec.Codec
 	storeService corestoretypes.KVStoreService
 
@@ -33,20 +34,22 @@ type Keeper struct {
 	DenomHookAddr  collections.Map[string, string]
 	Params         collections.Item[types.Params]
 
-	ac address.Codec
+	authority string
 }
 
 // NewKeeper returns a new instance of the x/tokenfactory keeper
 func NewKeeper(
+	ac address.Codec,
 	cdc codec.Codec,
 	storeService corestoretypes.KVStoreService,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	communityPoolKeeper types.CommunityPoolKeeper,
-	ac address.Codec,
+	authority string,
 ) Keeper {
 	sb := collections.NewSchemaBuilder(storeService)
 	k := Keeper{
+		ac:           ac,
 		cdc:          cdc,
 		storeService: storeService,
 
@@ -59,7 +62,8 @@ func NewKeeper(
 		DenomHookAddr:  collections.NewMap(sb, types.DenomHookAddrPrefix, "denomhookaddr", collections.StringKey, collections.StringValue),
 
 		Params: collections.NewItem(sb, types.ParamsKeyPrefix, "params", codec.CollValue[types.Params](cdc)),
-		ac:     ac,
+
+		authority: authority,
 	}
 	schema, err := sb.Build()
 	if err != nil {
@@ -68,6 +72,11 @@ func NewKeeper(
 	k.Schema = schema
 
 	return k
+}
+
+// GetAuthority returns the x/tokenfactory module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 // Logger returns a logger for the x/tokenfactory module
