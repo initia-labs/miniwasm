@@ -3,6 +3,7 @@ package hook
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -20,8 +21,10 @@ func NewWasmBridgeHook(wasmKeeper *wasmkeeper.Keeper) WasmBridgeHook {
 }
 
 func (mbh WasmBridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBytes []byte) error {
-	msg := wasmtypes.MsgExecuteContract{}
-	err := json.Unmarshal(msgBytes, &msg)
+	var msg wasmtypes.MsgExecuteContract
+	decoder := json.NewDecoder(strings.NewReader(string(msgBytes)))
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&msg)
 	if err != nil {
 		return err
 	}
