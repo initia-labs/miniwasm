@@ -6,16 +6,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type BankKeeper interface {
+type bankKeeperForCommunityPoolKeeper interface {
 	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
 type CommunityPoolKeeper struct {
-	bk               BankKeeper
+	bk               bankKeeperForCommunityPoolKeeper
 	feeCollectorName string
 }
 
-func NewCommunityPoolKeeper(bk BankKeeper, feeCollectorName string) CommunityPoolKeeper {
+func NewCommunityPoolKeeper(bk bankKeeperForCommunityPoolKeeper, feeCollectorName string) CommunityPoolKeeper {
 	return CommunityPoolKeeper{
 		bk:               bk,
 		feeCollectorName: feeCollectorName,

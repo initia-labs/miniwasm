@@ -58,8 +58,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -145,6 +143,12 @@ import (
 	appkeepers "github.com/initia-labs/miniwasm/app/keepers"
 	applanes "github.com/initia-labs/miniwasm/app/lanes"
 
+	"github.com/initia-labs/miniwasm/x/bank"
+	bankkeeper "github.com/initia-labs/miniwasm/x/bank/keeper"
+	"github.com/initia-labs/miniwasm/x/tokenfactory"
+	tokenfactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
+	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/initia-labs/miniwasm/client/docs/statik"
 )
@@ -161,8 +165,9 @@ var (
 		ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		// x/auction's module account must be instantiated upon genesis to accrue auction rewards not
 		// distributed to proposers
-		auctiontypes.ModuleName: nil,
-		opchildtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		auctiontypes.ModuleName:      nil,
+		opchildtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 
 		// slinky oracle permissions
 		oracletypes.ModuleName: nil,
@@ -203,7 +208,7 @@ type MinitiaApp struct {
 
 	// keepers
 	AccountKeeper         *authkeeper.AccountKeeper
-	BankKeeper            *bankkeeper.BaseKeeper
+	BankKeeper            *bankkeeper.Keeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	GroupKeeper           *groupkeeper.Keeper
@@ -223,6 +228,7 @@ type MinitiaApp struct {
 	ICQKeeper             *icqkeeper.Keeper
 	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the slinky oracle
 	FetchPriceKeeper      *fetchpricekeeper.Keeper
+	TokenFactoryKeeper    *tokenfactorykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -277,7 +283,7 @@ func NewMinitiaApp(
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
 		auctiontypes.StoreKey, packetforwardtypes.StoreKey, icqtypes.StoreKey,
-		oracletypes.StoreKey, fetchpricetypes.StoreKey,
+		oracletypes.StoreKey, fetchpricetypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -342,7 +348,7 @@ func NewMinitiaApp(
 	)
 	app.AccountKeeper = &accountKeeper
 
-	bankKeeper := bankkeeper.NewBaseKeeper(
+	bankKeeper := bankkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		app.AccountKeeper,
@@ -351,6 +357,8 @@ func NewMinitiaApp(
 		logger,
 	)
 	app.BankKeeper = &bankKeeper
+
+	communityPoolKeeper := appkeepers.NewCommunityPoolKeeper(app.BankKeeper, authtypes.FeeCollectorName)
 
 	////////////////////////////////
 	// OPChildKeeper Configuration //
@@ -470,7 +478,7 @@ func NewMinitiaApp(
 			keys[packetforwardtypes.StoreKey],
 			app.TransferKeeper,
 			app.IBCKeeper.ChannelKeeper,
-			appkeepers.NewCommunityPoolKeeper(app.BankKeeper, authtypes.FeeCollectorName),
+			communityPoolKeeper,
 			app.BankKeeper,
 			// ics4wrapper: transfer -> packet forward -> wasm
 			wasmMiddleware,
@@ -671,6 +679,22 @@ func NewMinitiaApp(
 	)
 	app.AuctionKeeper = &auctionKeeper
 
+	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
+
+	tokenfactoryKeeper := tokenfactorykeeper.NewKeeper(
+		ac,
+		appCodec,
+		runtime.NewKVStoreService(keys[tokenfactorytypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		communityPoolKeeper,
+		authorityAddr,
+	)
+	app.TokenFactoryKeeper = &tokenfactoryKeeper
+	app.TokenFactoryKeeper.SetContractKeeper(contractKeeper)
+
+	app.BankKeeper.SetHooks(app.TokenFactoryKeeper.Hooks())
+
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
@@ -684,7 +708,7 @@ func NewMinitiaApp(
 
 	app.ModuleManager = module.NewManager(
 		auth.NewAppModule(appCodec, *app.AccountKeeper, nil, nil),
-		bank.NewAppModule(appCodec, *app.BankKeeper, app.AccountKeeper, nil),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
 		opchild.NewAppModule(appCodec, *app.OPChildKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
@@ -707,6 +731,7 @@ func NewMinitiaApp(
 		fetchprice.NewAppModule(appCodec, *app.FetchPriceKeeper),
 		// slinky modules
 		oracle.NewAppModule(appCodec, *app.OracleKeeper),
+		tokenfactory.NewAppModule(appCodec, *app.TokenFactoryKeeper, *app.AccountKeeper, *app.BankKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -754,9 +779,9 @@ func NewMinitiaApp(
 		opchildtypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, group.ModuleName,
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName, ibcexported.ModuleName,
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
-		ibcfeetypes.ModuleName, consensusparamtypes.ModuleName, auctiontypes.ModuleName,
+		ibcfeetypes.ModuleName, auctiontypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
-		icqtypes.ModuleName, fetchpricetypes.ModuleName,
+		icqtypes.ModuleName, fetchpricetypes.ModuleName, tokenfactorytypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

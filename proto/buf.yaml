@@ -1,6 +1,6 @@
-# This module represents buf.build/initia-labs/initia
+# This module represents buf.build/initia-labs/miniwasm
 version: v1
-name: buf.build/initia-labs/initia
+name: buf.build/initia-labs/miniwasm
 deps:
   - buf.build/cosmos/cosmos-sdk
   - buf.build/cosmos/cosmos-proto

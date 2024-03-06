@@ -152,6 +152,14 @@
           "Params": "WasmParams"
         }
       }
+    },
+    {
+      "url": "./tmp-swagger-gen/miniwasm/tokenfactory/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "TokenFactoryParams"
+        }
+      }
     }
   ]
 }
