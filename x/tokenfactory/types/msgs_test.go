@@ -374,21 +374,21 @@ func TestMsgChangeAdmin(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		msg        func() *types.MsgChangeAdmin
+		msg        func() types.MsgChangeAdmin
 		expectPass bool
 	}{
 		{
 			name: "proper msg",
-			msg: func() *types.MsgChangeAdmin {
-				msg := baseMsg
+			msg: func() types.MsgChangeAdmin {
+				msg := *baseMsg
 				return msg
 			},
 			expectPass: true,
 		},
 		{
 			name: "empty sender",
-			msg: func() *types.MsgChangeAdmin {
-				msg := baseMsg
+			msg: func() types.MsgChangeAdmin {
+				msg := *baseMsg
 				msg.Sender = ""
 				return msg
 			},
@@ -396,17 +396,17 @@ func TestMsgChangeAdmin(t *testing.T) {
 		},
 		{
 			name: "empty newAdmin",
-			msg: func() *types.MsgChangeAdmin {
-				msg := baseMsg
+			msg: func() types.MsgChangeAdmin {
+				msg := *baseMsg
 				msg.NewAdmin = ""
 				return msg
 			},
-			expectPass: false,
+			expectPass: true,
 		},
 		{
 			name: "invalid denom",
-			msg: func() *types.MsgChangeAdmin {
-				msg := baseMsg
+			msg: func() types.MsgChangeAdmin {
+				msg := *baseMsg
 				msg.Denom = "bitcoin"
 				return msg
 			},

@@ -161,16 +161,15 @@ func NewMsgChangeAdmin(sender, denom, newAdmin string) *MsgChangeAdmin {
 }
 
 func (m MsgChangeAdmin) Validate(accAddrCodec address.Codec) error {
-	if addr, err := accAddrCodec.StringToBytes(m.Sender); err != nil {
+	if _, err := accAddrCodec.StringToBytes(m.Sender); err != nil {
 		return err
-	} else if len(addr) == 0 {
-		return ErrEmptySender
 	}
 
-	if addr, err := accAddrCodec.StringToBytes(m.NewAdmin); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptyNewAdmin
+	// allow empty address
+	if len(m.NewAdmin) > 0 {
+		if _, err := accAddrCodec.StringToBytes(m.NewAdmin); err != nil {
+			return err
+		}
 	}
 
 	if _, _, err := DeconstructDenom(accAddrCodec, m.Denom); err != nil {
