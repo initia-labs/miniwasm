@@ -33,7 +33,7 @@ func (h WasmHooks) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Conte
 		return h.onRecvIcs20Packet(ctx, im, packet, relayer, ics20Data)
 	}
 
-	if isIcs721, ics721Data := isIcs721Packet(packet.GetData(), packet.SourcePort); isIcs721 {
+	if isIcs721, ics721Data := isIcs721Packet(packet.GetData()); isIcs721 {
 		return h.onRecvIcs721Packet(ctx, im, packet, relayer, ics721Data)
 	}
 
@@ -45,7 +45,7 @@ func (h WasmHooks) OnAcknowledgementPacketOverride(im ibchooks.IBCMiddleware, ct
 		return h.onAckIcs20Packet(ctx, im, packet, acknowledgement, relayer, ics20Data)
 	}
 
-	if isIcs721, ics721Data := isIcs721Packet(packet.GetData(), packet.DestinationPort); isIcs721 {
+	if isIcs721, ics721Data := isIcs721Packet(packet.GetData()); isIcs721 {
 		return h.onAckIcs721Packet(ctx, im, packet, acknowledgement, relayer, ics721Data)
 	}
 
@@ -57,7 +57,7 @@ func (h WasmHooks) OnTimeoutPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Co
 		return h.onTimeoutIcs20Packet(ctx, im, packet, relayer, ics20Data)
 	}
 
-	if isIcs721, ics721Data := isIcs721Packet(packet.GetData(), packet.DestinationPort); isIcs721 {
+	if isIcs721, ics721Data := isIcs721Packet(packet.GetData()); isIcs721 {
 		return h.onTimeoutIcs721Packet(ctx, im, packet, relayer, ics721Data)
 	}
 
