@@ -104,6 +104,9 @@ import (
 
 	initiaapplanes "github.com/initia-labs/initia/app/lanes"
 	initiaappparams "github.com/initia-labs/initia/app/params"
+	ibchooks "github.com/initia-labs/initia/x/ibc-hooks"
+	ibchookskeeper "github.com/initia-labs/initia/x/ibc-hooks/keeper"
+	ibchookstypes "github.com/initia-labs/initia/x/ibc-hooks/types"
 	"github.com/initia-labs/initia/x/ibc/fetchprice"
 	fetchpricekeeper "github.com/initia-labs/initia/x/ibc/fetchprice/keeper"
 	fetchpricetypes "github.com/initia-labs/initia/x/ibc/fetchprice/types"
@@ -139,10 +142,9 @@ import (
 	// local imports
 	appante "github.com/initia-labs/miniwasm/app/ante"
 	apphook "github.com/initia-labs/miniwasm/app/hook"
-	wasmibcmiddleware "github.com/initia-labs/miniwasm/app/ibc-middleware"
+	ibcwasmhooks "github.com/initia-labs/miniwasm/app/ibc-hooks"
 	appkeepers "github.com/initia-labs/miniwasm/app/keepers"
 	applanes "github.com/initia-labs/miniwasm/app/lanes"
-
 	"github.com/initia-labs/miniwasm/x/bank"
 	bankkeeper "github.com/initia-labs/miniwasm/x/bank/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory"
@@ -229,6 +231,7 @@ type MinitiaApp struct {
 	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the slinky oracle
 	FetchPriceKeeper      *fetchpricekeeper.Keeper
 	TokenFactoryKeeper    *tokenfactorykeeper.Keeper
+	IBCHooksKeeper        *ibchookskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -284,6 +287,7 @@ func NewMinitiaApp(
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
 		auctiontypes.StoreKey, packetforwardtypes.StoreKey, icqtypes.StoreKey,
 		oracletypes.StoreKey, fetchpricetypes.StoreKey, tokenfactorytypes.StoreKey,
+		ibchookstypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -444,6 +448,13 @@ func NewMinitiaApp(
 	)
 	app.IBCFeeKeeper = &ibcFeeKeeper
 
+	app.IBCHooksKeeper = ibchookskeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[ibchookstypes.StoreKey]),
+		authorityAddr,
+		ac,
+	)
+
 	////////////////////////////
 	// Transfer configuration //
 	////////////////////////////
@@ -453,7 +464,6 @@ func NewMinitiaApp(
 	var transferStack porttypes.IBCModule
 	{
 		packetForwardKeeper := &packetforwardkeeper.Keeper{}
-		wasmMiddleware := &wasmibcmiddleware.IBCMiddleware{}
 
 		// Create Transfer Keepers
 		transferKeeper := ibctransferkeeper.NewKeeper(
@@ -480,8 +490,8 @@ func NewMinitiaApp(
 			app.IBCKeeper.ChannelKeeper,
 			communityPoolKeeper,
 			app.BankKeeper,
-			// ics4wrapper: transfer -> packet forward -> wasm
-			wasmMiddleware,
+			// ics4wrapper: transfer -> packet forward -> fee
+			app.IBCFeeKeeper,
 			authorityAddr,
 		)
 		app.PacketForwardKeeper = packetForwardKeeper
@@ -494,19 +504,21 @@ func NewMinitiaApp(
 			packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 		)
 
-		// create move middleware for transfer
-		*wasmMiddleware = wasmibcmiddleware.NewIBCMiddleware(
+		// create wasm middleware for transfer
+		hookMiddleware := ibchooks.NewIBCMiddleware(
 			// receive: wasm -> packet forward -> transfer
 			packetForwardMiddleware,
-			// ics4wrapper: transfer -> packet forward -> wasm -> fee
-			app.IBCFeeKeeper,
-			app.WasmKeeper,
+			ibchooks.NewICS4Middleware(
+				nil, /* ics4wrapper: not used */
+				ibcwasmhooks.NewWasmHooks(app.WasmKeeper, ac),
+			),
+			app.IBCHooksKeeper,
 		)
 
 		// create ibcfee middleware for transfer
 		transferStack = ibcfee.NewIBCMiddleware(
 			// receive: fee -> wasm -> packet forward -> transfer
-			wasmMiddleware,
+			hookMiddleware,
 			// ics4wrapper: transfer -> packet forward -> wasm -> fee -> channel
 			*app.IBCFeeKeeper,
 		)
@@ -563,8 +575,32 @@ func NewMinitiaApp(
 	// Wasm IBC Configuration   //
 	//////////////////////////////
 
-	wasmIBCModule := wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCFeeKeeper)
-	wasmIBCStack := ibcfee.NewIBCMiddleware(wasmIBCModule, *app.IBCFeeKeeper)
+	var wasmIBCStack porttypes.IBCModule
+	{
+		wasmIBCModule := wasm.NewIBCHandler(
+			app.WasmKeeper,
+			app.IBCKeeper.ChannelKeeper,
+			// ics4wrapper: wasm -> fee
+			app.IBCFeeKeeper,
+		)
+
+		// create wasm middleware for wasm IBC stack
+		hookMiddleware := ibchooks.NewIBCMiddleware(
+			// receive: hook -> wasm
+			wasmIBCModule,
+			ibchooks.NewICS4Middleware(
+				nil, /* ics4wrapper: not used */
+				ibcwasmhooks.NewWasmHooks(app.WasmKeeper, ac),
+			),
+			app.IBCHooksKeeper,
+		)
+
+		wasmIBCStack = ibcfee.NewIBCMiddleware(
+			// receive: fee -> hook -> wasm
+			hookMiddleware,
+			*app.IBCFeeKeeper,
+		)
+	}
 
 	///////////////////////
 	// ICQ configuration //
@@ -718,6 +754,7 @@ func NewMinitiaApp(
 		consensus.NewAppModule(appCodec, *app.ConsensusParamsKeeper),
 		wasm.NewAppModule(appCodec, app.WasmKeeper, nil /* unused */, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), nil),
 		auction.NewAppModule(app.appCodec, *app.AuctionKeeper),
+		tokenfactory.NewAppModule(appCodec, *app.TokenFactoryKeeper, *app.AccountKeeper, *app.BankKeeper),
 		// ibc modules
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctransfer.NewAppModule(*app.TransferKeeper),
@@ -729,9 +766,9 @@ func NewMinitiaApp(
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
 		icq.NewAppModule(*app.ICQKeeper, nil),
 		fetchprice.NewAppModule(appCodec, *app.FetchPriceKeeper),
+		ibchooks.NewAppModule(appCodec, *app.IBCHooksKeeper),
 		// slinky modules
 		oracle.NewAppModule(appCodec, *app.OracleKeeper),
-		tokenfactory.NewAppModule(appCodec, *app.TokenFactoryKeeper, *app.AccountKeeper, *app.BankKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -782,6 +819,7 @@ func NewMinitiaApp(
 		ibcfeetypes.ModuleName, auctiontypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, fetchpricetypes.ModuleName, tokenfactorytypes.ModuleName,
+		ibchookstypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

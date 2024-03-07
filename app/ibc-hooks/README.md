@@ -7,7 +7,7 @@ This allows cross-chain contract calls, that involve token movement.
 This is useful for a variety of usecases.
 One of primary importance is cross-chain swaps, which is an extremely powerful primitive.
 
-The mechanism enabling this is a `memo` field on every ICS20 transfer packet as of [IBC v3.4.0](https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b).
+The mechanism enabling this is a `memo` field on every ICS20 or ICS721 transfer packet as of [IBC v3.4.0](https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b).
 Wasm hooks is an IBC middleware that parses an ICS20 transfer, and if the `memo` field is of a particular form, executes a wasm contract call. We now detail the `memo` format for `wasm` contract calls, and the execution guarantees provided.
 
 ### Cosmwasm Contract Execution Format
@@ -17,6 +17,17 @@ The cosmwasm `MsgExecuteContract` is defined [here](https://github.com/CosmWasm/
 ) as the following type:
 
 ```go
+// HookData defines a wrapper for wasm execute message
+// and async callback.
+type HookData struct {
+ // Message is a wasm execute message which will be executed
+ // at `OnRecvPacket` of receiver chain.
+ Message *wasmtypes.MsgExecuteContract `json:"message,omitempty"`
+
+ // AsyncCallback is a contract address
+ AsyncCallback string `json:"async_callback,omitempty"`
+}
+
 type MsgExecuteContract struct {
  // Sender is the actor that committed the message in the sender chain
  Sender string
@@ -46,13 +57,14 @@ So our constructed cosmwasm message that we execute will look like:
 ```go
 msg := MsgExecuteContract{
  // Sender is the that actor that signed the messages
- Sender: "osmo1-hash-of-channel-and-sender",
+ Sender: "init1-hash-of-channel-and-sender",
  // Contract is the address of the smart contract
- Contract: packet.data.memo["wasm"]["ContractAddress"],
+ Contract: packet.data.memo["wasm"]["contract"],
  // Msg json encoded message to be passed to the contract
- Msg: packet.data.memo["wasm"]["Msg"],
+ Msg: packet.data.memo["wasm"]["msg"],
  // Funds coins that are transferred to the contract on execution
  Funds: sdk.NewCoin{Denom: ibc.ConvertSenderDenomToLocalDenom(packet.data.Denom), Amount: packet.data.Amount}
+}
 ```
 
 ### ICS20 packet structure
@@ -68,12 +80,15 @@ ICS20 is JSON native, so we use JSON for the memo format.
         "amount": "1000",
         "sender": "addr on counterparty chain", // will be transformed
         "receiver": "contract addr or blank",
-     "memo": {
+        "memo": {
            "wasm": {
-              "contract": "osmo1contractAddr",
+              "contract": "init1contractAddr",
               "msg": {
                 "raw_message_fields": "raw_message_data",
-              }
+              },
+              "funds": [
+                {"denom": "ibc/denom", "amount": "100"}
+              ]
             }
         }
     }
@@ -85,8 +100,8 @@ An ICS20 packet is formatted correctly for wasmhooks iff the following all hold:
 * `memo` is not blank
 * `memo` is valid JSON
 * `memo` has at least one key, with value `"wasm"`
-* `memo["wasm"]` has exactly two entries, `"contract"` and `"msg"`
-* `memo["wasm"]["msg"]` is a valid JSON object
+* `memo["wasm"]["message"]` has exactly two entries, `"contract"`, `"msg"` and `"fund"`
+* `memo["wasm"]["message"]["msg"]` is a valid JSON object
 * `receiver == "" || receiver == memo["wasm"]["contract"]`
 
 We consider an ICS20 packet as directed towards wasmhooks iff all of the following hold:
@@ -117,6 +132,72 @@ In wasm hooks, post packet execution:
 * if wasm message has error, return ErrAck
 * otherwise continue through middleware
 
-## Testing strategy
+## Ack callbacks
 
-See go tests.
+A contract that sends an IBC transfer, may need to listen for the ACK from that packet. To allow
+contracts to listen on the ack of specific packets, we provide Ack callbacks.
+
+### Design
+
+The sender of an IBC transfer packet may specify a callback for when the ack of that packet is received in the memo
+field of the transfer packet.
+
+Crucially, _only_ the IBC packet sender can set the callback.
+
+### Use case
+
+The crosschain swaps implementation sends an IBC transfer. If the transfer were to fail, we want to allow the sender
+to be able to retrieve their funds (which would otherwise be stuck in the contract). To do this, we allow users to
+retrieve the funds after the timeout has passed, but without the ack information, we cannot guarantee that the send
+hasn't failed (i.e.: returned an error ack notifying that the receiving change didn't accept it)
+
+### Implementation
+
+#### Callback information in memo
+
+For the callback to be processed, the transfer packet's memo should contain the following in its JSON:
+
+```json
+{
+  "wasm": {
+    "async_callback": "init1contractAddr"
+  }
+}
+```
+
+When an ack is received, it will notify the specified contract via a sudo message.
+
+#### Interface for receiving the Acks and Timeouts
+
+The contract that awaits the callback should implement the following interface for a sudo message:
+
+```rust
+#[cw_serde]
+pub enum IBCLifecycleComplete {
+    #[serde(rename = "ibc_ack")]
+    IBCAck {
+        /// The source channel (miniwasm side) of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+        /// String encoded version of the ack as seen by OnAcknowledgementPacket(..)
+        ack: String,
+        /// Weather an ack is a success of failure according to the transfer spec
+        success: bool,
+    },
+    #[serde(rename = "ibc_timeout")]
+    IBCTimeout {
+        /// The source channel (miniwasm side) of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+    },
+}
+
+/// Message type for `sudo` entry_point
+#[cw_serde]
+pub enum SudoMsg {
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
+}
+```
