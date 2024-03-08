@@ -21,10 +21,10 @@ require (
 	github.com/cometbft/cometbft v0.38.5
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
-	github.com/cosmos/cosmos-sdk v0.50.3
+	github.com/cosmos/cosmos-sdk v0.50.4
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.11
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.0
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.1
 	github.com/cosmos/ibc-apps/modules/async-icq/v8 v8.0.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
@@ -33,7 +33,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/initia-labs/OPinit v0.2.0-beta.1
-	github.com/initia-labs/initia v0.2.0-beta.7.1
+	github.com/initia-labs/initia v0.2.0-beta.7.0.20240307103405-3f582cc4f665
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
@@ -217,7 +217,6 @@ replace (
 
 	github.com/cosmos/iavl => github.com/initia-labs/iavl v0.0.0-20240208034922-5d81c449d4c0
 
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 => github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.1-0.20240124225747-f055ce5b405c
 	github.com/cosmos/ibc-apps/modules/async-icq/v8 => github.com/cosmos/ibc-apps/modules/async-icq/v8 v8.0.1-0.20240124225747-f055ce5b405c
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.

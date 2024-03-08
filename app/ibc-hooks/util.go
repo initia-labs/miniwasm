@@ -1,8 +1,9 @@
-package ibc_middleware
+package wasm_hooks
 
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,10 +12,12 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
+	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
-const senderPrefix = "ibc-move-wasm-intermediary"
+const senderPrefix = "ibc-wasm-hook-intermediary"
 
 // deriveIntermediateSender compute intermediate sender address
 // Bech32(Hash(Hash("ibc-hook-intermediary") + channelID/sender))
@@ -24,39 +27,64 @@ func deriveIntermediateSender(channel, originalSender string) string {
 	return senderAddr.String()
 }
 
-func isIcs20Packet(packet channeltypes.Packet) (isIcs20 bool, ics20data transfertypes.FungibleTokenPacketData) {
+func isIcs20Packet(packetData []byte) (isIcs20 bool, ics20data transfertypes.FungibleTokenPacketData) {
 	var data transfertypes.FungibleTokenPacketData
-	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
+	decoder := json.NewDecoder(strings.NewReader(string(packetData)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&data); err != nil {
 		return false, data
 	}
 	return true, data
 }
 
-func validateAndParseMemo(memo, receiver string) (isWasmRouted bool, msg wasmtypes.MsgExecuteContract, err error) {
-	isWasmRouted, metadata := jsonStringHasKey(memo, "wasm")
+const wasmPortPrefix = "wasm."
+
+func isIcs721Packet(packetData []byte) (isIcs721 bool, ics721data nfttransfertypes.NonFungibleTokenPacketData) {
+	// Use wasm port prefix to ack like normal wasm chain.
+	//
+	// initia l1 is handling encoding and decoding depends on port id,
+	// so miniwasm should ack like normal wasm chain.
+	if data, err := nfttransfertypes.DecodePacketData(packetData, wasmPortPrefix); err != nil {
+		return false, data
+	} else {
+		return true, data
+	}
+}
+
+func validateAndParseMemo(memo string) (
+	isWasmRouted bool,
+	hookData HookData,
+	err error,
+) {
+	isWasmRouted, metadata := jsonStringHasKey(memo, wasmHookMemoKey)
 	if !isWasmRouted {
 		return
 	}
 
-	wasmRaw := metadata["wasm"]
-	bz, err := json.Marshal(wasmRaw)
+	wasmHookRaw := metadata[wasmHookMemoKey]
+
+	// parse wasm raw bytes to execute message
+	bz, err := json.Marshal(wasmHookRaw)
 	if err != nil {
 		err = errors.Wrap(channeltypes.ErrInvalidPacket, err.Error())
 		return
 	}
 
-	err = json.Unmarshal(bz, &msg)
+	err = json.Unmarshal(bz, &hookData)
 	if err != nil {
 		err = errors.Wrap(channeltypes.ErrInvalidPacket, err.Error())
-		return
-	}
-
-	if receiver != msg.Contract {
-		err = errors.Wrap(channeltypes.ErrInvalidPacket, "receiver is not properly set")
 		return
 	}
 
 	return
+}
+
+func validateReceiver(msg *wasmtypes.MsgExecuteContract, receiver string) error {
+	if receiver != msg.Contract {
+		return errors.Wrap(channeltypes.ErrInvalidPacket, "receiver is not properly set")
+	}
+
+	return nil
 }
 
 // jsonStringHasKey parses the memo as a json object and checks if it contains the key.
@@ -93,4 +121,14 @@ func newEmitErrorAcknowledgement(ctx sdk.Context, err error) channeltypes.Acknow
 			Error: fmt.Sprintf("ibc wasm hook error: %s", err.Error()),
 		},
 	}
+}
+
+// isAckError checks an IBC acknowledgement to see if it's an error.
+// This is a replacement for ack.Success() which is currently not working on some circumstances
+func isAckError(acknowledgement []byte) bool {
+	var ackErr channeltypes.Acknowledgement_Error
+	if err := json.Unmarshal(acknowledgement, &ackErr); err == nil && len(ackErr.Error) > 0 {
+		return true
+	}
+	return false
 }
