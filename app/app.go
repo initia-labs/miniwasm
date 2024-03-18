@@ -678,6 +678,17 @@ func NewMinitiaApp(
 		panic(fmt.Sprintf("error while reading wasm config: %s", err))
 	}
 
+	// allow slinky queries
+	queryAllowlist := make(map[string]proto.Message)
+	queryAllowlist["/slinky.oracle.v1.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsRequest{}
+	queryAllowlist["/slinky.oracle.v1.Query/GetPrice"] = &oracletypes.GetPriceRequest{}
+	queryAllowlist["/slinky.oracle.v1.Query/GetPrices"] = &oracletypes.GetPricesRequest{}
+
+	// use accept list stargate querier
+	wasmOpts = append(wasmOpts, wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+		Stargate: wasmkeeper.AcceptListStargateQuerier(queryAllowlist, app.GRPCQueryRouter(), appCodec),
+	}))
+
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
 	*app.WasmKeeper = wasmkeeper.NewKeeper(
