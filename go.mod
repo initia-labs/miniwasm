@@ -32,8 +32,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit v0.2.1
-	github.com/initia-labs/initia v0.2.1
+	github.com/initia-labs/OPinit v0.2.2
+	github.com/initia-labs/initia v0.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
