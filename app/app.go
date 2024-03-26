@@ -376,9 +376,12 @@ func NewMinitiaApp(
 		apphook.NewWasmBridgeHook(ac, app.WasmKeeper).Hook,
 		app.MsgServiceRouter(),
 		authorityAddr,
+		ac,
 		vc,
 		cc,
 	)
+
+	app.RegisterExecutorChangePlans()
 
 	// get skipUpgradeHeights from the app options
 	skipUpgradeHeights := map[int64]bool{}
