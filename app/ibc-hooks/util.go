@@ -115,7 +115,7 @@ func jsonStringHasKey(memo, key string) (found bool, jsonObject map[string]inter
 
 // newEmitErrorAcknowledgement creates a new error acknowledgement after having emitted an event with the
 // details of the error.
-func newEmitErrorAcknowledgement(ctx sdk.Context, err error) channeltypes.Acknowledgement {
+func newEmitErrorAcknowledgement(err error) channeltypes.Acknowledgement {
 	return channeltypes.Acknowledgement{
 		Response: &channeltypes.Acknowledgement_Error{
 			Error: fmt.Sprintf("ibc wasm hook error: %s", err.Error()),

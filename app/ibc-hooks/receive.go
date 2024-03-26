@@ -27,19 +27,19 @@ func (h WasmHooks) onRecvIcs20Packet(
 	if !isWasmRouted || hookData.Message == nil {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	} else if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	msg := hookData.Message
 	if allowed, err := h.checkACL(im, ctx, msg.Contract); err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	} else if !allowed {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// Validate whether the receiver is correctly specified or not.
 	if err := validateReceiver(msg, data.Receiver); err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	// Calculate the receiver / contract caller based on the packet's channel and sender
@@ -54,7 +54,7 @@ func (h WasmHooks) onRecvIcs20Packet(
 	data.Receiver = intermediateSender
 	bz, err := json.Marshal(data)
 	if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 	packet.Data = bz
 
@@ -66,7 +66,7 @@ func (h WasmHooks) onRecvIcs20Packet(
 	msg.Sender = intermediateSender
 	_, err = h.execMsg(ctx, msg)
 	if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	return ack
@@ -83,19 +83,19 @@ func (h WasmHooks) onRecvIcs721Packet(
 	if !isWasmRouted || hookData.Message == nil {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	} else if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	msg := hookData.Message
 	if allowed, err := h.checkACL(im, ctx, msg.Contract); err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	} else if !allowed {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// Validate whether the receiver is correctly specified or not.
 	if err := validateReceiver(msg, data.Receiver); err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	// Calculate the receiver / contract caller based on the packet's channel and sender
@@ -110,7 +110,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	data.Receiver = intermediateSender
 	bz, err := json.Marshal(data)
 	if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 	packet.Data = bz
 
@@ -122,7 +122,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	msg.Sender = intermediateSender
 	_, err = h.execMsg(ctx, msg)
 	if err != nil {
-		return newEmitErrorAcknowledgement(ctx, err)
+		return newEmitErrorAcknowledgement(err)
 	}
 
 	return ack
