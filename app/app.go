@@ -510,7 +510,7 @@ func NewMinitiaApp(
 			packetForwardMiddleware,
 			ibchooks.NewICS4Middleware(
 				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(app.WasmKeeper, ac),
+				ibcwasmhooks.NewWasmHooks(appCodec, ac, app.WasmKeeper),
 			),
 			app.IBCHooksKeeper,
 		)
@@ -590,7 +590,7 @@ func NewMinitiaApp(
 			wasmIBCModule,
 			ibchooks.NewICS4Middleware(
 				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(app.WasmKeeper, ac),
+				ibcwasmhooks.NewWasmHooks(appCodec, ac, app.WasmKeeper),
 			),
 			app.IBCHooksKeeper,
 		)

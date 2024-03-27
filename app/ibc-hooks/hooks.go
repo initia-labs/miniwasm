@@ -2,6 +2,7 @@ package wasm_hooks
 
 import (
 	"cosmossdk.io/core/address"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -17,14 +18,16 @@ var (
 )
 
 type WasmHooks struct {
-	wasmKeeper *wasmkeeper.Keeper
+	codec      codec.Codec
 	ac         address.Codec
+	wasmKeeper *wasmkeeper.Keeper
 }
 
-func NewWasmHooks(wasmKeeper *wasmkeeper.Keeper, ac address.Codec) *WasmHooks {
+func NewWasmHooks(codec codec.Codec, ac address.Codec, wasmKeeper *wasmkeeper.Keeper) *WasmHooks {
 	return &WasmHooks{
-		wasmKeeper: wasmKeeper,
+		codec:      codec,
 		ac:         ac,
+		wasmKeeper: wasmKeeper,
 	}
 }
 
