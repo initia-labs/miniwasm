@@ -2,6 +2,7 @@ package wasm_hooks
 
 import (
 	"encoding/json"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -34,7 +35,7 @@ func (h WasmHooks) onRecvIcs20Packet(
 	if allowed, err := h.checkACL(im, ctx, msg.Contract); err != nil {
 		return newEmitErrorAcknowledgement(err)
 	} else if !allowed {
-		return im.App.OnRecvPacket(ctx, packet, relayer)
+		return newEmitErrorAcknowledgement(fmt.Errorf("contract `%s` is not allowed to be used in ibchooks", msg.Contract))
 	}
 
 	// Validate whether the receiver is correctly specified or not.
@@ -90,7 +91,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	if allowed, err := h.checkACL(im, ctx, msg.Contract); err != nil {
 		return newEmitErrorAcknowledgement(err)
 	} else if !allowed {
-		return im.App.OnRecvPacket(ctx, packet, relayer)
+		return newEmitErrorAcknowledgement(fmt.Errorf("contract `%s` is not allowed to be used in ibchooks", msg.Contract))
 	}
 
 	// Validate whether the receiver is correctly specified or not.
