@@ -151,6 +151,17 @@ import (
 	tokenfactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
+	// kvindexer
+	indexerconfig "github.com/initia-labs/kvindexer/config"
+	indexer "github.com/initia-labs/kvindexer/module"
+	indexerkeeper "github.com/initia-labs/kvindexer/module/keeper"
+	indexertypes "github.com/initia-labs/kvindexer/module/types"
+
+	blocksubmodule "github.com/initia-labs/kvindexer/submodule/block"
+	"github.com/initia-labs/kvindexer/submodule/dashboard"
+	"github.com/initia-labs/kvindexer/submodule/pair"
+	"github.com/initia-labs/kvindexer/submodule/tx"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/initia-labs/miniwasm/client/docs/statik"
 )
@@ -252,6 +263,10 @@ type MinitiaApp struct {
 
 	// Override of BaseApp's CheckTx
 	checkTxHandler mevlane.CheckTx
+
+	// kvindexer
+	IndexerKeeper *indexerkeeper.Keeper
+	indexerModule indexer.AppModuleBasic
 }
 
 // NewMinitiaApp returns a reference to an initialized Initia.
@@ -782,6 +797,39 @@ func NewMinitiaApp(
 		oracle.NewAppModule(appCodec, *app.OracleKeeper),
 	)
 
+	indexerConfig, err := indexerconfig.NewConfig(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	app.IndexerKeeper = indexerkeeper.NewKeeper(
+		appCodec,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.OracleKeeper,
+		nil, // placeholder for distribution keeper
+		nil, // placeholder for staking keeper
+		nil, // placeholder for reward keeper,
+		nil, // placeholder for community pool keeper
+		indexerkeeper.VMKeeper{Keeper: *app.WasmKeeper}, // placeholder for wrapped vm keeper
+		app.IBCKeeper,
+		app.TransferKeeper,
+		nil, // temporary...
+		app.OPChildKeeper,
+		authtypes.FeeCollectorName,
+		homePath,
+		indexerConfig,
+		ac,
+		vc,
+		app.ChainID(),
+	)
+
+	err = app.IndexerKeeper.RegisterSubmodules(dashboard.Submodule, pair.Submodule, tx.Submodule, blocksubmodule.Submodule)
+	if err != nil {
+		panic(err)
+	}
+	app.indexerModule = indexer.NewAppModuleBasic(app.IndexerKeeper)
+
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration and genesis verification.
 	// By default it is composed of all the module from the module manager.
@@ -790,6 +838,7 @@ func NewMinitiaApp(
 		app.ModuleManager,
 		map[string]module.AppModuleBasic{
 			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			indexertypes.ModuleName: app.indexerModule,
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
@@ -844,6 +893,8 @@ func NewMinitiaApp(
 	if err != nil {
 		panic(err)
 	}
+
+	app.indexerModule.RegisterServices(app.configurator)
 
 	// register upgrade handler for later use
 	app.RegisterUpgradeHandlers(app.configurator)
@@ -1141,6 +1192,8 @@ func (app *MinitiaApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register grpc-gateway routes for all modules.
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
+	app.indexerModule.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(apiSvr.Router)
@@ -1244,4 +1297,12 @@ func (app *MinitiaApp) TxConfig() client.TxConfig {
 func (app *MinitiaApp) ChainID() string { // TODO: remove this method once chain updates to v0.50.x
 	field := reflect.ValueOf(app.BaseApp).Elem().FieldByName("chainID")
 	return field.String()
+}
+
+func (app *MinitiaApp) GetIndexerKeeper() *indexerkeeper.Keeper {
+	return app.IndexerKeeper
+}
+
+func (app MinitiaApp) GetKeys() map[string]*storetypes.KVStoreKey {
+	return app.keys
 }
