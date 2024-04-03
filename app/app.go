@@ -381,7 +381,10 @@ func NewMinitiaApp(
 		cc,
 	)
 
-	app.RegisterExecutorChangePlans()
+	err = app.RegisterExecutorChangePlans()
+	if err != nil {
+		panic(err)
+	}
 
 	// get skipUpgradeHeights from the app options
 	skipUpgradeHeights := map[int64]bool{}

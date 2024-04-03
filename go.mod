@@ -32,7 +32,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit v0.2.2-0.20240326110012-c9784a2d7baa
+	github.com/initia-labs/OPinit v0.2.2-0.20240403083804-4822c74aaf44
 	github.com/initia-labs/initia v0.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
@@ -142,7 +142,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/initia-labs/OPinit/api v0.0.0-20240326110012-c9784a2d7baa // indirect
+	github.com/initia-labs/OPinit/api v0.0.0-20240403083804-4822c74aaf44 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
@@ -219,7 +219,7 @@ require (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
-	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.0.0-20240329070743-a3d01c08e362
+	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.0.0-20240403092330-f3837726ba40
 
 	github.com/cosmos/cosmos-sdk => github.com/initia-labs/cosmos-sdk v0.0.0-20240313050640-ff14560eeb21
 
