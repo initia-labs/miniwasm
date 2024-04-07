@@ -743,6 +743,8 @@ github.com/initia-labs/cosmos-sdk v0.0.0-20240313050640-ff14560eeb21 h1:AwqnO5IR
 github.com/initia-labs/cosmos-sdk v0.0.0-20240313050640-ff14560eeb21/go.mod h1:oV/k6GJgXV9QPoM2fsYDPPsyPBgQbdotv532O6Mz1OQ=
 github.com/initia-labs/iavl v0.0.0-20240208034922-5d81c449d4c0 h1:GQ7/UD5mB6q104roqZK5jxb6ff9sBk0/uwFxgERQIaU=
 github.com/initia-labs/iavl v0.0.0-20240208034922-5d81c449d4c0/go.mod h1:CmTGqMnRnucjxbjduneZXT+0vPgNElYvdefjX2q9tYc=
+github.com/initia-labs/indexer v0.1.0-beta.20.0.20240325061417-60a2c65cf569 h1:ADXWvrKsYN0uMY3cQVojGLbWf29kuq41TgweQMq8sps=
+github.com/initia-labs/indexer v0.1.0-beta.20.0.20240325061417-60a2c65cf569/go.mod h1:HPMAC/PpSWcG/o9/GeyQZLaCTw/pA6HI9XRMtrEgokU=
 github.com/initia-labs/initia v0.2.3 h1:btg3UoX6oy7LOcsy03rZaYmxDk5RvOyBY+hQ4EtuxUg=
 github.com/initia-labs/initia v0.2.3/go.mod h1:xLkPASIv+6EuE7BHCxB3ag2K9+rUwJ/6AC5fkYmSejw=
 github.com/initia-labs/movevm v0.2.2 h1:T0FwprEEDWhNfPREthNDvRr+IGg9N7eQg+zXvT8V/U4=
