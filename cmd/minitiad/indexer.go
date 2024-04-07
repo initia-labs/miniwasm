@@ -49,6 +49,16 @@ func preSetupIndexer(svrCtx *server.Context, clientCtx client.Context, ctx conte
 		return err
 	}
 
+	// listen all keys
+	keysToListen := []storetypes.StoreKey{}
+
+	// TODO: if it downgrades performacne, have to set only keys for registered submodules and crons
+	keys := app.GetKeys()
+	for _, key := range keys {
+		keysToListen = append(keysToListen, key)
+	}
+	app.CommitMultiStore().AddListeners(keysToListen)
+
 	err = idxer.Start(nil)
 	if err != nil {
 		return err

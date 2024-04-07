@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -1239,9 +1238,6 @@ func (app *MinitiaApp) TxConfig() client.TxConfig {
 	return app.txConfig
 }
 
-// ChainID gets chainID from private fields of BaseApp
-// Should be removed once SDK 0.50.x will be adopted
-func (app *MinitiaApp) ChainID() string { // TODO: remove this method once chain updates to v0.50.x
-	field := reflect.ValueOf(app.BaseApp).Elem().FieldByName("chainID")
-	return field.String()
+func (app *MinitiaApp) GetKeys() map[string]*storetypes.KVStoreKey {
+	return app.keys
 }
