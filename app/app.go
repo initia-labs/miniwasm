@@ -159,6 +159,7 @@ import (
 
 	blocksubmodule "github.com/initia-labs/kvindexer/submodule/block"
 	"github.com/initia-labs/kvindexer/submodule/dashboard"
+	"github.com/initia-labs/kvindexer/submodule/nft"
 	"github.com/initia-labs/kvindexer/submodule/pair"
 	"github.com/initia-labs/kvindexer/submodule/tx"
 
@@ -824,7 +825,7 @@ func NewMinitiaApp(
 		app.ChainID(),
 	)
 
-	err = app.IndexerKeeper.RegisterSubmodules(dashboard.Submodule, pair.Submodule, tx.Submodule, blocksubmodule.Submodule)
+	err = app.IndexerKeeper.RegisterSubmodules(dashboard.Submodule, pair.Submodule, tx.Submodule, blocksubmodule.Submodule, nft.Submodule)
 	if err != nil {
 		panic(err)
 	}
