@@ -50,7 +50,7 @@ require (
 
 require (
 	github.com/hashicorp/go-metrics v0.5.2
-	github.com/initia-labs/indexer v0.1.0-beta.20.0.20240325061417-60a2c65cf569
+	github.com/initia-labs/indexer v0.1.0-beta.20.0.20240408042000-242d428d2fcf
 	golang.org/x/sync v0.6.0
 )
 
