@@ -1,5 +1,7 @@
 # Token Factory
 
+This module forked from [osmosis](https://github.com/osmosis-labs/osmosis).
+
 The tokenfactory module allows any account to create a new token with
 the name `factory/{creator address}/{subdenom}`. Because tokens are
 namespaced by creator address, this allows token minting to be
@@ -18,7 +20,8 @@ created denom. Once a denom is created, the original creator is given
   of the asset.
 
 ## Bank hooks (`TrackBeforeSend`, `BlockBeforeSend`)
-In our fork of [cosmos-sdk](https://github.com/osmosis-labs/cosmos-sdk), we have added two hooks: TrackBeforeSend and BlockBeforeSend.
+
+In our fork of [x/bank](../bank), we have added two hooks: TrackBeforeSend and BlockBeforeSend.
 
 The APIs for TrackBeforeSend and BlockBeforeSend are as follows:
 
@@ -33,27 +36,24 @@ TrackBeforeSend and BlockBeforeSend are both triggered before any send action oc
 
 ```go
 func (k BaseSendKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
-	// BlockBeforeSend hook should always be called before the TrackBeforeSend hook.
-	err := k.BlockBeforeSend(ctx, fromAddr, toAddr, amt)
-	if err != nil {
-		return err
-	}
+ // BlockBeforeSend hook should always be called before the TrackBeforeSend hook.
+ err := k.BlockBeforeSend(ctx, fromAddr, toAddr, amt)
+ if err != nil {
+  return err
+ }
 
-	return k.sendCoins(ctx, fromAddr, toAddr, amt)
+ return k.sendCoins(ctx, fromAddr, toAddr, amt)
 }
 
 ```
-Note that for Module to Module send, the BlockBeforeSend hooks are not triggered, as we do not want to block module-to-module sends in any case.
-
-Please see [PR421](https://github.com/osmosis-labs/cosmos-sdk/pull/421) for more implementation details.
-
 
 ### Token factory integration with Bank Hooks
+
 Due to the difference two hooks mentioned above, `TrackBeforeSend` is useful for cases when a contract needs to track specific send actions of the token factory denom, whilst `BlockBeforeSend` would be more useful for situations when we want to block specific sends using contracts.
 
-Each Token Factory denom allows the registration of one contract address. This contract is sudo-called every time the aforementioned bank hooks are activated. 
+Each Token Factory denom allows the registration of one contract address. This contract is sudo-called every time the aforementioned bank hooks are activated.
 
-Contracts are able to integrate with these hooks by implementing `BlockBeforeSend` and `TrackBeforeSend` message as the following example: 
+Contracts are able to integrate with these hooks by implementing `BlockBeforeSend` and `TrackBeforeSend` message as the following example:
 
 ```rust
 #[entry_point]
@@ -79,8 +79,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) ->  StdResult<Response> {
 }
 ```
 
-
-Note that since `TrackBeforeSend` hook can also be triggered upon module to module send (which is not gas metered), we internally gas meter `TrackBeforeSend` with a gas limit of 100_000. 
+Note that since `TrackBeforeSend` hook can also be triggered upon module to module send (which is not gas metered), we internally gas meter `TrackBeforeSend` with a gas limit of 100_000.
 
 ## Messages
 
@@ -110,6 +109,7 @@ message MsgCreateDenom {
   creator is kept.
 
 ![Schema](/x/tokenfactory/images/CreateDenom.png)
+
 ### Mint
 
 Minting of a specific denom is only allowed for the current admin.
@@ -133,6 +133,7 @@ message MsgMint {
 - Mint designated amount of tokens for the denom via `bank` module
 
 ![Schema](/x/tokenfactory/images/Mint.png)
+
 ### Burn
 
 Burning of a specific denom is only allowed for the current admin.
@@ -156,6 +157,7 @@ message MsgBurn {
 - Burn designated amount of tokens for the denom via `bank` module
 
 ![Schema](/x/tokenfactory/images/Burn.png)
+
 ### ChangeAdmin
 
 Change the admin of a denom. Note, this is only allowed to be called by the current admin of the denom.
@@ -169,6 +171,7 @@ message MsgChangeAdmin {
 ```
 
 ![Schema](/x/tokenfactory/images/ChangeAdmin.png)
+
 ### SetDenomMetadata
 
 Setting of metadata for a specific denom is only allowed for the admin of the denom.
@@ -187,6 +190,7 @@ message MsgChangeAdmin {
 - Modify `AuthorityMetadata` state entry to change the admin of the denom
 
 ![Schema](/x/tokenfactory/images/SetDenomMetadata.png)
+
 ## Expectations from the chain
 
 The chain's bech32 prefix for addresses can be at most 16 characters long.
@@ -227,32 +231,37 @@ these caps should increase.
 So please don't make code rely on these max lengths for parsing.
 
 # Examples
-To create a new token, use the create-denom command from the tokenfactory module. The following example uses the address osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja from mylocalwallet as the default admin for the new token.
+
+To create a new token, use the create-denom command from the tokenfactory module. The following example uses the address init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d from mylocalwallet as the default admin for the new token.
 
 ## Creating a token
+
 To create a new token we can use the create-denom command.
 
 ```sh
-osmosisd tx tokenfactory create-denom ufoo --keyring-backend=test --from mylocalwallet
+minitiad tx tokenfactory create-denom ufoo --keyring-backend=test --from mylocalwallet
 ```
 
 ## Mint a new token
+
 Once a new token is created, it can be minted using the mint command in the tokenfactory module. Note that the complete tokenfactory address, in the format of factory/{creator address}/{subdenom}, must be used to mint the token.
 
 ```sh
-osmosisd tx tokenfactory mint 100000000000factory/osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja/ufoo --keyring-backend=test --from mylocalwallet
+minitiad tx tokenfactory mint 100000000000factory/init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d/ufoo --keyring-backend=test --from mylocalwallet
 ```
 
 ## Checking Token metadata
-To view a token's metadata, use the denom-metadata command in the bank module. The following example queries the metadata for the token factory/osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja/ufoo:
+
+To view a token's metadata, use the denom-metadata command in the bank module. The following example queries the metadata for the token factory/init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d/ufoo:
 
 ```sh
-osmosisd query bank denom-metadata --denom factory/osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja/ufoo
+minitiad query bank denom-metadata --denom factory/init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d/ufoo
 ```
 
 ## Check the tokens created by an account
-To see a list of tokens created by a specific account, use the denoms-from-creator command in the tokenfactory module. The following example shows tokens created by the account osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja:
+
+To see a list of tokens created by a specific account, use the denoms-from-creator command in the tokenfactory module. The following example shows tokens created by the account init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d:
 
 ```sh
-osmosisd query tokenfactory denoms-from-creator osmo1c584m4lq25h83yp6ag8hh4htjr92d954vklzja
+minitiad query tokenfactory denoms-from-creator init1c584m4lq25h83yp6ag8hh4htjr92d9542mvp0d
 ```

@@ -45,7 +45,7 @@ func (h WasmHooks) onAckIcs20Packet(
 	}
 
 	success := "false"
-	if !isAckError(acknowledgement) {
+	if !isAckError(h.codec, acknowledgement) {
 		success = "true"
 	}
 
@@ -99,7 +99,7 @@ func (h WasmHooks) onAckIcs721Packet(
 	}
 
 	success := "false"
-	if !isAckError(acknowledgement) {
+	if !isAckError(h.codec, acknowledgement) {
 		success = "true"
 	}
 
