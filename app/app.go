@@ -696,9 +696,9 @@ func NewMinitiaApp(
 
 	// allow slinky queries
 	queryAllowlist := make(map[string]proto.Message)
-	queryAllowlist["/slinky.oracle.v1.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsRequest{}
-	queryAllowlist["/slinky.oracle.v1.Query/GetPrice"] = &oracletypes.GetPriceRequest{}
-	queryAllowlist["/slinky.oracle.v1.Query/GetPrices"] = &oracletypes.GetPricesRequest{}
+	queryAllowlist["/slinky.oracle.v1.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsResponse{}
+	queryAllowlist["/slinky.oracle.v1.Query/GetPrice"] = &oracletypes.GetPriceResponse{}
+	queryAllowlist["/slinky.oracle.v1.Query/GetPrices"] = &oracletypes.GetPricesResponse{}
 
 	// use accept list stargate querier
 	wasmOpts = append(wasmOpts, wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
