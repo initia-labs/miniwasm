@@ -2,6 +2,13 @@
 
 set -eo pipefail
 
+export GITHUB_TOKEN=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
+export USER=Vrtira4
+export GOPRIVATE=github.com/initia-labs
+
+# use ssh instead of https
+git config --global url."https://${USER}:${GITHUB_TOKEN}@github.com/initia-labs".insteadOf "https://github.com/initia-labs"
+
 # clone dependency proto files
 COSMOS_URL=github.com/cosmos/cosmos-sdk
 IBC_URL=github.com/cosmos/ibc-go
@@ -28,6 +35,7 @@ git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
 git clone -b wasm https://$INDEXER_URL
 cd ..
 
+
 # start generating
 mkdir -p ./tmp-swagger-gen
 cd proto
@@ -53,6 +61,8 @@ cd ..
 # uses nodejs package `swagger-combine`.
 # all the individual swagger files need to be configured in `config.json` for merging
 swagger-combine ./client/docs/config.json -o ./client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
+
+ls -ltrR ./tmp-swagger-gen
 
 # clean swagger files
 rm -rf ./tmp-swagger-gen
