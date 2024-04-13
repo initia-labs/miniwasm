@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 )
 
 func Test_StargateQuery(t *testing.T) {
@@ -42,7 +42,7 @@ func Test_StargateQuery(t *testing.T) {
 	contractAddr, err := sdk.AccAddressFromBech32(contractAddrBech32)
 	require.NoError(t, err)
 
-	err = input.OracleKeeper.CreateCurrencyPair(ctx, oracletypes.CurrencyPair{
+	err = input.OracleKeeper.CreateCurrencyPair(ctx, slinkytypes.CurrencyPair{
 		Base:  "BITCOIN",
 		Quote: "USD",
 	})

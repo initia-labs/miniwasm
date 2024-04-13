@@ -121,15 +121,25 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
-	mevabci "github.com/skip-mev/block-sdk/abci"
-	signer_extraction "github.com/skip-mev/block-sdk/adapters/signer_extraction_adapter"
-	"github.com/skip-mev/block-sdk/block"
-	blockbase "github.com/skip-mev/block-sdk/block/base"
-	mevlane "github.com/skip-mev/block-sdk/lanes/mev"
-	"github.com/skip-mev/block-sdk/x/auction"
-	auctionante "github.com/skip-mev/block-sdk/x/auction/ante"
-	auctionkeeper "github.com/skip-mev/block-sdk/x/auction/keeper"
-	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
+	mevabci "github.com/skip-mev/block-sdk/v2/abci"
+	blockchecktx "github.com/skip-mev/block-sdk/v2/abci/checktx"
+	signer_extraction "github.com/skip-mev/block-sdk/v2/adapters/signer_extraction_adapter"
+	"github.com/skip-mev/block-sdk/v2/block"
+	blockbase "github.com/skip-mev/block-sdk/v2/block/base"
+	mevlane "github.com/skip-mev/block-sdk/v2/lanes/mev"
+	"github.com/skip-mev/block-sdk/v2/x/auction"
+	auctionante "github.com/skip-mev/block-sdk/v2/x/auction/ante"
+	auctionkeeper "github.com/skip-mev/block-sdk/v2/x/auction/keeper"
+	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
+
+	// slinky oracle dependencies
+	oraclepreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
+	oracleproposals "github.com/skip-mev/slinky/abci/proposals"
+	compression "github.com/skip-mev/slinky/abci/strategies/codec"
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
+	"github.com/skip-mev/slinky/abci/ve"
+	"github.com/skip-mev/slinky/pkg/math/voteweighted"
+	servicemetrics "github.com/skip-mev/slinky/service/metrics"
 	"github.com/skip-mev/slinky/x/oracle"
 	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -251,7 +261,7 @@ type MinitiaApp struct {
 	configurator module.Configurator
 
 	// Override of BaseApp's CheckTx
-	checkTxHandler mevlane.CheckTx
+	checkTxHandler blockchecktx.CheckTx
 }
 
 // NewMinitiaApp returns a reference to an initialized Initia.
@@ -376,8 +386,65 @@ func NewMinitiaApp(
 		apphook.NewWasmBridgeHook(ac, app.WasmKeeper).Hook,
 		app.MsgServiceRouter(),
 		authorityAddr,
+		ac,
 		vc,
 		cc,
+	)
+
+	// initialize oracle keeper
+	serviceMetrics := servicemetrics.NewMetrics(app.ChainID())
+
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		nil,
+		authorityAccAddr,
+	)
+	app.OracleKeeper = &oracleKeeper
+
+	oracleProposalHandler := oracleproposals.NewProposalHandler(
+		log.NewNopLogger(),
+		nil,
+		nil,
+		ve.NewDefaultValidateVoteExtensionsFn(
+			app.OPChildKeeper.HostValidatorStore,
+		),
+		compression.NewCompressionVoteExtensionCodec(
+			compression.NewDefaultVoteExtensionCodec(),
+			compression.NewZLibCompressor(),
+		),
+		compression.NewCompressionExtendedCommitCodec(
+			compression.NewDefaultExtendedCommitCodec(),
+			compression.NewZStdCompressor(),
+		),
+		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		serviceMetrics,
+	)
+
+	oraclePreBlockHandler := oraclepreblock.NewOraclePreBlockHandler(
+		log.NewNopLogger(),
+		voteweighted.MedianFromContext(
+			log.NewNopLogger(),
+			app.OPChildKeeper.HostValidatorStore,
+			voteweighted.DefaultPowerThreshold,
+		),
+		app.OracleKeeper,
+		serviceMetrics,
+		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		compression.NewCompressionVoteExtensionCodec(
+			compression.NewDefaultVoteExtensionCodec(),
+			compression.NewZLibCompressor(),
+		),
+		compression.NewCompressionExtendedCommitCodec(
+			compression.NewDefaultExtendedCommitCodec(),
+			compression.NewZStdCompressor(),
+		),
+	)
+
+	app.OPChildKeeper.SetOracle(
+		app.OracleKeeper,
+		oracleProposalHandler,
+		oraclePreBlockHandler,
 	)
 
 	// get skipUpgradeHeights from the app options
@@ -418,14 +485,6 @@ func NewMinitiaApp(
 	)
 	app.GroupKeeper = &groupKeeper
 
-	// initialize oracle keeper
-	oracleKeeper := oraclekeeper.NewKeeper(
-		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
-		appCodec,
-		authorityAccAddr,
-	)
-	app.OracleKeeper = &oracleKeeper
-
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -435,6 +494,10 @@ func NewMinitiaApp(
 		app.UpgradeKeeper,
 		app.ScopedIBCKeeper,
 		authorityAddr,
+	)
+
+	app.IBCKeeper.ClientKeeper.SetPostUpdateHandler(
+		app.OPChildKeeper.UpdateHostValidatorSet,
 	)
 
 	ibcFeeKeeper := ibcfeekeeper.NewKeeper(
@@ -930,11 +993,16 @@ func NewMinitiaApp(
 	app.SetProcessProposal(proposalHandlers.ProcessProposalHandler())
 
 	// overrde base-app's CheckTx
-	checkTxHandler := mevlane.NewCheckTxHandler(
+	mevCheckTx := blockchecktx.NewMEVCheckTxHandler(
 		app.BaseApp,
 		app.txConfig.TxDecoder(),
 		mevLane,
 		anteHandler,
+		app.BaseApp.CheckTx,
+	)
+	checkTxHandler := blockchecktx.NewMempoolParityCheckTx(
+		app.Logger(), mempool,
+		app.txConfig.TxDecoder(), mevCheckTx.CheckTx(),
 	)
 	app.SetCheckTx(checkTxHandler.CheckTx())
 
@@ -990,7 +1058,7 @@ func (app *MinitiaApp) CheckTx(req *abci.RequestCheckTx) (*abci.ResponseCheckTx,
 }
 
 // SetCheckTx sets the checkTxHandler for the app.
-func (app *MinitiaApp) SetCheckTx(handler mevlane.CheckTx) {
+func (app *MinitiaApp) SetCheckTx(handler blockchecktx.CheckTx) {
 	app.checkTxHandler = handler
 }
 

@@ -265,6 +265,7 @@ func _createTestInput(
 	oracleKeeper := oraclekeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
 		appCodec,
+		nil,
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 	)
 

@@ -3,7 +3,7 @@ package lanes
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
+	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 )
 
 var _ auctiontypes.RewardsAddressProvider = (*RewardsAddressProvider)(nil)
