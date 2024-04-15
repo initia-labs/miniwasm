@@ -1,6 +1,8 @@
 module github.com/initia-labs/miniwasm
 
-go 1.21.5
+go 1.22
+
+toolchain go1.22.2
 
 require (
 	cosmossdk.io/api v0.7.3
@@ -32,8 +34,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit v0.2.3-0.20240404023002-8608273959a8
-	github.com/initia-labs/initia v0.2.2
+	github.com/initia-labs/OPinit v0.2.3
+	github.com/initia-labs/initia v0.2.4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
@@ -142,7 +144,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/initia-labs/OPinit/api v0.0.0-20240404023002-8608273959a8 // indirect
+	github.com/initia-labs/OPinit/api v0.0.0-20240414040035-1a494620f55e // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
