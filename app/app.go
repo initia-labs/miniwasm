@@ -134,10 +134,8 @@ import (
 
 	// slinky oracle dependencies
 	oraclepreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
-	oracleproposals "github.com/skip-mev/slinky/abci/proposals"
 	compression "github.com/skip-mev/slinky/abci/strategies/codec"
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
-	"github.com/skip-mev/slinky/abci/ve"
 	"github.com/skip-mev/slinky/pkg/math/voteweighted"
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
 	"github.com/skip-mev/slinky/x/oracle"
@@ -392,7 +390,8 @@ func NewMinitiaApp(
 	)
 
 	// initialize oracle keeper
-	serviceMetrics := servicemetrics.NewMetrics(app.ChainID())
+	// serviceMetrics := servicemetrics.NewMetrics(app.ChainID())
+	serviceMetrics := servicemetrics.NewNopMetrics()
 
 	oracleKeeper := oraclekeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
@@ -402,29 +401,12 @@ func NewMinitiaApp(
 	)
 	app.OracleKeeper = &oracleKeeper
 
-	oracleProposalHandler := oracleproposals.NewProposalHandler(
-		log.NewNopLogger(),
-		nil,
-		nil,
-		ve.NewDefaultValidateVoteExtensionsFn(
-			app.OPChildKeeper.HostValidatorStore,
-		),
-		compression.NewCompressionVoteExtensionCodec(
-			compression.NewDefaultVoteExtensionCodec(),
-			compression.NewZLibCompressor(),
-		),
-		compression.NewCompressionExtendedCommitCodec(
-			compression.NewDefaultExtendedCommitCodec(),
-			compression.NewZStdCompressor(),
-		),
-		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
-		serviceMetrics,
-	)
-
 	oraclePreBlockHandler := oraclepreblock.NewOraclePreBlockHandler(
-		log.NewNopLogger(),
+		app.Logger(),
+		// log.NewNopLogger(),
 		voteweighted.MedianFromContext(
-			log.NewNopLogger(),
+			app.Logger(),
+			// log.NewNopLogger(),
 			app.OPChildKeeper.HostValidatorStore,
 			voteweighted.DefaultPowerThreshold,
 		),
@@ -443,7 +425,10 @@ func NewMinitiaApp(
 
 	app.OPChildKeeper.SetOracle(
 		app.OracleKeeper,
-		oracleProposalHandler,
+		compression.NewCompressionExtendedCommitCodec(
+			compression.NewDefaultExtendedCommitCodec(),
+			compression.NewZStdCompressor(),
+		),
 		oraclePreBlockHandler,
 	)
 
@@ -871,6 +856,7 @@ func NewMinitiaApp(
 		opchildtypes.ModuleName,
 		authz.ModuleName,
 		ibcexported.ModuleName,
+		oracletypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -878,6 +864,7 @@ func NewMinitiaApp(
 		authz.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
+		oracletypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -940,8 +927,8 @@ func NewMinitiaApp(
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          0,
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.2"),
+		MaxTxs:          1000,
 		SignerExtractor: signerExtractor,
 	}
 	factor := mevlane.NewDefaultAuctionFactory(app.txConfig.TxDecoder(), signerExtractor)
@@ -955,8 +942,8 @@ func NewMinitiaApp(
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          100,
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.2"),
+		MaxTxs:          1000,
 		SignerExtractor: signerExtractor,
 	}
 	freeLane := initiaapplanes.NewFreeLane(freeConfig, applanes.FreeLaneMatchHandler())
@@ -965,8 +952,8 @@ func NewMinitiaApp(
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          0,
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.6"),
+		MaxTxs:          1000,
 		SignerExtractor: signerExtractor,
 	}
 	defaultLane := initiaapplanes.NewDefaultLane(defaultLaneConfig)
