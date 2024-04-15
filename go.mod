@@ -34,8 +34,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit v0.2.2
-	github.com/initia-labs/initia v0.2.3
+	github.com/initia-labs/OPinit v0.2.3-0.20240415121513-59daf41ef9e6
+	github.com/initia-labs/initia v0.2.4-0.20240415122053-16eb2abf6e2c
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
@@ -145,7 +145,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/initia-labs/OPinit/api v0.0.0-00010101000000-000000000000 // indirect
+	github.com/initia-labs/OPinit/api v0.0.0-20240415121513-59daf41ef9e6 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
@@ -229,6 +229,7 @@ replace (
 	github.com/cosmos/iavl => github.com/initia-labs/iavl v0.0.0-20240208034922-5d81c449d4c0
 
 	github.com/cosmos/ibc-apps/modules/async-icq/v8 => github.com/cosmos/ibc-apps/modules/async-icq/v8 v8.0.1-0.20240124225747-f055ce5b405c
+	github.com/cosmos/ibc-go/v8 => github.com/initia-labs/ibc-go/v8 v8.0.0-20240413052354-077439b8bed3
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// TODO: remove it: https://github.com/cosmos/cosmos-sdk/issues/13134
@@ -238,11 +239,8 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+	github.com/skip-mev/slinky => github.com/initia-labs/slinky v0.0.0-20240415121001-14c96990234d
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-
-	github.com/initia-labs/OPinit => ../opinit
-	github.com/initia-labs/OPinit/api => ../opinit/api
-	github.com/initia-labs/initia => ../initia
-	github.com/cosmos/ibc-go/v8 => ../ibc-go
 )
