@@ -43,6 +43,8 @@ import (
 
 	"github.com/initia-labs/initia/app/params"
 	minitiaapp "github.com/initia-labs/miniwasm/app"
+
+	opchildcli "github.com/initia-labs/OPinit/x/opchild/client/cli"
 )
 
 // NewRootCmd creates a new root command for initiad. It is called once in the
@@ -183,7 +185,7 @@ func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.Ba
 
 	cmd.AddCommand(
 		genutilcli.AddGenesisAccountCmd(minitiaapp.DefaultNodeHome, ac),
-		AddGenesisValidatorCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome),
+		opchildcli.AddGenesisValidatorCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(basicManager),
 		genutilcli.GenTxCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, minitiaapp.DefaultNodeHome, ac),
 	)
