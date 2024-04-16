@@ -747,6 +747,8 @@ github.com/initia-labs/initia v0.2.4 h1:e4yUUDqMYSp+TdseJjUzGIbTbU2uC2v7ZSiVIP5n
 github.com/initia-labs/initia v0.2.4/go.mod h1:WO4Onb8FfU/UYayGxXfOgguL/TXQMsDmCDpfCFhM6HY=
 github.com/initia-labs/kvindexer v0.0.0-20240416075338-fdfa6f804120 h1:Vn05AKyziMg4Ut+NxTN7IPl4diZMJUbTiJQW66gMBC8=
 github.com/initia-labs/kvindexer v0.0.0-20240416075338-fdfa6f804120/go.mod h1:yU9xKjcO+X1YuR1pJU5IMLhaIXoOJMVcBXNN/+XQzeQ=
+github.com/initia-labs/kvindexer v0.0.0-20240416082031-5a5a2f7ac81f h1:pCrFrH5p+t3Crjmmswn4dP37Imzjwn3FW29NDdSZo3Q=
+github.com/initia-labs/kvindexer v0.0.0-20240416082031-5a5a2f7ac81f/go.mod h1:yU9xKjcO+X1YuR1pJU5IMLhaIXoOJMVcBXNN/+XQzeQ=
 github.com/initia-labs/movevm v0.2.5 h1:H2U+I/6X8Ue/MqixHuqOorTKEa8+E1qzLiVXicsW648=
 github.com/initia-labs/movevm v0.2.5/go.mod h1:6MxR4GP5zH3JUc1IMgfqAe1e483mZVS7fshPknZPJ30=
 github.com/jhump/protoreflect v1.15.3 h1:6SFRuqU45u9hIZPJAoZ8c28T3nK64BNdp9w6jFonzls=

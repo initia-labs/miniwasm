@@ -52,7 +52,7 @@ require (
 
 require (
 	github.com/hashicorp/go-metrics v0.5.2
-	github.com/initia-labs/kvindexer v0.0.0-20240416075338-fdfa6f804120
+	github.com/initia-labs/kvindexer v0.0.0-20240416082031-5a5a2f7ac81f
 	golang.org/x/sync v0.6.0
 )
 
