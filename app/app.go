@@ -412,7 +412,7 @@ func NewMinitiaApp(
 		),
 		app.OracleKeeper,
 		serviceMetrics,
-		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		currencypair.NewDefaultCurrencyPairStrategy(app.OracleKeeper),
 		compression.NewCompressionVoteExtensionCodec(
 			compression.NewDefaultVoteExtensionCodec(),
 			compression.NewZLibCompressor(),
