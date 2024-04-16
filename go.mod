@@ -52,7 +52,7 @@ require (
 
 require (
 	github.com/hashicorp/go-metrics v0.5.2
-	github.com/initia-labs/kvindexer v0.0.0-20240416074431-7b0d7e908038
+	github.com/initia-labs/kvindexer v0.0.0-20240416075338-fdfa6f804120
 	golang.org/x/sync v0.6.0
 )
 
@@ -69,8 +69,6 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
-	github.com/IGLOU-EU/go-wildcard v1.0.3 // indirect
-	github.com/aptos-labs/serde-reflection/serde-generate/runtime/golang v0.0.0-20231213012317-73b6bbf74833 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
@@ -152,7 +150,6 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/initia-labs/OPinit/api v0.0.0-20240414040035-1a494620f55e // indirect
-	github.com/initia-labs/movevm v0.2.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
