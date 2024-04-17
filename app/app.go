@@ -927,7 +927,7 @@ func NewMinitiaApp(
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.1"),
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.001"),
 		MaxTxs:          1,
 		SignerExtractor: signerExtractor,
 	}

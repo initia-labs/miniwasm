@@ -28,11 +28,11 @@ func OracleLaneMatchHandler() blockbase.MatchHandler {
 }
 
 const (
-	// FreeLaneName defines the name of the free lane.
+	// OracleLaneName defines the name of the oracle lane.
 	OracleLaneName = "oracle"
 )
 
-// NewFreeLane returns a new free lane.
+// NewOracleLane returns a new oracle lane.
 func NewOracleLane(
 	cfg blockbase.LaneConfig,
 ) block.Lane {
