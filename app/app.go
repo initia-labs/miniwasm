@@ -923,6 +923,17 @@ func NewMinitiaApp(
 	// and insert the txs at the top of the block spots.
 	signerExtractor := signer_extraction.NewDefaultAdapter()
 
+	oracleLaneConfig := blockbase.LaneConfig{
+		Logger:          app.Logger(),
+		TxEncoder:       app.txConfig.TxEncoder(),
+		TxDecoder:       app.txConfig.TxDecoder(),
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.1"),
+		MaxTxs:          1,
+		SignerExtractor: signerExtractor,
+	}
+
+	oracleLane := applanes.NewOracleLane(oracleLaneConfig)
+
 	mevConfig := blockbase.LaneConfig{
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
@@ -958,7 +969,7 @@ func NewMinitiaApp(
 	}
 	defaultLane := initiaapplanes.NewDefaultLane(defaultLaneConfig)
 
-	lanes := []block.Lane{mevLane, freeLane, defaultLane}
+	lanes := []block.Lane{oracleLane, mevLane, freeLane, defaultLane}
 	mempool, err := block.NewLanedMempool(app.Logger(), lanes)
 	if err != nil {
 		panic(err)
