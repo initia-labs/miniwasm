@@ -34,8 +34,8 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/initia-labs/OPinit v0.2.3-0.20240415121513-59daf41ef9e6
-	github.com/initia-labs/initia v0.2.4-0.20240415122053-16eb2abf6e2c
+	github.com/initia-labs/OPinit v0.2.3-0.20240417070352-618205f47b07
+	github.com/initia-labs/initia v0.2.4-0.20240417070539-9dd3120fb560
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
@@ -145,7 +145,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/initia-labs/OPinit/api v0.0.0-20240415121513-59daf41ef9e6 // indirect
+	github.com/initia-labs/OPinit/api v0.0.0-20240417070352-618205f47b07 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
@@ -240,7 +240,8 @@ replace (
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-	github.com/skip-mev/slinky => github.com/initia-labs/slinky v0.0.0-20240415121001-14c96990234d
+	// github.com/skip-mev/slinky => github.com/initia-labs/slinky v0.0.0-20240415121001-14c96990234d
+	github.com/skip-mev/slinky => ../slinky
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
