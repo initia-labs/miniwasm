@@ -37,7 +37,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.2
 	github.com/initia-labs/OPinit v0.2.4
 	github.com/initia-labs/initia v0.2.4
-	github.com/initia-labs/kvindexer v0.0.0-20240418053137-f8c414401ba9
+	github.com/initia-labs/kvindexer v0.0.0-20240418093255-1f15f35ac752
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
