@@ -55,8 +55,6 @@ cd ..
 # all the individual swagger files need to be configured in `config.json` for merging
 swagger-combine ./client/docs/config.json -o ./client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
 
-ls -ltrR ./tmp-swagger-gen
-
 # clean swagger files
 rm -rf ./tmp-swagger-gen
 

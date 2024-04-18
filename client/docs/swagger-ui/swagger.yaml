@@ -36679,6 +36679,11 @@ paths:
                     description: >-
                       the account address of admin who can execute permissioned
                       cosmos messages.
+                  fee_whitelist:
+                    type: array
+                    items:
+                      type: string
+                    description: the list of addresses that are allowed to pay zero fee.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -68414,6 +68419,11 @@ definitions:
         description: >-
           the account address of admin who can execute permissioned cosmos
           messages.
+      fee_whitelist:
+        type: array
+        items:
+          type: string
+        description: the list of addresses that are allowed to pay zero fee.
     description: Params defines the set of move parameters.
   opinit.opchild.v1.QueryBridgeInfoResponse:
     type: object
@@ -68523,6 +68533,11 @@ definitions:
             description: >-
               the account address of admin who can execute permissioned cosmos
               messages.
+          fee_whitelist:
+            type: array
+            items:
+              type: string
+            description: the list of addresses that are allowed to pay zero fee.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   opinit.opchild.v1.QueryValidatorResponse:
     type: object
