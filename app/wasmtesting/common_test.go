@@ -269,6 +269,8 @@ func _createTestInput(
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 	)
 
+	oracleKeeper.InitGenesis(ctx, *oracletypes.DefaultGenesisState())
+
 	msgRouter := baseapp.NewMsgServiceRouter()
 	msgRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 	queryRouter := baseapp.NewGRPCQueryRouter()

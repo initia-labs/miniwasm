@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -14,6 +13,7 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -146,6 +146,22 @@ import (
 	tokenfactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
+	// noble forwarding keeper
+	forwarding "github.com/noble-assets/forwarding/x/forwarding"
+	forwardingkeeper "github.com/noble-assets/forwarding/x/forwarding/keeper"
+	forwardingtypes "github.com/noble-assets/forwarding/x/forwarding/types"
+
+	// kvindexer
+	indexer "github.com/initia-labs/kvindexer"
+	indexerconfig "github.com/initia-labs/kvindexer/config"
+	indexermodule "github.com/initia-labs/kvindexer/module"
+	indexerkeeper "github.com/initia-labs/kvindexer/module/keeper"
+	indexertypes "github.com/initia-labs/kvindexer/module/types"
+	blocksubmodule "github.com/initia-labs/kvindexer/submodule/block"
+	"github.com/initia-labs/kvindexer/submodule/nft"
+	"github.com/initia-labs/kvindexer/submodule/pair"
+	"github.com/initia-labs/kvindexer/submodule/tx"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/initia-labs/miniwasm/client/docs/statik"
 )
@@ -225,6 +241,7 @@ type MinitiaApp struct {
 	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the slinky oracle
 	TokenFactoryKeeper    *tokenfactorykeeper.Keeper
 	IBCHooksKeeper        *ibchookskeeper.Keeper
+	ForwardingKeeper      *forwardingkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -245,6 +262,10 @@ type MinitiaApp struct {
 
 	// Override of BaseApp's CheckTx
 	checkTxHandler blockchecktx.CheckTx
+
+	// kvindexer
+	indexerKeeper *indexerkeeper.Keeper
+	indexerModule indexermodule.AppModuleBasic
 }
 
 // NewMinitiaApp returns a reference to an initialized Initia.
@@ -279,9 +300,9 @@ func NewMinitiaApp(
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
 		auctiontypes.StoreKey, packetforwardtypes.StoreKey, oracletypes.StoreKey,
-		tokenfactorytypes.StoreKey, ibchookstypes.StoreKey,
+		tokenfactorytypes.StoreKey, ibchookstypes.StoreKey, forwardingtypes.StoreKey,
 	)
-	tkeys := storetypes.NewTransientStoreKeys()
+	tkeys := storetypes.NewTransientStoreKeys(forwardingtypes.TransientStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// register streaming services
@@ -454,11 +475,23 @@ func NewMinitiaApp(
 		ac,
 	)
 
+	app.ForwardingKeeper = forwardingkeeper.NewKeeper(
+		appCodec,
+		app.Logger(),
+		runtime.NewKVStoreService(keys[forwardingtypes.StoreKey]),
+		runtime.NewTransientStoreService(tkeys[forwardingtypes.TransientStoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.TransferKeeper,
+	)
+	app.BankKeeper.AppendSendRestriction(app.ForwardingKeeper.SendRestrictionFn)
+
 	////////////////////////////
 	// Transfer configuration //
 	////////////////////////////
 	// Send   : transfer -> packet forward -> wasm   -> fee            -> channel
-	// Receive: channel  -> fee            -> wasm   -> packet forward -> transfer
+	// Receive: channel  -> fee            -> wasm   -> packet forward -> forwarding -> transfer
 
 	var transferStack porttypes.IBCModule
 	{
@@ -479,7 +512,15 @@ func NewMinitiaApp(
 			authorityAddr,
 		)
 		app.TransferKeeper = &transferKeeper
-		transferIBCModule := ibctransfer.NewIBCModule(*app.TransferKeeper)
+		transferStack = ibctransfer.NewIBCModule(*app.TransferKeeper)
+
+		// forwarding middleware
+		transferStack = forwarding.NewMiddleware(
+			// receive: forwarding -> transfer
+			transferStack,
+			app.AccountKeeper,
+			app.ForwardingKeeper,
+		)
 
 		// create packet forward middleware
 		*packetForwardKeeper = *packetforwardkeeper.NewKeeper(
@@ -494,9 +535,9 @@ func NewMinitiaApp(
 			authorityAddr,
 		)
 		app.PacketForwardKeeper = packetForwardKeeper
-		packetForwardMiddleware := packetforward.NewIBCMiddleware(
-			// receive: packet forward -> transfer
-			transferIBCModule,
+		transferStack = packetforward.NewIBCMiddleware(
+			// receive: packet forward -> forwarding -> transfer
+			transferStack,
 			app.PacketForwardKeeper,
 			0,
 			packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
@@ -504,9 +545,9 @@ func NewMinitiaApp(
 		)
 
 		// create wasm middleware for transfer
-		hookMiddleware := ibchooks.NewIBCMiddleware(
-			// receive: wasm -> packet forward -> transfer
-			packetForwardMiddleware,
+		transferStack = ibchooks.NewIBCMiddleware(
+			// receive: wasm -> packet forward -> forwarding -> transfer
+			transferStack,
 			ibchooks.NewICS4Middleware(
 				nil, /* ics4wrapper: not used */
 				ibcwasmhooks.NewWasmHooks(appCodec, ac, app.WasmKeeper),
@@ -516,8 +557,8 @@ func NewMinitiaApp(
 
 		// create ibcfee middleware for transfer
 		transferStack = ibcfee.NewIBCMiddleware(
-			// receive: fee -> wasm -> packet forward -> transfer
-			hookMiddleware,
+			// receive: fee -> wasm -> packet forward -> forwarding -> transfer
+			transferStack,
 			// ics4wrapper: transfer -> packet forward -> wasm -> fee -> channel
 			*app.IBCFeeKeeper,
 		)
@@ -722,9 +763,14 @@ func NewMinitiaApp(
 		solomachine.NewAppModule(),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
 		ibchooks.NewAppModule(appCodec, *app.IBCHooksKeeper),
+		forwarding.NewAppModule(app.ForwardingKeeper),
 		// slinky modules
 		oracle.NewAppModule(appCodec, *app.OracleKeeper),
 	)
+
+	if err := app.setupIndexer(appOpts, homePath, ac, vc, appCodec); err != nil {
+		panic(err)
+	}
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration and genesis verification.
@@ -734,6 +780,7 @@ func NewMinitiaApp(
 		app.ModuleManager,
 		map[string]module.AppModuleBasic{
 			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			indexertypes.ModuleName: app.indexerModule,
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
@@ -752,6 +799,7 @@ func NewMinitiaApp(
 		opchildtypes.ModuleName,
 		authz.ModuleName,
 		ibcexported.ModuleName,
+		oracletypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -759,6 +807,8 @@ func NewMinitiaApp(
 		authz.ModuleName,
 		feegrant.ModuleName,
 		group.ModuleName,
+		oracletypes.ModuleName,
+		forwardingtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -773,7 +823,7 @@ func NewMinitiaApp(
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
 		ibcfeetypes.ModuleName, auctiontypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
-		tokenfactorytypes.ModuleName, ibchookstypes.ModuleName,
+		tokenfactorytypes.ModuleName, ibchookstypes.ModuleName, forwardingtypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -787,6 +837,8 @@ func NewMinitiaApp(
 	if err != nil {
 		panic(err)
 	}
+
+	app.indexerModule.RegisterServices(app.configurator)
 
 	// register upgrade handler for later use
 	app.RegisterUpgradeHandlers(app.configurator)
@@ -1113,6 +1165,9 @@ func (app *MinitiaApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register grpc-gateway routes for all modules.
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
+	// Register grpc-gateway routes for indexer module.
+	app.indexerModule.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(apiSvr.Router)
@@ -1210,10 +1265,80 @@ func (app *MinitiaApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 func (app *MinitiaApp) TxConfig() client.TxConfig {
 	return app.txConfig
 }
+func (app *MinitiaApp) setupIndexer(appOpts servertypes.AppOptions, homePath string, ac, vc address.Codec, appCodec codec.Codec) error {
+	// initialize the indexer fake-keeper
+	indexerConfig, err := indexerconfig.NewConfig(appOpts)
+	if err != nil {
+		panic(err)
+	}
+	app.indexerKeeper = indexerkeeper.NewKeeper(
+		appCodec,
+		app.AccountKeeper,
+		app.BankKeeper,
+		nil, // placeholder for distribution keeper
+		nil, // placeholder for staking keeper
+		nil, // placeholder for reward keeper,
+		nil, // placeholder for community pool keeper
+		indexerkeeper.VMKeeper{Keeper: *app.WasmKeeper},
+		app.IBCKeeper,
+		app.TransferKeeper,
+		nil,
+		app.OPChildKeeper,
+		authtypes.FeeCollectorName,
+		homePath,
+		indexerConfig,
+		ac,
+		vc,
+	)
+	err = app.indexerKeeper.RegisterSubmodules(nft.Submodule, pair.Submodule, tx.Submodule, blocksubmodule.Submodule)
+	if err != nil {
+		panic(err)
+	}
+	app.indexerModule = indexermodule.NewAppModuleBasic(app.indexerKeeper)
+	// Add your implementation here
 
-// ChainID gets chainID from private fields of BaseApp
-// Should be removed once SDK 0.50.x will be adopted
-func (app *MinitiaApp) ChainID() string { // TODO: remove this method once chain updates to v0.50.x
-	field := reflect.ValueOf(app.BaseApp).Elem().FieldByName("chainID")
-	return field.String()
+	indexer, err := indexer.NewIndexer(app.GetBaseApp().Logger(), app.indexerKeeper)
+	if err != nil || indexer == nil {
+		return nil
+	}
+
+	if err = indexer.Validate(); err != nil {
+		return err
+	}
+
+	if err = indexer.Prepare(nil); err != nil {
+		return err
+	}
+
+	if err = app.indexerKeeper.Seal(); err != nil {
+		return err
+	}
+
+	if err = indexer.Start(nil); err != nil {
+		return err
+	}
+
+	streamingManager := storetypes.StreamingManager{
+		ABCIListeners: []storetypes.ABCIListener{indexer},
+		StopNodeOnErr: true,
+	}
+	app.SetStreamingManager(streamingManager)
+
+	return nil
+}
+
+// Close closes the underlying baseapp, the oracle service, and the prometheus server if required.
+// This method blocks on the closure of both the prometheus server, and the oracle-service
+func (app *MinitiaApp) Close() error {
+	if app.indexerKeeper != nil {
+		if err := app.indexerKeeper.Close(); err != nil {
+			return err
+		}
+	}
+
+	if err := app.BaseApp.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }

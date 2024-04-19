@@ -9,12 +9,14 @@ IBC_V=v8
 INITIA_URL=github.com/initia-labs/initia
 OPINIT_URL=github.com/initia-labs/OPinit
 COSMWASM_URL=github.com/CosmWasm/wasmd
+INDEXER_URL=github.com/initia-labs/kvindexer
 
 COSMOS_SDK_VERSION=$(cat ./go.mod | grep "$COSMOS_URL v" | sed -n -e "s/^.* //p")
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -n -e "s/^.* //p")
 COSMWASM_VERSION=$(cat ./go.mod | grep "$COSMWASM_URL v" | sed -n -e "s/^.* //p")
 INITIA_VERSION=$(cat ./go.mod | grep "$INITIA_URL v" | sed -n -e "s/^.* //p")
 OPINIT_VERSION=$(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
+INDEXER_VERSION=$(cat ./go.mod | grep "$INDEXER_URL v" | sed -n -e "s/^.* //p")
 
 mkdir -p ./third_party
 cd third_party
@@ -23,7 +25,9 @@ git clone -b $OPINIT_VERSION https://$OPINIT_URL
 git clone -b $COSMOS_SDK_VERSION https://$COSMOS_URL
 git clone -b $IBC_VERSION https://$IBC_URL
 git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
+git clone -b wasm https://$INDEXER_URL
 cd ..
+
 
 # start generating
 mkdir -p ./tmp-swagger-gen
@@ -35,6 +39,7 @@ proto_dirs=$(find \
   ../third_party/initia/proto \
   ../third_party/opinit/proto \
   ../third_party/wasmd/proto \
+  ../third_party/kvindexer/proto \
   -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
   # generate swagger files (filter query files)

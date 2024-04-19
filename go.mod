@@ -36,6 +36,8 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v0.2.5
 	github.com/initia-labs/initia v0.2.5
+	github.com/initia-labs/kvindexer v0.0.0-20240419055933-a0c6cf4b3dc0
+	github.com/noble-assets/forwarding v0.0.0-20240416085758-ed8e9efaf69a
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/rakyll/statik v0.1.7
@@ -236,6 +238,10 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+	// force downgrades of prometheus dependencies for forwarding
+	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.18.0
+	github.com/prometheus/common => github.com/prometheus/common v0.47.0
 
 	github.com/skip-mev/slinky => github.com/initia-labs/slinky v0.0.0-20240418051646-d45167cc66b1
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
