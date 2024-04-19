@@ -73,9 +73,6 @@ import (
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
-	icq "github.com/cosmos/ibc-apps/modules/async-icq/v8"
-	icqkeeper "github.com/cosmos/ibc-apps/modules/async-icq/v8/keeper"
-	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -107,9 +104,6 @@ import (
 	ibchooks "github.com/initia-labs/initia/x/ibc-hooks"
 	ibchookskeeper "github.com/initia-labs/initia/x/ibc-hooks/keeper"
 	ibchookstypes "github.com/initia-labs/initia/x/ibc-hooks/types"
-	"github.com/initia-labs/initia/x/ibc/fetchprice"
-	fetchpricekeeper "github.com/initia-labs/initia/x/ibc/fetchprice/keeper"
-	fetchpricetypes "github.com/initia-labs/initia/x/ibc/fetchprice/types"
 	ibctestingtypes "github.com/initia-labs/initia/x/ibc/testing/types"
 	icaauth "github.com/initia-labs/initia/x/intertx"
 	icaauthkeeper "github.com/initia-labs/initia/x/intertx/keeper"
@@ -122,15 +116,16 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
-	mevabci "github.com/skip-mev/block-sdk/abci"
-	signer_extraction "github.com/skip-mev/block-sdk/adapters/signer_extraction_adapter"
-	"github.com/skip-mev/block-sdk/block"
-	blockbase "github.com/skip-mev/block-sdk/block/base"
-	mevlane "github.com/skip-mev/block-sdk/lanes/mev"
-	"github.com/skip-mev/block-sdk/x/auction"
-	auctionante "github.com/skip-mev/block-sdk/x/auction/ante"
-	auctionkeeper "github.com/skip-mev/block-sdk/x/auction/keeper"
-	auctiontypes "github.com/skip-mev/block-sdk/x/auction/types"
+	mevabci "github.com/skip-mev/block-sdk/v2/abci"
+	blockchecktx "github.com/skip-mev/block-sdk/v2/abci/checktx"
+	signer_extraction "github.com/skip-mev/block-sdk/v2/adapters/signer_extraction_adapter"
+	"github.com/skip-mev/block-sdk/v2/block"
+	blockbase "github.com/skip-mev/block-sdk/v2/block/base"
+	mevlane "github.com/skip-mev/block-sdk/v2/lanes/mev"
+	"github.com/skip-mev/block-sdk/v2/x/auction"
+	auctionante "github.com/skip-mev/block-sdk/v2/x/auction/ante"
+	auctionkeeper "github.com/skip-mev/block-sdk/v2/x/auction/keeper"
+	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 	"github.com/skip-mev/slinky/x/oracle"
 	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
@@ -227,9 +222,7 @@ type MinitiaApp struct {
 	OPChildKeeper         *opchildkeeper.Keeper
 	AuctionKeeper         *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
-	ICQKeeper             *icqkeeper.Keeper
 	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the slinky oracle
-	FetchPriceKeeper      *fetchpricekeeper.Keeper
 	TokenFactoryKeeper    *tokenfactorykeeper.Keeper
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 
@@ -251,7 +244,7 @@ type MinitiaApp struct {
 	configurator module.Configurator
 
 	// Override of BaseApp's CheckTx
-	checkTxHandler mevlane.CheckTx
+	checkTxHandler blockchecktx.CheckTx
 }
 
 // NewMinitiaApp returns a reference to an initialized Initia.
@@ -285,9 +278,8 @@ func NewMinitiaApp(
 		capabilitytypes.StoreKey, authzkeeper.StoreKey, feegrant.StoreKey,
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
-		auctiontypes.StoreKey, packetforwardtypes.StoreKey, icqtypes.StoreKey,
-		oracletypes.StoreKey, fetchpricetypes.StoreKey, tokenfactorytypes.StoreKey,
-		ibchookstypes.StoreKey,
+		auctiontypes.StoreKey, packetforwardtypes.StoreKey, oracletypes.StoreKey,
+		tokenfactorytypes.StoreKey, ibchookstypes.StoreKey,
 	)
 	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -333,8 +325,6 @@ func NewMinitiaApp(
 	app.ScopedICAControllerKeeper = app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	app.ScopedICAAuthKeeper = app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
 	app.ScopedWasmKeeper = app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
-	app.ScopedICQKeeper = app.CapabilityKeeper.ScopeToModule(icqtypes.ModuleName)
-	app.ScopedFetchPriceKeeper = app.CapabilityKeeper.ScopeToModule(fetchpricetypes.ModuleName)
 
 	app.CapabilityKeeper.Seal()
 
@@ -368,17 +358,28 @@ func NewMinitiaApp(
 	// OPChildKeeper Configuration //
 	////////////////////////////////
 
+	// initialize oracle keeper
+	oracleKeeper := oraclekeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
+		appCodec,
+		nil,
+		authorityAccAddr,
+	)
+	app.OracleKeeper = &oracleKeeper
+
 	app.OPChildKeeper = opchildkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[opchildtypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
 		apphook.NewWasmBridgeHook(ac, app.WasmKeeper).Hook,
+		app.OracleKeeper,
 		app.MsgServiceRouter(),
 		authorityAddr,
 		ac,
 		vc,
 		cc,
+		logger,
 	)
 
 	err = app.RegisterExecutorChangePlans()
@@ -423,14 +424,6 @@ func NewMinitiaApp(
 		groupConfig,
 	)
 	app.GroupKeeper = &groupKeeper
-
-	// initialize oracle keeper
-	oracleKeeper := oraclekeeper.NewKeeper(
-		runtime.NewKVStoreService(keys[oracletypes.StoreKey]),
-		appCodec,
-		authorityAccAddr,
-	)
-	app.OracleKeeper = &oracleKeeper
 
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
@@ -608,57 +601,6 @@ func NewMinitiaApp(
 		)
 	}
 
-	///////////////////////
-	// ICQ configuration //
-	///////////////////////
-	var icqStack porttypes.IBCModule
-	{
-		icqKeeper := icqkeeper.NewKeeper(
-			appCodec,
-			app.keys[icqtypes.StoreKey],
-			// ics4wrapper: icq -> fee -> channel
-			app.IBCFeeKeeper,
-			app.IBCKeeper.ChannelKeeper,
-			app.IBCKeeper.PortKeeper,
-			app.ScopedICQKeeper,
-			bApp.GRPCQueryRouter(),
-			authorityAddr,
-		)
-		app.ICQKeeper = &icqKeeper
-
-		// Create Async ICQ module
-		icqModule := icq.NewIBCModule(*app.ICQKeeper)
-		icqStack = ibcfee.NewIBCMiddleware(icqModule, *app.IBCFeeKeeper)
-	}
-
-	//////////////////////////////
-	// FetchPrice configuration //
-	//////////////////////////////
-
-	var fetchpriceStack porttypes.IBCModule
-	{
-		app.FetchPriceKeeper = fetchpricekeeper.NewKeeper(
-			appCodec,
-			runtime.NewKVStoreService(app.keys[fetchpricetypes.StoreKey]),
-			// ics4wrapper: fetchprice -> fee -> channel
-			app.IBCFeeKeeper,
-			app.IBCKeeper.ChannelKeeper,
-			app.IBCKeeper.PortKeeper,
-			app.AccountKeeper,
-			app.OracleKeeper,
-			app.ScopedFetchPriceKeeper,
-			authorityAddr,
-		)
-
-		// Create FetchPrice module
-		fetchpriceModule := fetchprice.NewIBCModule(*app.FetchPriceKeeper)
-		fetchpriceStack = ibcfee.NewIBCMiddleware(
-			// receive: fee -> fetchprice
-			fetchpriceModule,
-			*app.IBCFeeKeeper,
-		)
-	}
-
 	//////////////////////////////
 	// IBC router Configuration //
 	//////////////////////////////
@@ -669,9 +611,7 @@ func NewMinitiaApp(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
-		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
-		AddRoute(icqtypes.ModuleName, icqStack).
-		AddRoute(fetchpricetypes.ModuleName, fetchpriceStack)
+		AddRoute(wasmtypes.ModuleName, wasmIBCStack)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -781,8 +721,6 @@ func NewMinitiaApp(
 		ibctm.NewAppModule(),
 		solomachine.NewAppModule(),
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
-		icq.NewAppModule(*app.ICQKeeper, nil),
-		fetchprice.NewAppModule(appCodec, *app.FetchPriceKeeper),
 		ibchooks.NewAppModule(appCodec, *app.IBCHooksKeeper),
 		// slinky modules
 		oracle.NewAppModule(appCodec, *app.OracleKeeper),
@@ -835,8 +773,7 @@ func NewMinitiaApp(
 		ibctransfertypes.ModuleName, icatypes.ModuleName, icaauthtypes.ModuleName,
 		ibcfeetypes.ModuleName, auctiontypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, packetforwardtypes.ModuleName,
-		icqtypes.ModuleName, fetchpricetypes.ModuleName, tokenfactorytypes.ModuleName,
-		ibchookstypes.ModuleName,
+		tokenfactorytypes.ModuleName, ibchookstypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -879,45 +816,44 @@ func NewMinitiaApp(
 	// and insert the txs at the top of the block spots.
 	signerExtractor := signer_extraction.NewDefaultAdapter()
 
-	mevConfig := blockbase.LaneConfig{
+	systemLane := initialanes.NewSystemLane(blockbase.LaneConfig{
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          0,
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.05"),
+		MaxTxs:          1,
 		SignerExtractor: signerExtractor,
-	}
-	factor := mevlane.NewDefaultAuctionFactory(app.txConfig.TxDecoder(), signerExtractor)
-	mevLane := mevlane.NewMEVLane(
-		mevConfig,
-		factor,
-		factor.MatchHandler(),
-	)
+	}, opchildlanes.SystemLaneMatchHandler())
 
-	freeConfig := blockbase.LaneConfig{
+	factory := mevlane.NewDefaultAuctionFactory(app.txConfig.TxDecoder(), signerExtractor)
+	mevLane := mevlane.NewMEVLane(blockbase.LaneConfig{
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.15"),
 		MaxTxs:          100,
 		SignerExtractor: signerExtractor,
-	}
-	freeLane := initialanes.NewFreeLane(
-		freeConfig,
-		opchildlanes.NewFreeLaneMatchHandler(ac, app.OPChildKeeper).MatchHandler(),
-	)
+	}, factory, factory.MatchHandler())
 
-	defaultLaneConfig := blockbase.LaneConfig{
+	freeLane := initialanes.NewFreeLane(blockbase.LaneConfig{
 		Logger:          app.Logger(),
 		TxEncoder:       app.txConfig.TxEncoder(),
 		TxDecoder:       app.txConfig.TxDecoder(),
-		MaxBlockSpace:   math.LegacyZeroDec(),
-		MaxTxs:          0,
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.2"),
+		MaxTxs:          100,
 		SignerExtractor: signerExtractor,
-	}
-	defaultLane := initialanes.NewDefaultLane(defaultLaneConfig)
+	}, opchildlanes.NewFreeLaneMatchHandler(ac, app.OPChildKeeper).MatchHandler())
 
-	lanes := []block.Lane{mevLane, freeLane, defaultLane}
+	defaultLane := initialanes.NewDefaultLane(blockbase.LaneConfig{
+		Logger:          app.Logger(),
+		TxEncoder:       app.txConfig.TxEncoder(),
+		TxDecoder:       app.txConfig.TxDecoder(),
+		MaxBlockSpace:   math.LegacyMustNewDecFromStr("0.6"),
+		MaxTxs:          1000,
+		SignerExtractor: signerExtractor,
+	})
+
+	lanes := []block.Lane{systemLane, mevLane, freeLane, defaultLane}
 	mempool, err := block.NewLanedMempool(app.Logger(), lanes)
 	if err != nil {
 		panic(err)
@@ -925,6 +861,24 @@ func NewMinitiaApp(
 
 	app.SetMempool(mempool)
 	anteHandler := app.setAnteHandler(mevLane, freeLane, wasmConfig, keys[wasmtypes.StoreKey])
+
+	// NOTE seems this optional, to reduce mempool logic cost
+	// skip this for now
+	//
+	// set the ante handler for each lane
+	//
+	// opt := []blockbase.LaneOption{
+	// 	blockbase.WithAnteHandler(anteHandler),
+	// }
+	// mevLane.WithOptions(
+	// 	opt...,
+	// )
+	// freeLane.(*blockbase.BaseLane).WithOptions(
+	// 	opt...,
+	// )
+	// defaultLane.(*blockbase.BaseLane).WithOptions(
+	// 	opt...,
+	// )
 
 	// override the base-app's ABCI methods (CheckTx, PrepareProposal, ProcessProposal)
 	proposalHandlers := mevabci.NewProposalHandler(
@@ -939,13 +893,22 @@ func NewMinitiaApp(
 	app.SetProcessProposal(proposalHandlers.ProcessProposalHandler())
 
 	// overrde base-app's CheckTx
-	checkTxHandler := mevlane.NewCheckTxHandler(
+	mevCheckTx := blockchecktx.NewMEVCheckTxHandler(
 		app.BaseApp,
 		app.txConfig.TxDecoder(),
 		mevLane,
 		anteHandler,
+		app.BaseApp.CheckTx,
+	)
+	checkTxHandler := blockchecktx.NewMempoolParityCheckTx(
+		app.Logger(), mempool,
+		app.txConfig.TxDecoder(), mevCheckTx.CheckTx(),
 	)
 	app.SetCheckTx(checkTxHandler.CheckTx())
+
+	////////////////
+	/// lane end ///
+	////////////////
 
 	// At startup, after all modules have been registered, check that all prot
 	// annotations are correct.
@@ -999,7 +962,7 @@ func (app *MinitiaApp) CheckTx(req *abci.RequestCheckTx) (*abci.ResponseCheckTx,
 }
 
 // SetCheckTx sets the checkTxHandler for the app.
-func (app *MinitiaApp) SetCheckTx(handler mevlane.CheckTx) {
+func (app *MinitiaApp) SetCheckTx(handler blockchecktx.CheckTx) {
 	app.checkTxHandler = handler
 }
 
