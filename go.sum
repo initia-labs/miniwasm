@@ -1139,8 +1139,12 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/initia-labs/OPinit v0.2.5 h1:0gaIY2ndpkT5nwps2U3JU1cR+BCEjuSqVx+nuYjjejs=
 github.com/initia-labs/OPinit v0.2.5/go.mod h1:edvQHHlkbVXTE1joGV9UoXbUuZz18/ewxxCdDf+tbZI=
+github.com/initia-labs/OPinit v0.2.6-0.20240419095056-9aeaf23299ad h1:4ZSf0tON6U/SI1rS361O6uhM4J9OH0Xr56GXRqiSQQY=
+github.com/initia-labs/OPinit v0.2.6-0.20240419095056-9aeaf23299ad/go.mod h1:edvQHHlkbVXTE1joGV9UoXbUuZz18/ewxxCdDf+tbZI=
 github.com/initia-labs/OPinit/api v0.2.4 h1:W4OxVmCLwgcK5paZLTWeFt3EaknBG54+5IEB57lVgcY=
 github.com/initia-labs/OPinit/api v0.2.4/go.mod h1:wo2P41YSL9kQ+/PvHN5HIp5ICAmKvE39QQEQKbsxqm4=
+github.com/initia-labs/OPinit/api v0.2.5-0.20240419095056-9aeaf23299ad h1:928XfivWk4/5KwZEL6t/9tPovImtZjflq5j097PMoHo=
+github.com/initia-labs/OPinit/api v0.2.5-0.20240419095056-9aeaf23299ad/go.mod h1:oo8VsUFo1vVRg1jXhTMzlm5IF1JjU0I0u0OF/jo6iO4=
 github.com/initia-labs/cometbft v0.0.0-20240404091408-238cddd887d3 h1:IX3182+BZ8ksVtAdIlU9ub01dmSAM9lvjHuUz9GWzjc=
 github.com/initia-labs/cometbft v0.0.0-20240404091408-238cddd887d3/go.mod h1:qv+nhSohSXLgU45IxHDGM5x4+bG4khsqqyn+e0iEbfo=
 github.com/initia-labs/cosmos-sdk v0.0.0-20240415094035-619a9cc5c022 h1:63yst7NqigxnrUuePBpQpiDK8v6lLlb4A7G4CuGk+30=
