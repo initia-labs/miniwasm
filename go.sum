@@ -793,8 +793,6 @@ github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2 h1:dyL
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2/go.mod h1:82hPO/tRawbuFad2gPwChvpZ0JEIoNi91LwVneAYCeM=
 github.com/cosmos/ibc-go/modules/capability v1.0.0 h1:r/l++byFtn7jHYa09zlAdSeevo8ci1mVZNO9+V0xsLE=
 github.com/cosmos/ibc-go/modules/capability v1.0.0/go.mod h1:D81ZxzjZAe0ZO5ambnvn1qedsFQ8lOwtqicG6liLBco=
-github.com/cosmos/ibc-go/v8 v8.2.0 h1:7oCzyy1sZCcgpeQLnHxC56brsSz3KWwQGKXalXwXFzE=
-github.com/cosmos/ibc-go/v8 v8.2.0/go.mod h1:wj3qx75iC/XNnsMqbPDCIGs0G6Y3E/lo3bdqCyoCy+8=
 github.com/cosmos/ics23/go v0.10.0 h1:iXqLLgp2Lp+EdpIuwXTYIQU+AiHj9mOC2X9ab++bZDM=
 github.com/cosmos/ics23/go v0.10.0/go.mod h1:ZfJSmng/TBNTBkFemHHHj5YY7VAU/MBU980F4VU1NG0=
 github.com/cosmos/interchain-security/v5 v5.0.0-alpha1 h1:hDFOAw5mSZzlaiEM7vGPImObaLRbbGiR+vIXfkzW/0Q=
@@ -1149,6 +1147,8 @@ github.com/initia-labs/cosmos-sdk v0.0.0-20240415094035-619a9cc5c022 h1:63yst7Nq
 github.com/initia-labs/cosmos-sdk v0.0.0-20240415094035-619a9cc5c022/go.mod h1:oV/k6GJgXV9QPoM2fsYDPPsyPBgQbdotv532O6Mz1OQ=
 github.com/initia-labs/iavl v0.0.0-20240415085037-7e81233cdd9e h1:1gkMWkAgVhYFhEv7K4tX+8uJJLdiTKlQhl5+wGaxdMg=
 github.com/initia-labs/iavl v0.0.0-20240415085037-7e81233cdd9e/go.mod h1:jLeUvm6bGT1YutCaL2fIar/8vGUE8cPZvh/gXEWDaDM=
+github.com/initia-labs/ibc-go/v8 v8.0.0-20240419094507-a3a21b4b4433 h1:2R+2gvs1GVD6DNg2KWIL5mhSoAoukNzIBFkg8ko8vus=
+github.com/initia-labs/ibc-go/v8 v8.0.0-20240419094507-a3a21b4b4433/go.mod h1:wj3qx75iC/XNnsMqbPDCIGs0G6Y3E/lo3bdqCyoCy+8=
 github.com/initia-labs/initia v0.2.5 h1:dJpC0H3NEmInYC5G6t8Y0MjaXcaLF9tRgR6u2sxWb2s=
 github.com/initia-labs/initia v0.2.5/go.mod h1:7N0Z5bKBM2OCwL/542PMCT+scqz5vcCKVjp+bSzjewk=
 github.com/initia-labs/kvindexer v0.0.0-20240419055933-a0c6cf4b3dc0 h1:EHCG1Y3hQ4D/0PihzkVDGH0hjnybfwcRD7ybUGV47Xo=

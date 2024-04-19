@@ -457,6 +457,10 @@ func NewMinitiaApp(
 		authorityAddr,
 	)
 
+	app.IBCKeeper.ClientKeeper.SetPostUpdateHandler(
+		app.OPChildKeeper.UpdateHostValidatorSet,
+	)
+
 	ibcFeeKeeper := ibcfeekeeper.NewKeeper(
 		appCodec,
 		keys[ibcfeetypes.StoreKey],
