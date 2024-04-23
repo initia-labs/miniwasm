@@ -37,7 +37,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.2
 	github.com/initia-labs/OPinit v0.2.4
 	github.com/initia-labs/initia v0.2.4
-	github.com/initia-labs/kvindexer v0.0.0-20240418093255-1f15f35ac752
+	github.com/initia-labs/kvindexer v0.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rakyll/statik v0.1.7
@@ -50,6 +50,13 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014
 	google.golang.org/grpc v1.62.0
 	google.golang.org/protobuf v1.33.0
+)
+
+require (
+	github.com/initia-labs/kvindexer/submodules/block v0.0.0-20240422090640-64a5325af759
+	github.com/initia-labs/kvindexer/submodules/pair v0.0.0-20240422090640-64a5325af759
+	github.com/initia-labs/kvindexer/submodules/tx v0.0.0-20240422090640-64a5325af759
+	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.0.0-20240422090640-64a5325af759
 )
 
 require (
@@ -237,6 +244,8 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+	github.com/initia-labs/kvindexer => github.com/initia-labs/kvindexer v0.0.0-20240422090640-64a5325af759
 	// Downgraded to avoid bugs in following commits which caused simulations to fail.
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
