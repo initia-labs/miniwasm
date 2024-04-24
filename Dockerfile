@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 AS go-builder
+FROM golang:1.22-alpine3.18 AS go-builder
 #ARG arch=x86_64
 
 # See https://github.com/CosmWasm/wasmvm/releases
@@ -21,8 +21,8 @@ RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdi
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # See https://github.com/\!cosm\!wasm/wasmvm/releases
-ADD https://github.com/\!cosm\!wasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
-ADD https://github.com/\!cosm\!wasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
 
 # Highly recommend to verify the version hash
 # RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep a5e63292ec67f5bdefab51b42c3fbc3fa307c6aefeb6b409d971f1df909c3927
@@ -34,7 +34,7 @@ RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a
 # force it to use static lib (from above) not standard libwasmvm.so file
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
 
-FROM alpine:3.19
+FROM alpine:3.18
 
 RUN addgroup minitia \
     && adduser -G minitia -D -h /minitia minitia
