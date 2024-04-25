@@ -154,13 +154,12 @@ import (
 	// kvindexer
 	indexer "github.com/initia-labs/kvindexer"
 	indexerconfig "github.com/initia-labs/kvindexer/config"
-	indexermodule "github.com/initia-labs/kvindexer/module"
-	indexerkeeper "github.com/initia-labs/kvindexer/module/keeper"
-	indexertypes "github.com/initia-labs/kvindexer/module/types"
-	blocksubmodule "github.com/initia-labs/kvindexer/submodule/block"
-	"github.com/initia-labs/kvindexer/submodule/nft"
-	"github.com/initia-labs/kvindexer/submodule/pair"
-	"github.com/initia-labs/kvindexer/submodule/tx"
+	blocksubmodule "github.com/initia-labs/kvindexer/submodules/block"
+	pair "github.com/initia-labs/kvindexer/submodules/pair"
+	tx "github.com/initia-labs/kvindexer/submodules/tx"
+	nft "github.com/initia-labs/kvindexer/submodules/wasm-nft"
+	indexermodule "github.com/initia-labs/kvindexer/x/kvindexer"
+	indexerkeeper "github.com/initia-labs/kvindexer/x/kvindexer/keeper"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/initia-labs/miniwasm/client/docs/statik"
@@ -784,7 +783,6 @@ func NewMinitiaApp(
 		app.ModuleManager,
 		map[string]module.AppModuleBasic{
 			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-			indexertypes.ModuleName: app.indexerModule,
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
@@ -1277,27 +1275,33 @@ func (app *MinitiaApp) setupIndexer(appOpts servertypes.AppOptions, homePath str
 	}
 	app.indexerKeeper = indexerkeeper.NewKeeper(
 		appCodec,
-		app.AccountKeeper,
-		app.BankKeeper,
-		nil, // placeholder for distribution keeper
-		nil, // placeholder for staking keeper
-		nil, // placeholder for reward keeper,
-		nil, // placeholder for community pool keeper
-		indexerkeeper.VMKeeper{Keeper: *app.WasmKeeper},
-		app.IBCKeeper,
-		app.TransferKeeper,
-		nil,
-		app.OPChildKeeper,
-		authtypes.FeeCollectorName,
+		"wasm",
 		homePath,
 		indexerConfig,
 		ac,
 		vc,
 	)
-	err = app.indexerKeeper.RegisterSubmodules(nft.Submodule, pair.Submodule, tx.Submodule, blocksubmodule.Submodule)
+	smBlock, err := blocksubmodule.NewBlockSubmodule(appCodec, app.indexerKeeper, app.OPChildKeeper)
 	if err != nil {
 		panic(err)
 	}
+	smTx, err := tx.NewTxSubmodule(appCodec, app.indexerKeeper)
+	if err != nil {
+		panic(err)
+	}
+	smPair, err := pair.NewPairSubmodule(appCodec, app.indexerKeeper, app.IBCKeeper.ChannelKeeper, app.TransferKeeper)
+	if err != nil {
+		panic(err)
+	}
+	smNft, err := nft.NewWasmNFTSubmodule(ac, appCodec, app.indexerKeeper, app.WasmKeeper, smPair)
+	if err != nil {
+		panic(err)
+	}
+	err = app.indexerKeeper.RegisterSubmodules(smBlock, smTx, smPair, smNft)
+	if err != nil {
+		panic(err)
+	}
+
 	app.indexerModule = indexermodule.NewAppModuleBasic(app.indexerKeeper)
 	// Add your implementation here
 
