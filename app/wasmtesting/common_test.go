@@ -2,6 +2,7 @@ package wasm_hooks_test
 
 import (
 	"encoding/binary"
+	"slices"
 	"testing"
 	"time"
 
@@ -303,7 +304,9 @@ func _createTestInput(
 		queryRouter,
 		t.TempDir(),
 		wasmtypes.DefaultWasmConfig(),
-		"iterator,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,cosmwasm_1_4",
+		slices.DeleteFunc(wasmkeeper.BuiltInCapabilities(), func(s string) bool {
+			return s == "staking"
+		}),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
 	)
