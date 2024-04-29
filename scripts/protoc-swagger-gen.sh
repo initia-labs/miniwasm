@@ -25,7 +25,7 @@ git clone -b $OPINIT_VERSION https://$OPINIT_URL
 git clone -b $COSMOS_SDK_VERSION https://$COSMOS_URL
 git clone -b $IBC_VERSION https://$IBC_URL
 git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
-git clone -b wasm https://$INDEXER_URL
+git clone -b $INDEXER_VERSION https://$INDEXER_URL
 cd ..
 
 
