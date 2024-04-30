@@ -155,9 +155,9 @@ import (
 	indexer "github.com/initia-labs/kvindexer"
 	indexerconfig "github.com/initia-labs/kvindexer/config"
 	blocksubmodule "github.com/initia-labs/kvindexer/submodules/block"
-	pair "github.com/initia-labs/kvindexer/submodules/pair"
 	tx "github.com/initia-labs/kvindexer/submodules/tx"
 	nft "github.com/initia-labs/kvindexer/submodules/wasm-nft"
+	pair "github.com/initia-labs/kvindexer/submodules/wasm-pair"
 	indexermodule "github.com/initia-labs/kvindexer/x/kvindexer"
 	indexerkeeper "github.com/initia-labs/kvindexer/x/kvindexer/keeper"
 
