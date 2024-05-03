@@ -63,7 +63,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
-	sdkConfig.Seal()
+	//sdkConfig.Seal()
 
 	encodingConfig := minitiaapp.MakeEncodingConfig()
 	basicManager := minitiaapp.BasicManager()
@@ -166,6 +166,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		txCommand(),
 		keys.Commands(),
 	)
+
+	// add launch commands
+	rootCmd.AddCommand(LaunchCommand(a, encodingConfig, basicManager))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
