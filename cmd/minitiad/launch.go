@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"os"
+
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +14,6 @@ import (
 	minitiaapp "github.com/initia-labs/miniwasm/app"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // DefaultLaunchStepFactories is a list of default launch step factories.
@@ -50,9 +51,9 @@ var DefaultLaunchStepFactories = []launchtools.LauncherStepFuncFactory[launchtoo
 	steps.StopApp,
 }
 
-func LaunchCommand(ac appCreator, enc params.EncodingConfig, mbm module.BasicManager) *cobra.Command {
+func LaunchCommand(ac *appCreator, enc params.EncodingConfig, mbm module.BasicManager) *cobra.Command {
 	return launchtools.LaunchCmd(
-		ac.newApp,
+		ac,
 		func(denom string) map[string]json.RawMessage {
 			return minitiaapp.NewDefaultGenesisState(enc.Codec, mbm, denom)
 		},
