@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -972,9 +973,22 @@ func NewMinitiaApp(
 	}
 	err = msgservice.ValidateProtoAnnotations(protoFiles)
 	if err != nil {
-		// Once we switch to using protoreflect-based antehandlers, we might
-		// want to panic here instead of logging a warning.
-		fmt.Fprintln(os.Stderr, err.Error())
+		errMsg := ""
+
+		// ignore injective proto annotations comes from github.com/cosoms/relayer
+		for _, s := range strings.Split(err.Error(), "\n") {
+			if strings.Contains(s, "injective") {
+				continue
+			}
+
+			errMsg += s + "\n"
+		}
+
+		if errMsg != "" {
+			// Once we switch to using protoreflect-based antehandlers, we might
+			// want to panic here instead of logging a warning.
+			fmt.Fprintln(os.Stderr, errMsg)
+		}
 	}
 
 	// must be before Loading version

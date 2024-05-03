@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
 	"path"
 
 	tmcli "github.com/cometbft/cometbft/libs/cli"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -63,7 +65,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
-	sdkConfig.Seal()
+
+	// seal moved to post setup
+	// sdkConfig.Seal()
 
 	encodingConfig := minitiaapp.MakeEncodingConfig()
 	basicManager := minitiaapp.BasicManager()
@@ -145,18 +149,23 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
-	a := &appCreator{nil, encodingConfig}
-	// you can get app from a.app in post setup handler
+	a := &appCreator{}
 
 	rootCmd.AddCommand(
 		InitCmd(basicManager, minitiaapp.DefaultNodeHome),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(a.newApp, minitiaapp.DefaultNodeHome),
-		snapshot.Cmd(a.newApp),
+		pruning.Cmd(a.AppCreator(), minitiaapp.DefaultNodeHome),
+		snapshot.Cmd(a.AppCreator()),
 	)
 
-	server.AddCommands(rootCmd, minitiaapp.DefaultNodeHome, a.newApp, a.appExport, addModuleInitFlags)
+	server.AddCommandsWithStartCmdOptions(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, server.StartCmdOptions{
+		AddFlags: addModuleInitFlags,
+		PostSetup: func(svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error {
+			sdk.GetConfig().Seal()
+			return nil
+		},
+	})
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -167,6 +176,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		txCommand(),
 		keys.Commands(),
 	)
+
+	// add launch commands
+	rootCmd.AddCommand(LaunchCommand(a, encodingConfig, basicManager))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -242,30 +254,34 @@ func txCommand() *cobra.Command {
 }
 
 type appCreator struct {
-	app            servertypes.Application
-	encodingConfig params.EncodingConfig
+	app servertypes.Application
 }
 
 // newApp is an AppCreator
-func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
+func (a *appCreator) AppCreator() servertypes.AppCreator {
+	return func(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+		baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	var wasmOpts []wasmkeeper.Option
-	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
-		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+		var wasmOpts []wasmkeeper.Option
+		if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+			wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+		}
+
+		app := minitiaapp.NewMinitiaApp(
+			logger, db, traceStore, true,
+			wasmOpts,
+			appOpts,
+			baseappOptions...,
+		)
+
+		a.app = app
+
+		return app
 	}
+}
 
-	app := minitiaapp.NewMinitiaApp(
-		logger, db, traceStore, true,
-		wasmOpts,
-		appOpts,
-		baseappOptions...,
-	)
-
-	// store app in creator
-	a.app = app
-
-	return app
+func (a *appCreator) App() servertypes.Application {
+	return a.app
 }
 
 func (a appCreator) appExport(
