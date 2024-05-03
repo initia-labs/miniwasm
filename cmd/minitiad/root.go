@@ -267,12 +267,16 @@ func (a *appCreator) AppCreator() servertypes.AppCreator {
 			wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 		}
 
-		return minitiaapp.NewMinitiaApp(
+		app := minitiaapp.NewMinitiaApp(
 			logger, db, traceStore, true,
 			wasmOpts,
 			appOpts,
 			baseappOptions...,
 		)
+
+		a.app = app
+
+		return app
 	}
 }
 
