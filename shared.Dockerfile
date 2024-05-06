@@ -20,6 +20,9 @@ WORKDIR /root
 COPY --from=go-builder /code/build/minitiad /usr/local/bin/minitiad
 COPY --from=go-builder /lib/libwasmvm.so /lib/libwasmvm.so
 
+# for new-metric setup
+COPY --from=go-builder /code/contrib /root/contrib
+
 # rest server
 EXPOSE 1317
 # grpc
