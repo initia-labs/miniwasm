@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -156,9 +157,9 @@ import (
 	indexer "github.com/initia-labs/kvindexer"
 	indexerconfig "github.com/initia-labs/kvindexer/config"
 	blocksubmodule "github.com/initia-labs/kvindexer/submodules/block"
-	pair "github.com/initia-labs/kvindexer/submodules/pair"
 	tx "github.com/initia-labs/kvindexer/submodules/tx"
 	nft "github.com/initia-labs/kvindexer/submodules/wasm-nft"
+	pair "github.com/initia-labs/kvindexer/submodules/wasm-pair"
 	indexermodule "github.com/initia-labs/kvindexer/x/kvindexer"
 	indexerkeeper "github.com/initia-labs/kvindexer/x/kvindexer/keeper"
 
@@ -975,9 +976,22 @@ func NewMinitiaApp(
 	}
 	err = msgservice.ValidateProtoAnnotations(protoFiles)
 	if err != nil {
-		// Once we switch to using protoreflect-based antehandlers, we might
-		// want to panic here instead of logging a warning.
-		fmt.Fprintln(os.Stderr, err.Error())
+		errMsg := ""
+
+		// ignore injective proto annotations comes from github.com/cosoms/relayer
+		for _, s := range strings.Split(err.Error(), "\n") {
+			if strings.Contains(s, "injective") {
+				continue
+			}
+
+			errMsg += s + "\n"
+		}
+
+		if errMsg != "" {
+			// Once we switch to using protoreflect-based antehandlers, we might
+			// want to panic here instead of logging a warning.
+			fmt.Fprintln(os.Stderr, errMsg)
+		}
 	}
 
 	// must be before Loading version

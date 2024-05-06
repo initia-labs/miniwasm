@@ -43,6 +43,9 @@ WORKDIR /minitia
 
 COPY --from=go-builder /code/build/minitiad /usr/local/bin/minitiad
 
+# for new-metric setup
+COPY --from=go-builder /code/contrib /minitia/contrib
+
 USER minitia
 
 # rest server
