@@ -17,7 +17,7 @@ import (
 )
 
 // DefaultLaunchStepFactories is a list of default launch step factories.
-var DefaultLaunchStepFactories = []launchtools.LauncherStepFuncFactory[launchtools.Input]{
+var DefaultLaunchStepFactories = []launchtools.LauncherStepFuncFactory[*launchtools.Config]{
 	steps.InitializeConfig,
 	steps.InitializeRPCHelpers,
 
@@ -41,11 +41,15 @@ var DefaultLaunchStepFactories = []launchtools.LauncherStepFuncFactory[launchtoo
 			"ics721-1"
 	}),
 
-	// Enable the oracle
-	steps.EnableOracle,
-
 	// Create OP Bridge, using open channel states
 	steps.InitializeOpBridge,
+
+	// Set bridge info and update clients
+	steps.SetBridgeInfo,
+
+	// Get the L1 and L2 heights
+	steps.GetL1Height,
+	steps.GetL2Height,
 
 	// Cleanup
 	steps.StopApp,
@@ -62,7 +66,7 @@ func LaunchCommand(ac *appCreator, enc params.EncodingConfig, mbm module.BasicMa
 }
 
 // StoreAndInstantiateNFTContracts stores and instantiates cw721 and ics721 contracts
-func StoreAndInstantiateNFTContracts(input launchtools.Input) launchtools.LauncherStepFunc {
+func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("Storing and instantiating cw721 and ics721 contracts")
 
@@ -107,7 +111,7 @@ func StoreAndInstantiateNFTContracts(input launchtools.Input) launchtools.Launch
 				input.SystemKeys.Validator.Address,
 				input.SystemKeys.Validator.Mnemonic,
 				10000000,
-				sdk.NewCoins(sdk.NewInt64Coin(input.L2Config.Denom, 1500000)),
+				sdk.NewCoins(),
 				msg,
 			)
 

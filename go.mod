@@ -34,8 +34,8 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
-	github.com/initia-labs/OPinit v0.2.7
-	github.com/initia-labs/initia v0.2.7
+	github.com/initia-labs/OPinit v0.2.8
+	github.com/initia-labs/initia v0.2.8
 	github.com/initia-labs/kvindexer v0.1.3
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
