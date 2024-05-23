@@ -35,7 +35,6 @@ import (
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	initiaappparams "github.com/initia-labs/initia/app/params"
-	minitiaapp "github.com/initia-labs/miniwasm/app"
 
 	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -324,9 +323,9 @@ func _createTestInput(
 		nil,
 		msgRouter,
 		nil,
-		minitiaapp.DefaultNodeHome,
+		t.TempDir(),
 		wasmtypes.DefaultWasmConfig(),
-		"iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,cosmwasm_1_4,cosmwasm_2_0",
+		wasmkeeper.BuiltInCapabilities(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	require.NoError(t, wasmKeeper.SetParams(ctx, wasmtypes.DefaultParams()))

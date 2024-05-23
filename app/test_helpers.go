@@ -49,10 +49,11 @@ func getOrCreateMemDB(db *dbm.DB) dbm.DB {
 	if db != nil {
 		return *db
 	}
+
 	return dbm.NewMemDB()
 }
 
-func setup(db *dbm.DB, withGenesis bool) (*MinitiaApp, GenesisState) {
+func setup(homeDir string, db *dbm.DB, withGenesis bool) (*MinitiaApp, GenesisState) {
 	encCdc := MakeEncodingConfig()
 	app := NewMinitiaApp(
 		log.NewNopLogger(),
@@ -60,7 +61,7 @@ func setup(db *dbm.DB, withGenesis bool) (*MinitiaApp, GenesisState) {
 		nil,
 		true,
 		[]wasmkeeper.Option{},
-		EmptyAppOptions{},
+		EmptyAppOptions{homeDir: homeDir},
 	)
 
 	if withGenesis {
@@ -72,11 +73,12 @@ func setup(db *dbm.DB, withGenesis bool) (*MinitiaApp, GenesisState) {
 
 // SetupWithGenesisAccounts setup initiaapp with genesis account
 func SetupWithGenesisAccounts(
+	homeDir string,
 	valSet *tmtypes.ValidatorSet,
 	genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) *MinitiaApp {
-	app, genesisState := setup(nil, true)
+	app, genesisState := setup(homeDir, nil, true)
 
 	if len(genAccs) == 0 {
 		privAcc := secp256k1.GenPrivKey()
