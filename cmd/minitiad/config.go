@@ -42,6 +42,7 @@ func initAppConfig() (string, interface{}) {
 
 	// Enable API and unsafe CORS (CORS allowed from any host)
 	srvCfg.API.Enable = true
+	srvCfg.API.Swagger = true
 	srvCfg.API.EnableUnsafeCORS = true
 	srvCfg.API.Address = "tcp://0.0.0.0:1317"
 
@@ -68,6 +69,10 @@ func initTendermintConfig() *tmcfg.Config {
 	// empty block configure
 	cfg.Consensus.CreateEmptyBlocks = false
 	cfg.Consensus.CreateEmptyBlocksInterval = time.Minute
+
+	// rpc configure
+	cfg.RPC.ListenAddress = "tcp://0.0.0.0:26657"
+	cfg.RPC.CORSAllowedOrigins = []string{"*"}
 
 	// block time to 0.5s
 	cfg.Consensus.TimeoutPropose = 300 * time.Millisecond
