@@ -3,7 +3,6 @@ package wasm_hooks
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -27,28 +26,40 @@ func (h WasmHooks) onTimeoutIcs20Packet(
 	if !isWasmRouted || hookData.AsyncCallback == "" {
 		return nil
 	} else if err != nil {
-		return err
+		h.wasmKeeper.Logger(ctx).Error("failed to parse memo", "error", err)
+		return nil
 	}
 
+	// create a new cache context to ignore errors during
+	// the execution of the callback
+	cacheCtx, write := ctx.CacheContext()
+
 	callback := hookData.AsyncCallback
-	if allowed, err := h.checkACL(im, ctx, callback); err != nil {
-		return err
+	if allowed, err := h.checkACL(im, cacheCtx, callback); err != nil {
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "error", err)
+		return nil
 	} else if !allowed {
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "not allowed")
 		return nil
 	}
 
 	contractAddr, err := h.ac.StringToBytes(callback)
 	if err != nil {
-		return errorsmod.Wrap(err, "Ack callback error")
+		h.wasmKeeper.Logger(cacheCtx).Error("invalid contract address", "error", err)
+		return nil
 	}
 
 	sudoMsg := []byte(fmt.Sprintf(
 		`{"ibc_lifecycle_complete": {"ibc_timeout": {"channel": "%s", "sequence": %d}}}`,
 		packet.SourceChannel, packet.Sequence))
-	_, err = h.wasmKeeper.Sudo(ctx, contractAddr, sudoMsg)
+	_, err = h.wasmKeeper.Sudo(cacheCtx, contractAddr, sudoMsg)
 	if err != nil {
-		return errorsmod.Wrap(err, "Ack callback error")
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to execute callback", "error", err)
+		return nil
 	}
+
+	// write the cache context only if the callback execution was successful
+	write()
 
 	return nil
 }
@@ -68,28 +79,40 @@ func (h WasmHooks) onTimeoutIcs721Packet(
 	if !isWasmRouted || hookData.AsyncCallback == "" {
 		return nil
 	} else if err != nil {
-		return err
+		h.wasmKeeper.Logger(ctx).Error("failed to parse memo", "error", err)
+		return nil
 	}
 
+	// create a new cache context to ignore errors during
+	// the execution of the callback
+	cacheCtx, write := ctx.CacheContext()
+
 	callback := hookData.AsyncCallback
-	if allowed, err := h.checkACL(im, ctx, callback); err != nil {
-		return err
+	if allowed, err := h.checkACL(im, cacheCtx, callback); err != nil {
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "error", err)
+		return nil
 	} else if !allowed {
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "not allowed")
 		return nil
 	}
 
 	contractAddr, err := h.ac.StringToBytes(callback)
 	if err != nil {
-		return errorsmod.Wrap(err, "Ack callback error")
+		h.wasmKeeper.Logger(cacheCtx).Error("invalid contract address", "error", err)
+		return nil
 	}
 
 	sudoMsg := []byte(fmt.Sprintf(
 		`{"ibc_lifecycle_complete": {"ibc_timeout": {"channel": "%s", "sequence": %d}}}`,
 		packet.SourceChannel, packet.Sequence))
-	_, err = h.wasmKeeper.Sudo(ctx, contractAddr, sudoMsg)
+	_, err = h.wasmKeeper.Sudo(cacheCtx, contractAddr, sudoMsg)
 	if err != nil {
-		return errorsmod.Wrap(err, "Ack callback error")
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to execute callback", "error", err)
+		return nil
 	}
+
+	// write the cache context only if the callback execution was successful
+	write()
 
 	return nil
 }
