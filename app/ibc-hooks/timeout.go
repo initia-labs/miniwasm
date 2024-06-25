@@ -37,9 +37,21 @@ func (h WasmHooks) onTimeoutIcs20Packet(
 	callback := hookData.AsyncCallback
 	if allowed, err := h.checkACL(im, cacheCtx, callback); err != nil {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "error", err)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to check ACL"),
+			sdk.NewAttribute(types.AttributeKeyError, err.Error()),
+		))
+
 		return nil
 	} else if !allowed {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "not allowed")
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to check ACL"),
+			sdk.NewAttribute(types.AttributeKeyError, "not allowed"),
+		))
+
 		return nil
 	}
 
@@ -55,6 +67,12 @@ func (h WasmHooks) onTimeoutIcs20Packet(
 	_, err = h.wasmKeeper.Sudo(cacheCtx, contractAddr, sudoMsg)
 	if err != nil {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to execute callback", "error", err)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to execute callback"),
+			sdk.NewAttribute(types.AttributeKeyError, err.Error()),
+		))
+
 		return nil
 	}
 
@@ -90,9 +108,21 @@ func (h WasmHooks) onTimeoutIcs721Packet(
 	callback := hookData.AsyncCallback
 	if allowed, err := h.checkACL(im, cacheCtx, callback); err != nil {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "error", err)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to check ACL"),
+			sdk.NewAttribute(types.AttributeKeyError, err.Error()),
+		))
+
 		return nil
 	} else if !allowed {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "not allowed")
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to check ACL"),
+			sdk.NewAttribute(types.AttributeKeyError, "not allowed"),
+		))
+
 		return nil
 	}
 
@@ -108,6 +138,12 @@ func (h WasmHooks) onTimeoutIcs721Packet(
 	_, err = h.wasmKeeper.Sudo(cacheCtx, contractAddr, sudoMsg)
 	if err != nil {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to execute callback", "error", err)
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			types.EventTypeHookFailed,
+			sdk.NewAttribute(types.AttributeKeyReason, "failed to execute callback"),
+			sdk.NewAttribute(types.AttributeKeyError, err.Error()),
+		))
+
 		return nil
 	}
 
