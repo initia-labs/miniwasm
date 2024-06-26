@@ -29,26 +29,21 @@ type HookData struct {
 }
 
 type MsgExecuteContract struct {
- // Sender is the actor that committed the message in the sender chain
- Sender string
  // Contract is the address of the smart contract
  Contract string
  // Msg json encoded message to be passed to the contract
  Msg RawContractMessage
- // Funds coins that are transferred to the contract on execution
- Funds sdk.Coins
 }
 ```
 
 So we detail where we want to get each of these fields from:
 
 * Sender: We cannot trust the sender of an IBC packet, the counterparty chain has full ability to lie about it.
-We cannot risk this sender being confused for a particular user or module address on Osmosis.
+We cannot risk this sender being confused for a particular user or module address on the chain.
 So we replace the sender with an account to represent the sender prefixed by the channel and a wasm module prefix.
 This is done by setting the sender to `Bech32(Hash("ibc-wasm-hook-intermediary" || channelID || sender))`, where the channelId is the channel id on the local chain.
 * Contract: This field should be directly obtained from the ICS-20 packet metadata
 * Msg: This field should be directly obtained from the ICS-20 packet metadata.
-* Funds: This field is set to the amount of funds being sent over in the ICS 20 packet. One detail is that the denom in the packet is the counterparty chains representation of the denom, so we have to translate it to Osmosis' representation.
 
 > **_WARNING:_**  Due to a [bug](https://twitter.com/SCVSecurity/status/1682329758020022272) in the packet forward middleware, we cannot trust the sender from chains that use PFM. Until that is fixed, we recommend chains to not trust the sender on contracts executed via IBC hooks.
 
@@ -56,14 +51,10 @@ So our constructed cosmwasm message that we execute will look like:
 
 ```go
 msg := MsgExecuteContract{
- // Sender is the that actor that signed the messages
- Sender: "init1-hash-of-channel-and-sender",
  // Contract is the address of the smart contract
  Contract: packet.data.memo["wasm"]["contract"],
  // Msg json encoded message to be passed to the contract
  Msg: packet.data.memo["wasm"]["msg"],
- // Funds coins that are transferred to the contract on execution
- Funds: sdk.NewCoin{Denom: ibc.ConvertSenderDenomToLocalDenom(packet.data.Denom), Amount: packet.data.Amount}
 }
 ```
 
@@ -82,13 +73,12 @@ ICS20 is JSON native, so we use JSON for the memo format.
         "receiver": "contract addr or blank",
         "memo": {
            "wasm": {
-              "contract": "init1contractAddr",
-              "msg": {
-                "raw_message_fields": "raw_message_data",
-              },
-              "funds": [
-                {"denom": "ibc/denom", "amount": "100"}
-              ]
+              "message": {
+                "contract": "init1contractAddr",
+                "msg": {
+                  "raw_message_fields": "raw_message_data",
+                }
+              }
             }
         }
     }
@@ -100,7 +90,7 @@ An ICS20 packet is formatted correctly for wasmhooks iff the following all hold:
 * `memo` is not blank
 * `memo` is valid JSON
 * `memo` has at least one key, with value `"wasm"`
-* `memo["wasm"]["message"]` has exactly two entries, `"contract"`, `"msg"` and `"fund"`
+* `memo["wasm"]["message"]` has exactly two entries, `"contract"` and `"msg"`
 * `memo["wasm"]["message"]["msg"]` is a valid JSON object
 * `receiver == "" || receiver == memo["wasm"]["contract"]`
 
