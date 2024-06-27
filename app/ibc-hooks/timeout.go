@@ -8,6 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	ibchooks "github.com/initia-labs/initia/x/ibc-hooks"
+	"github.com/initia-labs/initia/x/ibc-hooks/types"
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
 )
 

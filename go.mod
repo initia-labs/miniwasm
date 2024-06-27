@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.2
 
 require (
-	cosmossdk.io/api v0.7.4
+	cosmossdk.io/api v0.7.5
 	cosmossdk.io/client/v2 v2.0.0-beta.1.0.20240124105859-5ad1805d0e79
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.11.0
@@ -23,7 +23,7 @@ require (
 	github.com/cometbft/cometbft v0.38.7
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.50.6
+	github.com/cosmos/cosmos-sdk v0.50.7-0.20240517114248-b99ca2c1fded
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.12
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2
@@ -34,8 +34,8 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
-	github.com/initia-labs/OPinit v0.3.1
-	github.com/initia-labs/initia v0.3.2
+	github.com/initia-labs/OPinit v0.3.2
+	github.com/initia-labs/initia v0.3.3
 	github.com/initia-labs/kvindexer v0.1.3
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
