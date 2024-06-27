@@ -12,6 +12,7 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
 
@@ -20,9 +21,9 @@ import (
 
 const senderPrefix = "ibc-wasm-hook-intermediary"
 
-// deriveIntermediateSender compute intermediate sender address
+// DeriveIntermediateSender compute intermediate sender address
 // Bech32(Hash(Hash("ibc-hook-intermediary") + channelID/sender))
-func deriveIntermediateSender(channel, originalSender string) string {
+func DeriveIntermediateSender(channel, originalSender string) string {
 	senderStr := fmt.Sprintf("%s/%s", channel, originalSender)
 	senderAddr := sdk.AccAddress(address.Hash(senderPrefix, []byte(senderStr)))
 	return senderAddr.String()
@@ -133,4 +134,36 @@ func isAckError(appCodec codec.Codec, acknowledgement []byte) bool {
 	}
 
 	return false
+}
+
+// MustExtractDenomFromPacketOnRecv takes a packet with a valid ICS20 token data in the Data field and returns the
+// denom as represented in the local chain.
+// If the data cannot be unmarshalled this function will panic
+func MustExtractDenomFromPacketOnRecv(packet ibcexported.PacketI) string {
+	var data transfertypes.FungibleTokenPacketData
+	if err := json.Unmarshal(packet.GetData(), &data); err != nil {
+		panic("unable to unmarshal ICS20 packet data")
+	}
+
+	var denom string
+	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		// remove prefix added by sender chain
+		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
+
+		unprefixedDenom := data.Denom[len(voucherPrefix):]
+
+		// coin denomination used in sending from the escrow address
+		denom = unprefixedDenom
+
+		// The denomination used to send the coins is either the native denom or the hash of the path
+		// if the denomination is not native.
+		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
+		if denomTrace.Path != "" {
+			denom = denomTrace.IBCDenom()
+		}
+	} else {
+		prefixedDenom := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel()) + data.Denom
+		denom = transfertypes.ParseDenomTrace(prefixedDenom).IBCDenom()
+	}
+	return denom
 }

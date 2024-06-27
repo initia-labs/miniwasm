@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -44,7 +45,7 @@ func (h WasmHooks) onRecvIcs20Packet(
 	}
 
 	// Calculate the receiver / contract caller based on the packet's channel and sender
-	intermediateSender := deriveIntermediateSender(packet.GetDestChannel(), data.GetSender())
+	intermediateSender := DeriveIntermediateSender(packet.GetDestChannel(), data.GetSender())
 
 	// The funds sent on this packet need to be transferred to the intermediary account for the sender.
 	// For this, we override the ICS20 packet's Receiver (essentially hijacking the funds to this new address)
@@ -64,7 +65,15 @@ func (h WasmHooks) onRecvIcs20Packet(
 		return ack
 	}
 
+	// Extract the denom and amount from the packet data
+	denom := MustExtractDenomFromPacketOnRecv(packet)
+	amount, ok := math.NewIntFromString(data.GetAmount())
+	if !ok {
+		return newEmitErrorAcknowledgement(fmt.Errorf("invalid amount: %s", data.GetAmount()))
+	}
+
 	msg.Sender = intermediateSender
+	msg.Funds = sdk.NewCoins(sdk.NewCoin(denom, amount))
 	_, err = h.execMsg(ctx, msg)
 	if err != nil {
 		return newEmitErrorAcknowledgement(err)
@@ -100,7 +109,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	}
 
 	// Calculate the receiver / contract caller based on the packet's channel and sender
-	intermediateSender := deriveIntermediateSender(packet.GetDestChannel(), data.GetSender())
+	intermediateSender := DeriveIntermediateSender(packet.GetDestChannel(), data.GetSender())
 
 	// The funds sent on this packet need to be transferred to the intermediary account for the sender.
 	// For this, we override the ICS721 packet's Receiver (essentially hijacking the funds to this new address)
@@ -121,6 +130,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	}
 
 	msg.Sender = intermediateSender
+	msg.Funds = sdk.NewCoins()
 	_, err = h.execMsg(ctx, msg)
 	if err != nil {
 		return newEmitErrorAcknowledgement(err)
