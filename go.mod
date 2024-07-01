@@ -36,7 +36,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v0.3.2
 	github.com/initia-labs/initia v0.3.3
-	github.com/initia-labs/kvindexer v0.1.3
+	github.com/initia-labs/kvindexer v0.1.4
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
 	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.3
