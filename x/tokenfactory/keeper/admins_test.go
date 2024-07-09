@@ -17,7 +17,7 @@ func TestAdminMsgs(t *testing.T) {
 
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 	queryClient := tokenFactorykeeper.Querier{Keeper: tokenFactoryKeeper}
 
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
@@ -101,7 +101,7 @@ func TestMintDenom(t *testing.T) {
 
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
@@ -177,7 +177,7 @@ func TestBurnDenom(t *testing.T) {
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
 	accountKeeper := input.AccountKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 
@@ -278,7 +278,7 @@ func TestForceTransferDenom(t *testing.T) {
 
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 
@@ -407,7 +407,7 @@ func TestChangeAdminDenom(t *testing.T) {
 			ctx, input := createDefaultTestInput(t)
 
 			tokenFactoryKeeper := input.TokenFactoryKeeper
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+			msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 			queryClient := tokenFactorykeeper.Querier{Keeper: tokenFactoryKeeper}
 
 			// Create a denom and mint
@@ -457,7 +457,7 @@ func TestSetDenomMetaData(t *testing.T) {
 
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 

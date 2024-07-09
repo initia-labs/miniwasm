@@ -95,7 +95,7 @@ func TestBeforeSendHook(t *testing.T) {
 		t.Run(fmt.Sprintf("Case %s", tc.desc), func(t *testing.T) {
 			ctx, input := createDefaultTestInput(t)
 
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+			msgServer := tokenFactorykeeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 			bankMsgServer := bankkeeper.NewMsgServerImpl(input.BankKeeper)
 
 			// upload and instantiate wasm code
@@ -180,7 +180,7 @@ func TestInfiniteTrackBeforeSend(t *testing.T) {
 		t.Run(fmt.Sprintf("Case %s", tc.name), func(t *testing.T) {
 			ctx, input := createDefaultTestInput(t)
 
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+			msgServer := tokenFactorykeeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 
 			// load wasm file
 			wasmCode, err := os.ReadFile(tc.wasmFile)

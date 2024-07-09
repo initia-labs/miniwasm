@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -25,6 +26,10 @@ func (k Keeper) mintTo(ctx context.Context, amount sdk.Coin, mintTo string) erro
 		return err
 	}
 
+	if k.bankKeeper.BlockedAddr(addr) {
+		return fmt.Errorf("failed to mint to blocked address: %s", addr)
+	}
+
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName,
 		addr,
 		sdk.NewCoins(amount))
@@ -40,6 +45,10 @@ func (k Keeper) burnFrom(ctx context.Context, amount sdk.Coin, burnFrom string) 
 	addr, err := k.ac.StringToBytes(burnFrom)
 	if err != nil {
 		return err
+	}
+
+	if k.bankKeeper.BlockedAddr(addr) {
+		return fmt.Errorf("failed to burn from blocked address: %s", addr)
 	}
 
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx,
@@ -68,6 +77,10 @@ func (k Keeper) forceTransfer(ctx context.Context, amount sdk.Coin, fromAddr str
 	toSdkAddr, err := k.ac.StringToBytes(toAddr)
 	if err != nil {
 		return err
+	}
+
+	if k.bankKeeper.BlockedAddr(fromSdkAddr) || k.bankKeeper.BlockedAddr(toSdkAddr) {
+		return fmt.Errorf("failed to transfer from blocked address: %s", fromSdkAddr)
 	}
 
 	return k.bankKeeper.SendCoins(ctx, fromSdkAddr, toSdkAddr, sdk.NewCoins(amount))

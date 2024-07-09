@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	tokenFactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // TestMintDenomMsg tests TypeMsgMint message is emitted on a successful mint
@@ -19,7 +19,7 @@ func TestMintDenomMsg(t *testing.T) {
 	// Create a denom
 	ctx, input := createDefaultTestInput(t)
 
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+	msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 
@@ -74,7 +74,7 @@ func TestMintDenomMsg(t *testing.T) {
 func TestBurnDenomMsg(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+	msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 
@@ -127,6 +127,28 @@ func TestBurnDenomMsg(t *testing.T) {
 	}
 }
 
+func TestForceTransferMsgFromModuleAcc(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
+
+	// Create a denom
+	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
+	defaultDenom := res.GetNewTokenDenom()
+
+	mintAmt := sdk.NewInt64Coin(defaultDenom, 10)
+
+	_, err := msgServer.Mint(ctx, types.NewMsgMint(addrs[0].String(), mintAmt))
+	require.NoError(t, err)
+
+	govModAcc := input.AccountKeeper.GetModuleAccount(ctx, govtypes.ModuleName)
+
+	err = input.BankKeeper.SendCoins(ctx, addrs[0], govModAcc.GetAddress(), sdk.NewCoins(mintAmt))
+	require.NoError(t, err)
+
+	_, err = msgServer.ForceTransfer(ctx, types.NewMsgForceTransfer(addrs[0].String(), mintAmt, govModAcc.GetAddress().String(), addrs[1].String()))
+	require.ErrorContains(t, err, "failed to transfer from blocked address")
+}
+
 // TestCreateDenomMsg tests TypeMsgCreateDenom message is emitted on a successful denom creation
 func TestCreateDenomMsg(t *testing.T) {
 	for _, tc := range []struct {
@@ -148,7 +170,7 @@ func TestCreateDenomMsg(t *testing.T) {
 		},
 	} {
 		ctx, input := createDefaultTestInput(t)
-		msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+		msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 
 		t.Run(fmt.Sprintf("Case %s", tc.desc), func(t *testing.T) {
 			ctx := ctx.WithEventManager(sdk.NewEventManager())
@@ -211,7 +233,7 @@ func TestChangeAdminDenomMsg(t *testing.T) {
 			// setup test
 			ctx, input := createDefaultTestInput(t)
 
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+			msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 
 			ctx = ctx.WithEventManager(sdk.NewEventManager())
 			require.Equal(t, 0, len(ctx.EventManager().Events()))
@@ -245,7 +267,7 @@ func TestChangeAdminDenomMsg(t *testing.T) {
 func TestSetDenomMetaDataMsg(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(*input.TokenFactoryKeeper)
+	msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
 
@@ -367,7 +389,7 @@ func TestMsgUpdateParams(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := keeper.NewMsgServerImpl(*input.TokenFactoryKeeper).UpdateParams(ctx, tc.input)
+			_, err := keeper.NewMsgServerImpl(input.TokenFactoryKeeper).UpdateParams(ctx, tc.input)
 
 			if tc.expErr {
 				require.Error(t, err)

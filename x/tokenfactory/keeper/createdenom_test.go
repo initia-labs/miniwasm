@@ -89,7 +89,7 @@ func TestCreateDenom(t *testing.T) {
 			denomCreationFee := tokenFactoryKeeper.GetParams(ctx).DenomCreationFee
 			require.Equal(t, tc.denomCreationFee.DenomCreationFee, denomCreationFee)
 
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+			msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 			querier := tokenFactorykeeper.Querier{Keeper: tokenFactoryKeeper}
 
 			if tc.setup != nil {
@@ -186,7 +186,7 @@ func TestGasConsume(t *testing.T) {
 			// amount of gas consumed prior to the denom creation
 			gasConsumedBefore := ctx.GasMeter().GasConsumed()
 
-			msgServer := tokenFactorykeeper.NewMsgServerImpl(*tokenFactoryKeeper)
+			msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 			// create a denom
 			_, err := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "larry"))
 			require.NoError(t, err)

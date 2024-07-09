@@ -11,12 +11,12 @@ import (
 )
 
 type msgServer struct {
-	Keeper
+	*Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
@@ -105,7 +105,12 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 		msg.BurnFromAddress = msg.Sender
 	}
 
-	accountI := server.Keeper.accountKeeper.GetAccount(ctx, sdk.AccAddress(msg.BurnFromAddress))
+	acc, err := server.ac.StringToBytes(msg.BurnFromAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	accountI := server.Keeper.accountKeeper.GetAccount(ctx, acc)
 	_, ok := accountI.(sdk.ModuleAccountI)
 	if ok {
 		return nil, types.ErrBurnFromModuleAccount

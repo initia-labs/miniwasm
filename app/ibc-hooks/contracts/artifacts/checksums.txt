@@ -1,1 +1,2 @@
 c132532b9641facc9afe6c4ad81bebd1237292c26f50ec782426b51cee4cdc90  counter-aarch64.wasm
+c7ef9d37456ef0e7754f0e7df70f6f2488a185ea2a1acdee464daf65428d66c3  counter.wasm
