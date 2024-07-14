@@ -3,8 +3,7 @@ package miniwasm.tokenfactory.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "miniwasm/tokenfactory/v1/authorityMetadata.proto";
+import "miniwasm/tokenfactory/v1/authority_metadata.proto";
 import "miniwasm/tokenfactory/v1/params.proto";
 
 option go_package = "github.com/initia-labs/miniwasm/x/tokenfactory/types";
@@ -78,6 +77,8 @@ message QueryDenomsFromCreatorResponse {
   repeated string denoms = 1 [ (gogoproto.moretags) = "yaml:\"denoms\"" ];
 }
 
+// QueryBeforeSendHookAddressRequest defines the request structure for the
+// BeforeSendHookAddress gRPC query.
 message QueryBeforeSendHookAddressRequest {
   string denom = 1 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
 }

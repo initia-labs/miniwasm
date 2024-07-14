@@ -15,15 +15,33 @@ option go_package = "github.com/initia-labs/miniwasm/x/tokenfactory/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
+  // CreateDenom defines a gRPC service method for creating a new denom.
   rpc CreateDenom(MsgCreateDenom) returns (MsgCreateDenomResponse);
+
+  // Mint defines a gRPC service method for minting more of a token.
   rpc Mint(MsgMint) returns (MsgMintResponse);
+
+  // Burn defines a gRPC service method for burning a token.
   rpc Burn(MsgBurn) returns (MsgBurnResponse);
+
+  // ChangeAdmin defines a gRPC service method for changing the admin of a
+  // denom.
   rpc ChangeAdmin(MsgChangeAdmin) returns (MsgChangeAdminResponse);
+
+  // SetDenomMetadata defines a gRPC service method for setting the metadata of
+  // a denom.
   rpc SetDenomMetadata(MsgSetDenomMetadata)
       returns (MsgSetDenomMetadataResponse);
+
+  // SetBeforeSendHook defines a gRPC service method for setting the before send
+  // hook of a denom.
   rpc SetBeforeSendHook(MsgSetBeforeSendHook)
       returns (MsgSetBeforeSendHookResponse);
+
+  // ForceTransfer defines a gRPC service method for transferring a token from
+  // one account to another.
   rpc ForceTransfer(MsgForceTransfer) returns (MsgForceTransferResponse);
+
   // UpdateParams defines an operation for updating the x/tokenfactory module
   // parameters.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
@@ -68,12 +86,14 @@ message MsgMint {
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false
   ];
-  string mintToAddress = 3 [
+  string mint_to_address = 3 [
     (gogoproto.moretags) = "yaml:\"mint_to_address\"",
     (amino.dont_omitempty) = true
   ];
 }
 
+// MsgMintResponse defines the response structure for an executed
+// MsgMint message.
 message MsgMintResponse {}
 
 // MsgBurn is the sdk.Msg type for allowing an admin account to burn
@@ -89,12 +109,14 @@ message MsgBurn {
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false
   ];
-  string burnFromAddress = 3 [
+  string burn_from_address = 3 [
     (gogoproto.moretags) = "yaml:\"burn_from_address\"",
     (amino.dont_omitempty) = true
   ];
 }
 
+// MsgBurnResponse defines the response structure for an executed
+// MsgBurn message.
 message MsgBurnResponse {}
 
 // MsgChangeAdmin is the sdk.Msg type for allowing an admin account to reassign
@@ -147,6 +169,8 @@ message MsgSetDenomMetadata {
 // MsgSetDenomMetadata message.
 message MsgSetDenomMetadataResponse {}
 
+// MsgForceTransfer is the sdk.Msg type for allowing an admin account to
+// transfer a token from one account to another
 message MsgForceTransfer {
   option (cosmos.msg.v1.signer) = "sender";
   option (amino.name) = "tokenfactory/MsgForceTransfer";
@@ -156,12 +180,14 @@ message MsgForceTransfer {
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false
   ];
-  string transferFromAddress = 3
+  string transfer_from_address = 3
       [ (gogoproto.moretags) = "yaml:\"transfer_from_address\"" ];
-  string transferToAddress = 4
+  string transfer_to_address = 4
       [ (gogoproto.moretags) = "yaml:\"transfer_to_address\"" ];
 }
 
+// MsgForceTransferResponse defines the response structure for an executed
+// MsgForceTransfer message.
 message MsgForceTransferResponse {}
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
