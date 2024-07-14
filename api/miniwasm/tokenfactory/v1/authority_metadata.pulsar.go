@@ -454,7 +454,7 @@ type DenomAuthorityMetadata struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Can be empty for no admin, or a valid osmosis address
+	// Can be empty for no admin, or a valid address
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 }
 

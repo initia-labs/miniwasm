@@ -41313,7 +41313,7 @@ paths:
                 properties:
                   admin:
                     type: string
-                    title: Can be empty for no admin, or a valid osmosis address
+                    title: Can be empty for no admin, or a valid address
                 description: >-
                   DenomAuthorityMetadata specifies metadata for addresses that
                   have specific
@@ -71233,7 +71233,7 @@ definitions:
     properties:
       admin:
         type: string
-        title: Can be empty for no admin, or a valid osmosis address
+        title: Can be empty for no admin, or a valid address
     description: |-
       DenomAuthorityMetadata specifies metadata for addresses that have specific
       capabilities over a token factory denom. Right now there is only one Admin
@@ -71287,7 +71287,7 @@ definitions:
         properties:
           admin:
             type: string
-            title: Can be empty for no admin, or a valid osmosis address
+            title: Can be empty for no admin, or a valid address
         description: >-
           DenomAuthorityMetadata specifies metadata for addresses that have
           specific
