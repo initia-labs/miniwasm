@@ -36,7 +36,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v0.3.2
 	github.com/initia-labs/initia v0.3.4
-	github.com/initia-labs/kvindexer v0.1.3
+	github.com/initia-labs/kvindexer v0.1.5
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
 	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.3
@@ -70,6 +70,7 @@ require (
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/allegro/bigcache/v3 v3.1.0 // indirect
 	github.com/avast/retry-go/v4 v4.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.312 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
