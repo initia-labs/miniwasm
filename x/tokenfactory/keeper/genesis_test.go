@@ -68,7 +68,7 @@ func TestGenesis(t *testing.T) {
 	tokenfactoryModuleAccount := accountKeeper.GetAccount(ctx, accountKeeper.GetModuleAddress(types.ModuleName))
 	require.Nil(t, tokenfactoryModuleAccount)
 
-	tokenFactoryKeeper.SetParams(ctx, types.Params{DenomCreationFee: sdk.Coins{sdk.NewInt64Coin("uinit", 100)}})
+	tokenFactoryKeeper.SetParams(ctx, types.Params{DenomCreationFee: sdk.Coins{sdk.NewInt64Coin("uinit", 100)}}) //nolint:errcheck
 	tokenFactoryKeeper.InitGenesis(ctx, genesisState)
 
 	// check that the module account is now initialized
@@ -80,7 +80,7 @@ func TestGenesis(t *testing.T) {
 	require.Equal(t, genesisState, *exportedGenesis)
 
 	// verify that the exported bank genesis is valid
-	bankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	bankKeeper.SetParams(ctx, banktypes.DefaultParams()) //nolint:errcheck
 	exportedBankGenesis := bankKeeper.ExportGenesis(ctx)
 	require.NoError(t, exportedBankGenesis.Validate())
 

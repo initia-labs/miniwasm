@@ -39,7 +39,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 // ExportGenesis returns the tokenfactory module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	genDenoms := []types.GenesisDenom{}
-	k.CreatorDenoms.Walk(ctx, nil, func(key collections.Pair[string, string]) (stop bool, err error) {
+	err := k.CreatorDenoms.Walk(ctx, nil, func(key collections.Pair[string, string]) (stop bool, err error) {
 		denom := key.K2()
 
 		authorityMetadata, err := k.GetAuthorityMetadata(ctx, denom)
@@ -53,6 +53,9 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		})
 		return false, nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	return &types.GenesisState{
 		FactoryDenoms: genDenoms,
