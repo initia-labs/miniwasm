@@ -239,6 +239,7 @@ lint:
 
 lint-fix:
 	golangci-lint run --fix --out-format=tab --timeout=15m
+
 .PHONY: lint lint-fix
 
 format:
