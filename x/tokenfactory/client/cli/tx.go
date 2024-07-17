@@ -199,12 +199,6 @@ func NewSetBeforeSendHookCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			txf, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
-			txf = txf.WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-
 			msg := types.NewMsgSetBeforeSendHook(
 				fromAddr,
 				args[0],

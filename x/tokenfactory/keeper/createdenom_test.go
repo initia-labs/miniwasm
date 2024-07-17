@@ -85,7 +85,7 @@ func TestCreateDenom(t *testing.T) {
 			// Set denom creation fee in params
 			input.Faucet.Fund(ctx, addrs[0], defaultDenomCreationFee.DenomCreationFee...)
 
-			tokenFactoryKeeper.SetParams(ctx, tc.denomCreationFee)
+			tokenFactoryKeeper.SetParams(ctx, tc.denomCreationFee) //nolint:errcheck
 			denomCreationFee := tokenFactoryKeeper.GetParams(ctx).DenomCreationFee
 			require.Equal(t, tc.denomCreationFee.DenomCreationFee, denomCreationFee)
 
@@ -181,7 +181,7 @@ func TestGasConsume(t *testing.T) {
 			// set params with the gas consume amount
 
 			tokenFactoryKeeper := input.TokenFactoryKeeper
-			tokenFactoryKeeper.SetParams(ctx, types.NewParams(nil, tc.gasConsume))
+			tokenFactoryKeeper.SetParams(ctx, types.NewParams(nil, tc.gasConsume)) //nolint:errcheck
 
 			// amount of gas consumed prior to the denom creation
 			gasConsumedBefore := ctx.GasMeter().GasConsumed()

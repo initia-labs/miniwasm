@@ -53,8 +53,7 @@ func (k Keeper) createDenomAfterValidation(ctx context.Context, creatorAddr stri
 		return err
 	}
 
-	k.addDenomFromCreator(ctx, creatorAddr, denom)
-	return nil
+	return k.addDenomFromCreator(ctx, creatorAddr, denom)
 }
 
 func (k Keeper) validateCreateDenom(ctx context.Context, creatorAddr string, subdenom string) (newTokenDenom string, err error) {

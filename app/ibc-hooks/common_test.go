@@ -42,7 +42,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types" //nolint:staticcheck
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -277,7 +277,7 @@ func _createTestInput(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ac,
 	)
-	ibcHooksKeeper.Params.Set(ctx, ibchookstypes.DefaultParams())
+	ibcHooksKeeper.Params.Set(ctx, ibchookstypes.DefaultParams()) //nolint:errcheck
 
 	wasmKeeper := wasmkeeper.NewKeeper(
 		appCodec,

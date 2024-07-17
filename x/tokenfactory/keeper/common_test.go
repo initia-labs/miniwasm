@@ -68,7 +68,7 @@ var ModuleBasics = module.NewBasicManager(
 )
 
 var (
-	valPubKeys = testutilsims.CreateTestPubKeys(5)
+	valPubKeys = testutilsims.CreateTestPubKeys(5) //nolint:unused
 
 	pubKeys = []crypto.PubKey{
 		secp256k1.GenPrivKey().PubKey(),
@@ -86,6 +86,7 @@ var (
 		sdk.AccAddress(pubKeys[4].Address()),
 	}
 
+	//nolint:unused
 	valAddrs = []sdk.ValAddress{
 		sdk.ValAddress(pubKeys[0].Address()),
 		sdk.ValAddress(pubKeys[1].Address()),
