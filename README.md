@@ -18,7 +18,6 @@ To get started with L2, please visit the [documentation](https://initia.gitbook.
 - Integrates seamlessly with the OPinit stack, enhancing security.
 - Provides immediate access to the full suite of Initia ecosystem tools right from the start.
 
-
 ## Contributing
 
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
