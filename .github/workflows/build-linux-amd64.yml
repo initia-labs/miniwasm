@@ -34,10 +34,6 @@ jobs:
           echo "GOOS=${GOOS}"
           echo "VERSION=${VERSION}"
 
-      - name: Find libwasmvm.so
-        run: |
-          find /go/pkg/mod -name "libwasmvm*.so"
-          
       - name: Build for Linux AMD64
         run: |
           export GOARCH=${GOARCH}
@@ -45,11 +41,6 @@ jobs:
           make build-linux-with-shared-library
           cd ./build
           mkdir -p miniwasm_${VERSION}
-          echo "Contents of build directory:"
-          ls -al          
-          echo "Contents of /go/pkg/mod/github.com:"
-          ls -al /go/pkg/mod/github.com
-          ls /go/pkg/mod/github.com
           mv libwasmvm.so miniwasm_${VERSION}/libwasmvm.${ARCH_NAME}.so
           mv minitiad miniwasm_${VERSION}/
           tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz miniwasm_${VERSION}
