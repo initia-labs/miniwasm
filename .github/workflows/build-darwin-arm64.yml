@@ -44,17 +44,6 @@ jobs:
           echo "VERSION=${VERSION}"
           echo "ARCH_NAME=${ARCH_NAME}"
           echo "MINIWASM_NETWORK_NAME=${MINIWASM_NETWORK_NAME}"
-      
-      # - name: Build and Package for Darwin ARM64
-      #   run: |
-      #     cd ../miniwasm \
-      #     && make build \
-      #     && cd ./build \
-      #     && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${WASMVM_VERSION}/api/libmovevm.dylib ./ \
-      #     && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${WASMVM_VERSION}/api/libcompiler.dylib ./ \
-      #     && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz minitiad libmovevm.dylib libcompiler.dylib \
-      #     && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz $GITHUB_WORKSPACE/ \
-      #     && rm -rf ./libmovevm.dylib ./libcompiler.dylib ./minitiad
 
       - name: Build and Package for Darwin ARM64
         run: |
@@ -64,8 +53,8 @@ jobs:
           && ls ~/go/pkg/mod/github.com/ \
           && ls ~/go/pkg/mod/github.com/\!cosm\!wasm/ \
           && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@${WASMVM_VERSION}/internal/api/libwasmvm.dylib ./ \
-          && tar -czvf miniwasm_"$MINIWASM_VERSION"_Darwin_"$ARCH".tar.gz ./minitiad libwasmvm.dylib \
-          && mv ./miniwasm_"$MINIWASM_VERSION"_Darwin_"$ARCH".tar.gz $GITHUB_WORKSPACE/ \
+          && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH".tar.gz ./minitiad libwasmvm.dylib \
+          && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH".tar.gz $GITHUB_WORKSPACE/ \
           && rm -rf ./libwasmvm.dylib ./minitiad   
   
       - name: Release
