@@ -41,8 +41,7 @@ jobs:
           make build-linux-with-shared-library
           cd ./build
           mkdir -p miniwasm_${VERSION}
-          mv libmovevm.so miniwasm_${VERSION}/libmovevm.${ARCH_NAME}.so
-          mv libcompiler.so miniwasm_${VERSION}/libcompiler.${ARCH_NAME}.so
+          mv libwasmvm.so miniwasm_${VERSION}/libwasmvm.${ARCH_NAME}.so
           mv minitiad miniwasm_${VERSION}/
           tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz miniwasm_${VERSION}
 

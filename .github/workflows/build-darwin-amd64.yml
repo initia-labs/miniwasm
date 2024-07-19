@@ -30,13 +30,13 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=x86_64" >> $GITHUB_ENV
-          MOVEVM_VERSION=$(go list -m github.com/initia-labs/movevm | awk '{print $2}')    
-          echo "MOVEVM_VERSION=${MOVEVM_VERSION}" >> $GITHUB_ENV        
+          WASMVM_VERSION=$(go list -m github.com/initia-labs/movevm | awk '{print $2}')    
+          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV        
 
       - name: Ensure dependencies
         run: |
           go mod tidy
-          go get github.com/initia-labs/movevm@${MOVEVM_VERSION}
+          go get github.com/initia-labs/movevm@${WASMVM_VERSION}
 
       - name: Print environment variables
         run: |
@@ -44,22 +44,34 @@ jobs:
           echo "GOOS=${GOOS}"
           echo "VERSION=${VERSION}"
           echo "ARCH_NAME=${ARCH_NAME}"
-          echo "MOVEVM_VERSION=${MOVEVM_VERSION}"
+          echo "WASMVM_VERSION=${WASMVM_VERSION}"
           echo "MINIWASM_NETWORK_NAME=${MINIWASM_NETWORK_NAME}"
 
-      - name: Build and Package for Darwin ADM64
+      # - name: Build and Package for Darwin ADM64
+      #   run: |
+      #     cd ../miniwasm \
+      #     && make build \
+      #     && cd ./build \
+      #     && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${WASMVM_VERSION}/api/libmovevm.dylib ./ \
+      #     && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${WASMVM_VERSION}/api/libcompiler.dylib ./ \
+      #     && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz minitiad libmovevm.dylib libcompiler.dylib \
+      #     && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz $GITHUB_WORKSPACE/ \
+      #     && rm -rf ./libmovevm.dylib ./libcompiler.dylib ./minitiad
+
+      - name: Build and Package for Darwin ADM642
         run: |
           cd ../miniwasm \
           && make build \
           && cd ./build \
-          && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${MOVEVM_VERSION}/api/libmovevm.dylib ./ \
-          && cp ~/go/pkg/mod/github.com/initia-labs/movevm@${MOVEVM_VERSION}/api/libcompiler.dylib ./ \
-          && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz minitiad libmovevm.dylib libcompiler.dylib \
-          && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz $GITHUB_WORKSPACE/ \
-          && rm -rf ./libmovevm.dylib ./libcompiler.dylib ./minitiad
+          && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm@"$WASMVM_VERSION"/internal/api/libwasmvm.dylib ./ \
+          && tar -czvf miniwasm_"$MINIWASM_VERSION"_Darwin_"$ARCH".tar.gz ./minitiad libwasmvm.dylib \
+          && mv ./miniwasm_"$MINIWASM_VERSION"_Darwin_"$ARCH".tar.gz $GITHUB_WORKSPACE/ \
+          && rm -rf ./libwasmvm.dylib ./minitiad    
   
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             miniwasm_${{ env.VERSION }}_Darwin_${{ env.ARCH_NAME }}.tar.gz
+
+            
