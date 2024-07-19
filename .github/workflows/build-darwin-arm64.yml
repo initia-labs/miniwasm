@@ -35,7 +35,7 @@ jobs:
       - name: Ensure dependencies
         run: |
           go mod tidy
-          go get github.com/CosmWasm/wasmvm@${WASMVM_VERSION}
+          go get github.com/CosmWasm/wasmvm/v2@${WASMVM_VERSION}
           
       - name: Print environment variables
         run: |
