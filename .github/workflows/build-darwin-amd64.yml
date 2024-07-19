@@ -66,5 +66,3 @@ jobs:
         with:
           files: |
             miniwasm_${{ env.VERSION }}_Darwin_${{ env.ARCH_NAME }}.tar.gz
-
-            
