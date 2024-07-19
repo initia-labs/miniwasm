@@ -34,6 +34,10 @@ jobs:
           echo "GOOS=${GOOS}"
           echo "VERSION=${VERSION}"
 
+      - name: Find libwasmvm.so
+        run: |
+          find /go/pkg/mod -name "libwasmvm*.so"
+          
       - name: Build for Linux AMD64
         run: |
           export GOARCH=${GOARCH}
