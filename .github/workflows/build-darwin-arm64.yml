@@ -53,8 +53,8 @@ jobs:
           && ls ~/go/pkg/mod/github.com/ \
           && ls ~/go/pkg/mod/github.com/\!cosm\!wasm/ \
           && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@${WASMVM_VERSION}/internal/api/libwasmvm.dylib ./ \
-          && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH".tar.gz ./minitiad libwasmvm.dylib \
-          && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH".tar.gz $GITHUB_WORKSPACE/ \
+          && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz ./minitiad libwasmvm.dylib \
+          && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz $GITHUB_WORKSPACE/ \
           && rm -rf ./libwasmvm.dylib ./minitiad   
   
       - name: Release
