@@ -2,7 +2,7 @@ FROM golang:1.22-alpine3.18 AS go-builder
 #ARG arch=x86_64
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ARG LIBWASMVM_VERSION=v1.5.2
+ARG LIBWASMVM_VERSION=v2.0.0
 
 # this comes from standard alpine nightly file
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
