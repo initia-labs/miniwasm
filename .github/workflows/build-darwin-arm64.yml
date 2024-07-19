@@ -20,7 +20,7 @@ jobs:
         run: |
           MINIWASM_NETWORK_NAME="miniwasm-1"
           echo "MINIWASM_NETWORK_NAME=${MINIWASM_NETWORK_NAME}" >> $GITHUB_ENV
-          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | awk '{print $2}')    
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')    
           echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV        
           echo "GOARCH=arm64" >> $GITHUB_ENV
           echo "GOOS=darwin" >> $GITHUB_ENV

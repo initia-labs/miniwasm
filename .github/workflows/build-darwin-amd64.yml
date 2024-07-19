@@ -30,8 +30,8 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=x86_64" >> $GITHUB_ENV
-          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | awk '{print $2}')    
-          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV        
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')
+          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV 
 
       - name: Ensure dependencies
         run: |
