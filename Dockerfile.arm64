@@ -1,4 +1,4 @@
-FROM golang:1.22-bullseye AS go-builder
+FROM arm64v8/golang:1.22-bullseye AS go-builder
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
 RUN apt update
@@ -13,7 +13,7 @@ RUN LEDGER_ENABLED=false make build
 
 RUN cp /go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@v*/internal/api/libwasmvm.`uname -m`.so /lib/libwasmvm.so
 
-FROM ubuntu:20.04
+FROM arm64v8/ubuntu:20.04
 
 WORKDIR /root
 
