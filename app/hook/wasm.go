@@ -7,7 +7,6 @@ import (
 
 	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -32,11 +31,10 @@ func (mbh WasmBridgeHook) Hook(ctx context.Context, sender sdk.AccAddress, msgBy
 		return err
 	}
 
-	senderAddr, err := mbh.ac.StringToBytes(msg.Sender)
+	// overwrite sender with the actual sender
+	msg.Sender, err = mbh.ac.BytesToString(sender)
 	if err != nil {
 		return err
-	} else if !sender.Equals(sdk.AccAddress(senderAddr)) {
-		return sdkerrors.ErrUnauthorized
 	}
 
 	ms := wasmkeeper.NewMsgServerImpl(mbh.wasmKeeper)
