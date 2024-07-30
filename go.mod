@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.0
 	cosmossdk.io/x/tx v0.13.3
 	cosmossdk.io/x/upgrade v0.1.1
-	// we also need to update `LIBWASMVM_VERSION` of images/private/Dockerfile#5
+	// we also need to update `LIBWASMVM_VERSION` of Dockerfile#5
 	github.com/CosmWasm/wasmd v0.51.0
 	github.com/CosmWasm/wasmvm/v2 v2.0.0
 	github.com/cometbft/cometbft v0.38.7
@@ -34,8 +34,8 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
-	github.com/initia-labs/OPinit v0.3.2
-	github.com/initia-labs/initia v0.3.5
+	github.com/initia-labs/OPinit v0.4.0
+	github.com/initia-labs/initia v0.4.0
 	github.com/initia-labs/kvindexer v0.1.6
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
@@ -166,7 +166,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/initia-labs/OPinit/api v0.3.0 // indirect
+	github.com/initia-labs/OPinit/api v0.4.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jsternberg/zap-logfmt v1.3.0 // indirect
