@@ -82,18 +82,18 @@ func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.Laun
 
 		msgs := []sdk.Msg{
 			&wasmtypes.MsgStoreCode{
-				Sender:                input.SystemKeys.Validator.Address,
+				Sender:                input.SystemKeys.Validator.L2Address,
 				WASMByteCode:          cw721,
 				InstantiatePermission: nil,
 			},
 			&wasmtypes.MsgStoreCode{
-				Sender:                input.SystemKeys.Validator.Address,
+				Sender:                input.SystemKeys.Validator.L2Address,
 				WASMByteCode:          ics721,
 				InstantiatePermission: nil,
 			},
 			&wasmtypes.MsgInstantiateContract{
-				Sender: input.SystemKeys.Validator.Address,
-				Admin:  input.SystemKeys.Validator.Address,
+				Sender: input.SystemKeys.Validator.L2Address,
+				Admin:  input.SystemKeys.Validator.L2Address,
 				CodeID: 2,
 				Label:  "ics721",
 				Msg:    []byte(`{"cw721_base_code_id":1}`),
@@ -108,7 +108,7 @@ func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.Laun
 			)
 
 			res, err := ctx.GetRPCHelperL2().BroadcastTxAndWait(
-				input.SystemKeys.Validator.Address,
+				input.SystemKeys.Validator.L2Address,
 				input.SystemKeys.Validator.Mnemonic,
 				10000000,
 				sdk.NewCoins(),
