@@ -291,7 +291,6 @@ func NewMinitiaApp(
 	app.SetEndBlocker(app.EndBlocker)
 
 	// setup BlockSDK
-
 	mempool, anteHandler, checkTx, prepareProposalHandler, processProposalHandler, err := setupBlockSDK(app, mempoolMaxTxs, wasmConfig, app.GetKVStoreKey()[wasmtypes.StoreKey])
 	if err != nil {
 		tmos.Exit(err.Error())

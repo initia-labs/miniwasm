@@ -29,7 +29,7 @@ func setupIndexer(
 	}
 	kvIndexerKeeper := kvindexerkeeper.NewKeeper(
 		app.appCodec,
-		"move",
+		"wasm",
 		kvindexerDB,
 		kvindexerConfig,
 		app.ac,
@@ -60,7 +60,9 @@ func setupIndexer(
 	// Add your implementation here
 
 	kvIndexer, err := kvindexer.NewIndexer(app.GetBaseApp().Logger(), kvIndexerKeeper)
-	if err != nil || kvIndexer == nil {
+	if err != nil {
+		return nil, nil, nil, err
+	} else if kvIndexer == nil {
 		return nil, nil, nil, nil
 	}
 

@@ -1,10 +1,12 @@
 package keepers
 
 import (
+	// cosmos mod imports
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	// cosmos imports
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -13,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/group"
 
 	// ibc imports
-
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -24,32 +25,25 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	// initia imports
-
 	ibchookstypes "github.com/initia-labs/initia/x/ibc-hooks/types"
 	icaauthtypes "github.com/initia-labs/initia/x/intertx/types"
 
 	// OPinit imports
-
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
-
 	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 	marketmaptypes "github.com/skip-mev/slinky/x/marketmap/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 
 	// CosmWasm imports
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	// local imports
-
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
 	// noble forwarding keeper
-
 	forwardingtypes "github.com/noble-assets/forwarding/v2/x/forwarding/types"
-	// kvindexer
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {
