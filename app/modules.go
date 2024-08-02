@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	genutil "github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/group"
@@ -167,6 +168,7 @@ thus, gov.EndBlock must be executed before staking.EndBlock
 */
 func orderEndBlockers() []string {
 	return []string{
+		crisistypes.ModuleName,
 		opchildtypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
@@ -187,8 +189,8 @@ can do so safely.
 */
 func orderInitBlockers() []string {
 	return []string{
-		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
-		opchildtypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, group.ModuleName,
+		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, opchildtypes.ModuleName,
+		genutiltypes.ModuleName, authz.ModuleName, group.ModuleName, crisistypes.ModuleName,
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName,
 		ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
 		icaauthtypes.ModuleName, ibcfeetypes.ModuleName, auctiontypes.ModuleName,
