@@ -36,10 +36,10 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v0.4.0
 	github.com/initia-labs/initia v0.4.0
-	github.com/initia-labs/kvindexer v0.1.6
+	github.com/initia-labs/kvindexer v0.1.7
 	github.com/initia-labs/kvindexer/submodules/block v0.1.0
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.0
-	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.4
+	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.5
 	github.com/initia-labs/kvindexer/submodules/wasm-pair v0.1.0
 	github.com/noble-assets/forwarding/v2 v2.0.0-20240514101621-172acc02aac6
 	github.com/pkg/errors v0.9.1
