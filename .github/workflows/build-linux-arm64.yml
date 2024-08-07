@@ -63,7 +63,7 @@ jobs:
           ls -l
           file miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz
 
-          # remove builder
+          # Remove builder
           docker buildx rm arm64-builder
 
       - name: List files
