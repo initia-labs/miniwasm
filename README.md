@@ -4,7 +4,7 @@ MiniWasm is an optimistic rollup consumer chain powered by WasmVM, designed to s
 
 ## Prerequisites
 
-- Go v1.22.2+
+- Go v1.22.5+
 
 ## Getting Started
 
