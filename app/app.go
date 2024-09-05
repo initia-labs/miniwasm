@@ -204,6 +204,7 @@ func NewMinitiaApp(
 	app.AppKeepers = keepers.NewAppKeeper(
 		app.ac, app.vc, app.cc,
 		appCodec,
+		txConfig,
 		bApp,
 		legacyAmino,
 		maccPerms,

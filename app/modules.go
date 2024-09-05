@@ -95,7 +95,7 @@ func appModules(
 	return []module.AppModule{
 		auth.NewAppModule(app.appCodec, *app.AccountKeeper, nil, nil),
 		bank.NewAppModule(app.appCodec, app.BankKeeper, app.AccountKeeper, nil),
-		opchild.NewAppModule(app.appCodec, *app.OPChildKeeper),
+		opchild.NewAppModule(app.appCodec, app.OPChildKeeper),
 		capability.NewAppModule(app.appCodec, *app.CapabilityKeeper, false),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, nil),
 		feegrantmodule.NewAppModule(app.appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
