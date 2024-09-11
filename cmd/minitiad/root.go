@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -9,7 +8,6 @@ import (
 	"path/filepath"
 
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -100,6 +98,11 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		Use:   basename,
 		Short: "minitia App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// except for launch command, seal the config
+			if cmd.Name() != "launch" {
+				sdk.GetConfig().Seal()
+			}
+
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
@@ -161,13 +164,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		snapshot.Cmd(a.AppCreator()),
 	)
 
-	server.AddCommandsWithStartCmdOptions(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, server.StartCmdOptions{
-		AddFlags: addModuleInitFlags,
-		PostSetup: func(svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error {
-			sdk.GetConfig().Seal()
-			return nil
-		},
-	})
+	server.AddCommands(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
