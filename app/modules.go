@@ -50,10 +50,10 @@ import (
 	// skip imports
 	"github.com/skip-mev/block-sdk/v2/x/auction"
 	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
-	marketmap "github.com/skip-mev/slinky/x/marketmap"
-	marketmaptypes "github.com/skip-mev/slinky/x/marketmap/types"
-	"github.com/skip-mev/slinky/x/oracle"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	marketmap "github.com/skip-mev/connect/v2/x/marketmap"
+	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	"github.com/skip-mev/connect/v2/x/oracle"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	// CosmWasm imports
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -81,7 +81,7 @@ var maccPerms = map[string][]string{
 	opchildtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 	tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 
-	// slinky oracle permissions
+	// connect oracle permissions
 	oracletypes.ModuleName: nil,
 
 	// this is only for testing
@@ -117,7 +117,7 @@ func appModules(
 		packetforward.NewAppModule(app.PacketForwardKeeper, nil),
 		ibchooks.NewAppModule(app.appCodec, *app.IBCHooksKeeper),
 		forwarding.NewAppModule(app.ForwardingKeeper),
-		// slinky modules
+		// connect modules
 		oracle.NewAppModule(app.appCodec, *app.OracleKeeper),
 		marketmap.NewAppModule(app.appCodec, app.MarketMapKeeper),
 	}

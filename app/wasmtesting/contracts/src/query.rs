@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_json_binary, Binary, Deps, Empty, Env, QueryRequest, StdResult};
 
 use crate::msgs::QueryMsg;
-use crate::slinky::{GetAllCurrencyPairsRequest, GetAllCurrencyPairsResponse};
+use crate::connect::{GetAllCurrencyPairsRequest, GetAllCurrencyPairsResponse};
 use crate::state::Contract;
 use protobuf::Message;
 
@@ -18,7 +18,7 @@ impl<'a> Contract {
 
         let data = Binary::from(bytes);
         let request = QueryRequest::<Empty>::Stargate {
-            path: "/slinky.oracle.v1.Query/GetAllCurrencyPairs".to_string(),
+            path: "/connect.oracle.v2.Query/GetAllCurrencyPairs".to_string(),
             data,
         };
         let response: GetAllCurrencyPairsResponse = deps.querier.query(&request)?;

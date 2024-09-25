@@ -33,8 +33,8 @@ import (
 
 	// skip imports
 	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
-	marketmaptypes "github.com/skip-mev/slinky/x/marketmap/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
 	// CosmWasm imports
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"

@@ -2,7 +2,7 @@ mod execute;
 mod state;
 mod msgs;
 mod query;
-mod slinky;
+mod connect;
 
 use crate::msgs::{InstantiateMsg, ExecuteMsg, 
     // QueryMsg, MigrateMsg

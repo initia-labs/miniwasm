@@ -11,14 +11,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
+	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 )
 
 func Test_StargateQuery(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
 	_, _, addr := keyPubAddr()
 
-	code, err := os.ReadFile("./contracts/artifacts/slinky.wasm")
+	code, err := os.ReadFile("./contracts/artifacts/connect.wasm")
 	require.NoError(t, err)
 
 	wasmMsgServer := wasmkeeper.NewMsgServerImpl(&input.WasmKeeper)
@@ -32,7 +32,7 @@ func Test_StargateQuery(t *testing.T) {
 		Sender: addr.String(),
 		Admin:  addr.String(),
 		CodeID: storeRes.CodeID,
-		Label:  "Slinky",
+		Label:  "connect",
 		Msg:    []byte("{}"),
 		Funds:  nil,
 	})
@@ -42,7 +42,7 @@ func Test_StargateQuery(t *testing.T) {
 	contractAddr, err := sdk.AccAddressFromBech32(contractAddrBech32)
 	require.NoError(t, err)
 
-	err = input.OracleKeeper.CreateCurrencyPair(ctx, slinkytypes.CurrencyPair{
+	err = input.OracleKeeper.CreateCurrencyPair(ctx, connecttypes.CurrencyPair{
 		Base:  "BITCOIN",
 		Quote: "USD",
 	})
