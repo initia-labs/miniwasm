@@ -3,8 +3,8 @@
 ## Wasm Hooks
 
 The wasm hook is an IBC middleware which is used to allow ICS-20 token transfers to initiate contract calls.
-This allows cross-chain contract calls, that involve token movement.
-This is useful for a variety of usecases.
+This allows cross-chain contract calls that involve token movement.
+This is useful for a variety of use cases.
 One of primary importance is cross-chain swaps, which is an extremely powerful primitive.
 
 The mechanism enabling this is a `memo` field on every ICS20 or ICS721 transfer packet as of [IBC v3.4.0](https://medium.com/the-interchain-foundation/moving-beyond-simple-token-transfers-d42b2b1dc29b).
@@ -105,9 +105,9 @@ If an ICS20 packet is directed towards wasmhooks, and is formatted incorrectly, 
 
 ### Execution flow
 
-Pre wasm hooks:
+Pre Wasm hooks:
 
-* Ensure the incoming IBC packet is cryptogaphically valid
+* Ensure the incoming IBC packet is cryptographically valid
 * Ensure the incoming IBC packet is not timed out.
 
 In Wasm hooks, pre packet execution:
@@ -115,7 +115,7 @@ In Wasm hooks, pre packet execution:
 * Ensure the packet is correctly formatted (as defined above)
 * Edit the receiver to be the hardcoded IBC module account
 
-In wasm hooks, post packet execution:
+In Wasm hooks, post packet execution:
 
 * Construct wasm message as defined before
 * Execute wasm message
@@ -172,7 +172,7 @@ pub enum IBCLifecycleComplete {
         sequence: u64,
         /// String encoded version of the ack as seen by OnAcknowledgementPacket(..)
         ack: String,
-        /// Weather an ack is a success of failure according to the transfer spec
+        /// Whether an ack is a success of failure according to the transfer spec
         success: bool,
     },
     #[serde(rename = "ibc_timeout")]
