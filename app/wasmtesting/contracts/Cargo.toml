@@ -1,5 +1,5 @@
 [package]
-name = "slinky"
+name = "connect"
 version = "0.0.1"
 authors = ["alapc"]
 edition = "2021"

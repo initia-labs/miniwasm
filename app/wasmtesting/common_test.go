@@ -45,9 +45,9 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	"github.com/skip-mev/slinky/x/oracle"
-	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/connect/v2/x/oracle"
+	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
+	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 )
 
 var ModuleBasics = module.NewBasicManager(
@@ -278,9 +278,9 @@ func _createTestInput(
 	queryRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
 	queryAllowlist := make(map[string]proto.Message)
-	queryAllowlist["/slinky.oracle.v1.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsResponse{}
-	queryAllowlist["/slinky.oracle.v1.Query/GetPrice"] = &oracletypes.GetPriceResponse{}
-	queryAllowlist["/slinky.oracle.v1.Query/GetPrices"] = &oracletypes.GetPricesResponse{}
+	queryAllowlist["/connect.oracle.v2.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsResponse{}
+	queryAllowlist["/connect.oracle.v2.Query/GetPrice"] = &oracletypes.GetPriceResponse{}
+	queryAllowlist["/connect.oracle.v2.Query/GetPrices"] = &oracletypes.GetPricesResponse{}
 
 	// use accept list stargate querier
 	wasmOpts := []wasmkeeper.Option{}

@@ -1,3 +1,3 @@
 // @generated
 
-pub mod slinky;
+pub mod connect;
