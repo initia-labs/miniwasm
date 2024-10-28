@@ -42,6 +42,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/initia-labs/initia/app/params"
+	cryptokeyring "github.com/initia-labs/initia/crypto/keyring"
 	minitiaapp "github.com/initia-labs/miniwasm/app"
 
 	opchildcli "github.com/initia-labs/OPinit/x/opchild/client/cli"
@@ -92,7 +93,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(minitiaapp.DefaultNodeHome).
-		WithViper(minitiaapp.EnvPrefix)
+		WithViper(minitiaapp.EnvPrefix).
+		WithKeyringOptions(cryptokeyring.Option())
 
 	rootCmd := &cobra.Command{
 		Use:   basename,
