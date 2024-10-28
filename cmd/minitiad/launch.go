@@ -2,16 +2,21 @@ package main
 
 import (
 	"encoding/json"
-	"os"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
 	"github.com/initia-labs/OPinit/contrib/launchtools"
 	"github.com/initia-labs/OPinit/contrib/launchtools/steps"
+
 	"github.com/initia-labs/initia/app/params"
 	minitiaapp "github.com/initia-labs/miniwasm/app"
+
+	"github.com/initia-labs/miniwasm/contrib"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -69,13 +74,14 @@ func LaunchCommand(ac *appCreator, enc params.EncodingConfig, mbm module.BasicMa
 func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.LauncherStepFunc {
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("Storing and instantiating cw721 and ics721 contracts")
+		fs := contrib.FS()
 
-		cw721, err := os.ReadFile("contrib/wasm/cw721_base.wasm")
+		cw721, err := fs.ReadFile("wasm/cw721_base.wasm")
 		if err != nil {
 			return errors.Wrapf(err, "failed to read cw721_base.wasm")
 		}
 
-		ics721, err := os.ReadFile("contrib/wasm/ics721_base.wasm")
+		ics721, err := fs.ReadFile("wasm/ics721_base.wasm")
 		if err != nil {
 			return errors.Wrapf(err, "failed to read ics721_base.wasm")
 		}
