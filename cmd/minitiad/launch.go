@@ -76,8 +76,8 @@ func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.Laun
 	return func(ctx launchtools.Launcher) error {
 		ctx.Logger().Info("Storing and instantiating cw721 and ics721 contracts")
 		fs := contrib.FS()
+
 		cw721, err := fs.ReadFile("wasm/cw721_base.wasm")
-		//cw721, err := os.ReadFile("contrib/wasm/cw721_base.wasm")
 		if err != nil {
 			return errors.Wrapf(err, "failed to read cw721_base.wasm")
 		}
