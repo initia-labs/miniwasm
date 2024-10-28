@@ -40,7 +40,6 @@ var DefaultLaunchStepFactories = []launchtools.LauncherStepFuncFactory[*launchto
 
 	// Establish IBC channels for fungible and NFT transfer
 	// MINIWASM: Use wasm contract addresses for srcPort, dstPort, channelVersion
-
 	steps.EstablishIBCChannelsWithNFTTransfer(func() (string, string, string) {
 		return "wasm." + wasmkeeper.BuildContractAddressClassic(2, 1).String(),
 			"nft-transfer",
