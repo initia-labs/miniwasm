@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const upgradeName = "0.2.4"
+const upgradeName = "0.6.0"
 
 // RegisterUpgradeHandlers returns upgrade handlers
 func (app *MinitiaApp) RegisterUpgradeHandlers(cfg module.Configurator) {
