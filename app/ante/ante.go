@@ -12,7 +12,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	opchildante "github.com/initia-labs/OPinit/x/opchild/ante"
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	"github.com/initia-labs/initia/app/ante/accnum"
 	"github.com/initia-labs/initia/app/ante/sigverify"
 
@@ -30,8 +30,8 @@ type HandlerOptions struct {
 	ante.HandlerOptions
 	Codec         codec.BinaryCodec
 	IBCkeeper     *ibckeeper.Keeper
-	OPChildKeeper opchildtypes.AnteKeeper
-	AuctionKeeper auctionkeeper.Keeper
+	OPChildKeeper *opchildkeeper.Keeper
+	AuctionKeeper *auctionkeeper.Keeper
 	TxEncoder     sdk.TxEncoder
 	MevLane       auctionante.MEVLane
 	FreeLane      block.Lane
@@ -49,25 +49,26 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
-
 	if options.BankKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for ante builder")
 	}
-
 	if options.SignModeHandler == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
-
 	if options.WasmConfig == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
-
 	if options.WasmKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm keeper is required for ante builder")
 	}
-
 	if options.TXCounterStoreService == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
+	}
+	if options.OPChildKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "opchild keeper is required for ante builder")
+	}
+	if options.AuctionKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "auction keeper is required for ante builder")
 	}
 
 	sigGasConsumer := options.SigGasConsumer
@@ -116,6 +117,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCkeeper),
 		auctionante.NewAuctionDecorator(options.AuctionKeeper, options.TxEncoder, options.MevLane),
+		opchildante.NewRedundantBridgeDecorator(options.OPChildKeeper),
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
