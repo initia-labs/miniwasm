@@ -70,6 +70,9 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AuctionKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "auction keeper is required for ante builder")
 	}
+	if options.IBCkeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "IBC keeper is required for ante builder")
+	}
 
 	sigGasConsumer := options.SigGasConsumer
 	if sigGasConsumer == nil {
