@@ -283,7 +283,7 @@ replace (
 
 // initia custom
 replace (
-	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.0.0-20241104064728-ef8cadf1bed8
+	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.0.0-20241203094427-a9f2e56c0275
 	github.com/cosmos/ibc-go/v8 => github.com/initia-labs/ibc-go/v8 v8.0.0-20240802003717-19c0b4ad450d
 
 	// use custom version until this PR is merged
