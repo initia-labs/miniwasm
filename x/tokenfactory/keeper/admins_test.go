@@ -189,7 +189,7 @@ func TestBurnDenom(t *testing.T) {
 		balances[acc.String()] = 1000
 	}
 
-	moduleAdress := accountKeeper.GetModuleAddress(types.ModuleName)
+	moduleAddress := accountKeeper.GetModuleAddress(types.ModuleName)
 
 	for _, tc := range []struct {
 		desc       string
@@ -243,7 +243,7 @@ func TestBurnDenom(t *testing.T) {
 			burnMsg: *types.NewMsgBurnFrom(
 				addrs[0].String(),
 				sdk.NewInt64Coin(defaultDenom, 10),
-				moduleAdress.String(),
+				moduleAddress.String(),
 			),
 			expectPass: false,
 		},
@@ -252,7 +252,7 @@ func TestBurnDenom(t *testing.T) {
 			burnMsg: *types.NewMsgBurnFrom(
 				addrs[0].String(),
 				sdk.NewInt64Coin("uinit", 10),
-				moduleAdress.String(),
+				moduleAddress.String(),
 			),
 			expectPass: false,
 		},
