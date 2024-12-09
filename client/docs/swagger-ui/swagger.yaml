@@ -37125,10 +37125,8 @@ paths:
                     description: bridge_config is the configuration of the bridge.
                     type: object
                     properties:
-                      challengers:
-                        type: array
-                        items:
-                          type: string
+                      challenger:
+                        type: string
                         description: The address of the challenger.
                       proposer:
                         type: string
@@ -70722,10 +70720,8 @@ definitions:
         description: bridge_config is the configuration of the bridge.
         type: object
         properties:
-          challengers:
-            type: array
-            items:
-              type: string
+          challenger:
+            type: string
             description: The address of the challenger.
           proposer:
             type: string
@@ -70853,10 +70849,8 @@ definitions:
             description: bridge_config is the configuration of the bridge.
             type: object
             properties:
-              challengers:
-                type: array
-                items:
-                  type: string
+              challenger:
+                type: string
                 description: The address of the challenger.
               proposer:
                 type: string
@@ -71629,10 +71623,8 @@ definitions:
   opinit.ophost.v1.BridgeConfig:
     type: object
     properties:
-      challengers:
-        type: array
-        items:
-          type: string
+      challenger:
+        type: string
         description: The address of the challenger.
       proposer:
         type: string
