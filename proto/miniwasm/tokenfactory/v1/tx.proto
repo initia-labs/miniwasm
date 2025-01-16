@@ -36,10 +36,6 @@ service Msg {
   // hook of a denom.
   rpc SetBeforeSendHook(MsgSetBeforeSendHook) returns (MsgSetBeforeSendHookResponse);
 
-  // ForceTransfer defines a gRPC service method for transferring a token from
-  // one account to another.
-  rpc ForceTransfer(MsgForceTransfer) returns (MsgForceTransferResponse);
-
   // UpdateParams defines an operation for updating the x/tokenfactory module
   // parameters.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
@@ -106,10 +102,6 @@ message MsgBurn {
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false
   ];
-  string burn_from_address = 3 [
-    (gogoproto.moretags) = "yaml:\"burn_from_address\"",
-    (amino.dont_omitempty) = true
-  ];
 }
 
 // MsgBurnResponse defines the response structure for an executed
@@ -165,25 +157,6 @@ message MsgSetDenomMetadata {
 // MsgSetDenomMetadataResponse defines the response structure for an executed
 // MsgSetDenomMetadata message.
 message MsgSetDenomMetadataResponse {}
-
-// MsgForceTransfer is the sdk.Msg type for allowing an admin account to
-// transfer a token from one account to another
-message MsgForceTransfer {
-  option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "tokenfactory/MsgForceTransfer";
-
-  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  cosmos.base.v1beta1.Coin amount = 2 [
-    (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false
-  ];
-  string transfer_from_address = 3 [(gogoproto.moretags) = "yaml:\"transfer_from_address\""];
-  string transfer_to_address = 4 [(gogoproto.moretags) = "yaml:\"transfer_to_address\""];
-}
-
-// MsgForceTransferResponse defines the response structure for an executed
-// MsgForceTransfer message.
-message MsgForceTransferResponse {}
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {

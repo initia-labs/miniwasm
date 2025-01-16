@@ -11,7 +11,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 // TestMintDenomMsg tests TypeMsgMint message is emitted on a successful mint
@@ -125,28 +124,6 @@ func TestBurnDenomMsg(t *testing.T) {
 			require.Equal(t, tc.expectedMessageEvents, len(actualEvents))
 		})
 	}
-}
-
-func TestForceTransferMsgFromModuleAcc(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-	msgServer := keeper.NewMsgServerImpl(input.TokenFactoryKeeper)
-
-	// Create a denom
-	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
-	defaultDenom := res.GetNewTokenDenom()
-
-	mintAmt := sdk.NewInt64Coin(defaultDenom, 10)
-
-	_, err := msgServer.Mint(ctx, types.NewMsgMint(addrs[0].String(), mintAmt))
-	require.NoError(t, err)
-
-	govModAcc := input.AccountKeeper.GetModuleAccount(ctx, govtypes.ModuleName)
-
-	err = input.BankKeeper.SendCoins(ctx, addrs[0], govModAcc.GetAddress(), sdk.NewCoins(mintAmt))
-	require.NoError(t, err)
-
-	_, err = msgServer.ForceTransfer(ctx, types.NewMsgForceTransfer(addrs[0].String(), mintAmt, govModAcc.GetAddress().String(), addrs[1].String()))
-	require.ErrorContains(t, err, "failed to transfer from blocked address")
 }
 
 // TestCreateDenomMsg tests TypeMsgCreateDenom message is emitted on a successful denom creation

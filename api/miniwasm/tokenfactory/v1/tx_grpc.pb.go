@@ -25,7 +25,6 @@ const (
 	Msg_ChangeAdmin_FullMethodName       = "/miniwasm.tokenfactory.v1.Msg/ChangeAdmin"
 	Msg_SetDenomMetadata_FullMethodName  = "/miniwasm.tokenfactory.v1.Msg/SetDenomMetadata"
 	Msg_SetBeforeSendHook_FullMethodName = "/miniwasm.tokenfactory.v1.Msg/SetBeforeSendHook"
-	Msg_ForceTransfer_FullMethodName     = "/miniwasm.tokenfactory.v1.Msg/ForceTransfer"
 	Msg_UpdateParams_FullMethodName      = "/miniwasm.tokenfactory.v1.Msg/UpdateParams"
 )
 
@@ -48,9 +47,6 @@ type MsgClient interface {
 	// SetBeforeSendHook defines a gRPC service method for setting the before send
 	// hook of a denom.
 	SetBeforeSendHook(ctx context.Context, in *MsgSetBeforeSendHook, opts ...grpc.CallOption) (*MsgSetBeforeSendHookResponse, error)
-	// ForceTransfer defines a gRPC service method for transferring a token from
-	// one account to another.
-	ForceTransfer(ctx context.Context, in *MsgForceTransfer, opts ...grpc.CallOption) (*MsgForceTransferResponse, error)
 	// UpdateParams defines an operation for updating the x/tokenfactory module
 	// parameters.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -118,15 +114,6 @@ func (c *msgClient) SetBeforeSendHook(ctx context.Context, in *MsgSetBeforeSendH
 	return out, nil
 }
 
-func (c *msgClient) ForceTransfer(ctx context.Context, in *MsgForceTransfer, opts ...grpc.CallOption) (*MsgForceTransferResponse, error) {
-	out := new(MsgForceTransferResponse)
-	err := c.cc.Invoke(ctx, Msg_ForceTransfer_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, opts...)
@@ -155,9 +142,6 @@ type MsgServer interface {
 	// SetBeforeSendHook defines a gRPC service method for setting the before send
 	// hook of a denom.
 	SetBeforeSendHook(context.Context, *MsgSetBeforeSendHook) (*MsgSetBeforeSendHookResponse, error)
-	// ForceTransfer defines a gRPC service method for transferring a token from
-	// one account to another.
-	ForceTransfer(context.Context, *MsgForceTransfer) (*MsgForceTransferResponse, error)
 	// UpdateParams defines an operation for updating the x/tokenfactory module
 	// parameters.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -185,9 +169,6 @@ func (UnimplementedMsgServer) SetDenomMetadata(context.Context, *MsgSetDenomMeta
 }
 func (UnimplementedMsgServer) SetBeforeSendHook(context.Context, *MsgSetBeforeSendHook) (*MsgSetBeforeSendHookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetBeforeSendHook not implemented")
-}
-func (UnimplementedMsgServer) ForceTransfer(context.Context, *MsgForceTransfer) (*MsgForceTransferResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ForceTransfer not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -313,24 +294,6 @@ func _Msg_SetBeforeSendHook_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ForceTransfer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgForceTransfer)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).ForceTransfer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_ForceTransfer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ForceTransfer(ctx, req.(*MsgForceTransfer))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -379,10 +342,6 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetBeforeSendHook",
 			Handler:    _Msg_SetBeforeSendHook_Handler,
-		},
-		{
-			MethodName: "ForceTransfer",
-			Handler:    _Msg_ForceTransfer_Handler,
 		},
 		{
 			MethodName: "UpdateParams",

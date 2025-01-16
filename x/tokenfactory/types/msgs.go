@@ -26,7 +26,6 @@ var (
 	_ sdk.Msg = &MsgCreateDenom{}
 	_ sdk.Msg = &MsgMint{}
 	_ sdk.Msg = &MsgBurn{}
-	_ sdk.Msg = &MsgForceTransfer{}
 	_ sdk.Msg = &MsgChangeAdmin{}
 	_ sdk.Msg = &MsgSetDenomMetadata{}
 	_ sdk.Msg = &MsgSetBeforeSendHook{}
@@ -92,56 +91,11 @@ func NewMsgBurn(sender string, amount sdk.Coin) *MsgBurn {
 	}
 }
 
-// NewMsgBurn creates a message to burn tokens
-func NewMsgBurnFrom(sender string, amount sdk.Coin, burnFromAddress string) *MsgBurn {
-	return &MsgBurn{
-		Sender:          sender,
-		Amount:          amount,
-		BurnFromAddress: burnFromAddress,
-	}
-}
-
 func (m MsgBurn) Validate(accAddrCodec address.Codec) error {
 	if addr, err := accAddrCodec.StringToBytes(m.Sender); err != nil {
 		return err
 	} else if len(addr) == 0 {
 		return ErrEmptySender
-	}
-
-	if !m.Amount.IsValid() || m.Amount.Amount.Equal(sdkmath.ZeroInt()) {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Amount.String())
-	}
-
-	return nil
-}
-
-// NewMsgForceTransfer creates a transfer funds from one account to another
-func NewMsgForceTransfer(sender string, amount sdk.Coin, fromAddr, toAddr string) *MsgForceTransfer {
-	return &MsgForceTransfer{
-		Sender:              sender,
-		Amount:              amount,
-		TransferFromAddress: fromAddr,
-		TransferToAddress:   toAddr,
-	}
-}
-
-func (m MsgForceTransfer) Validate(accAddrCodec address.Codec) error {
-	if addr, err := accAddrCodec.StringToBytes(m.Sender); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptySender
-	}
-
-	if addr, err := accAddrCodec.StringToBytes(m.TransferFromAddress); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptyTransferFromAddress
-	}
-
-	if addr, err := accAddrCodec.StringToBytes(m.TransferToAddress); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptyTransferToAddress
 	}
 
 	if !m.Amount.IsValid() || m.Amount.Amount.Equal(sdkmath.ZeroInt()) {

@@ -45,14 +45,6 @@ func TestAdminMsgs(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bankKeeper.GetBalance(ctx, addrs[1], defaultDenom).Amount.Int64() == addr1bal, bankKeeper.GetBalance(ctx, addrs[1], defaultDenom))
 
-	// Test force transferring
-	_, err = msgServer.ForceTransfer(ctx, types.NewMsgForceTransfer(addrs[0].String(), sdk.NewInt64Coin(defaultDenom, 5), addrs[1].String(), addrs[0].String()))
-	addr1bal -= 5
-	addr0bal += 5
-	require.NoError(t, err)
-	require.True(t, bankKeeper.GetBalance(ctx, addrs[0], defaultDenom).Amount.Int64() == addr0bal, bankKeeper.GetBalance(ctx, addrs[0], defaultDenom))
-	require.True(t, bankKeeper.GetBalance(ctx, addrs[1], defaultDenom).Amount.Int64() == addr1bal, bankKeeper.GetBalance(ctx, addrs[1], defaultDenom))
-
 	// Test burning from own account
 	_, err = msgServer.Burn(ctx, types.NewMsgBurn(addrs[0].String(), sdk.NewInt64Coin(defaultDenom, 5)))
 	require.NoError(t, err)
@@ -176,7 +168,6 @@ func TestBurnDenom(t *testing.T) {
 
 	tokenFactoryKeeper := input.TokenFactoryKeeper
 	bankKeeper := input.BankKeeper
-	accountKeeper := input.AccountKeeper
 	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
 	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
 	defaultDenom := res.GetNewTokenDenom()
@@ -189,8 +180,6 @@ func TestBurnDenom(t *testing.T) {
 		balances[acc.String()] = 1000
 	}
 
-	moduleAdress := accountKeeper.GetModuleAddress(types.ModuleName)
-
 	for _, tc := range []struct {
 		desc       string
 		burnMsg    types.MsgBurn
@@ -201,15 +190,6 @@ func TestBurnDenom(t *testing.T) {
 			burnMsg: *types.NewMsgBurn(
 				addrs[0].String(),
 				sdk.NewInt64Coin(fmt.Sprintf("factory/%s/evmos", addrs[0].String()), 10),
-			),
-			expectPass: false,
-		},
-		{
-			desc: "burn is not by the admin",
-			burnMsg: *types.NewMsgBurnFrom(
-				addrs[1].String(),
-				sdk.NewInt64Coin(defaultDenom, 10),
-				addrs[0].String(),
 			),
 			expectPass: false,
 		},
@@ -229,133 +209,19 @@ func TestBurnDenom(t *testing.T) {
 			),
 			expectPass: true,
 		},
-		{
-			desc: "success case - burn from another address",
-			burnMsg: *types.NewMsgBurnFrom(
-				addrs[0].String(),
-				sdk.NewInt64Coin(defaultDenom, 10),
-				addrs[1].String(),
-			),
-			expectPass: true,
-		},
-		{
-			desc: "fail case - burn from module account",
-			burnMsg: *types.NewMsgBurnFrom(
-				addrs[0].String(),
-				sdk.NewInt64Coin(defaultDenom, 10),
-				moduleAdress.String(),
-			),
-			expectPass: false,
-		},
-		{
-			desc: "fail case - burn non-tokenfactory denom",
-			burnMsg: *types.NewMsgBurnFrom(
-				addrs[0].String(),
-				sdk.NewInt64Coin("uinit", 10),
-				moduleAdress.String(),
-			),
-			expectPass: false,
-		},
 	} {
 		t.Run(fmt.Sprintf("Case %s", tc.desc), func(t *testing.T) {
 			_, err := msgServer.Burn(ctx, &tc.burnMsg)
 			if tc.expectPass {
 				require.NoError(t, err)
-				balances[tc.burnMsg.BurnFromAddress] -= tc.burnMsg.Amount.Amount.Int64()
+				balances[tc.burnMsg.Sender] -= tc.burnMsg.Amount.Amount.Int64()
 			} else {
 				require.Error(t, err)
 			}
 
-			burnFromAddr, _ := sdk.AccAddressFromBech32(tc.burnMsg.BurnFromAddress)
+			burnFromAddr, _ := sdk.AccAddressFromBech32(tc.burnMsg.Sender)
 			bal := bankKeeper.GetBalance(ctx, burnFromAddr, defaultDenom).Amount
-			require.Equal(t, bal.Int64(), balances[tc.burnMsg.BurnFromAddress])
-		})
-	}
-}
-
-func TestForceTransferDenom(t *testing.T) {
-	ctx, input := createDefaultTestInput(t)
-
-	tokenFactoryKeeper := input.TokenFactoryKeeper
-	bankKeeper := input.BankKeeper
-	msgServer := tokenFactorykeeper.NewMsgServerImpl(tokenFactoryKeeper)
-	res, _ := msgServer.CreateDenom(ctx, types.NewMsgCreateDenom(addrs[0].String(), "bitcoin"))
-	defaultDenom := res.GetNewTokenDenom()
-
-	// mint 1000 default token for all addrs
-	balances := make(map[string]int64)
-	for _, acc := range addrs {
-		_, err := msgServer.Mint(ctx, types.NewMsgMintTo(addrs[0].String(), sdk.NewInt64Coin(defaultDenom, 1000), acc.String()))
-		require.NoError(t, err)
-		balances[acc.String()] = 1000
-	}
-
-	for _, tc := range []struct {
-		desc             string
-		forceTransferMsg types.MsgForceTransfer
-		expectPass       bool
-	}{
-		{
-			desc: "valid force transfer",
-			forceTransferMsg: *types.NewMsgForceTransfer(
-				addrs[0].String(),
-				sdk.NewInt64Coin(defaultDenom, 10),
-				addrs[1].String(),
-				addrs[2].String(),
-			),
-			expectPass: true,
-		},
-		{
-			desc: "denom does not exist",
-			forceTransferMsg: *types.NewMsgForceTransfer(
-				addrs[0].String(),
-				sdk.NewInt64Coin("factory/osmo1t7egva48prqmzl59x5ngv4zx0dtrwewc9m7z44/evmos", 10),
-				addrs[1].String(),
-				addrs[2].String(),
-			),
-			expectPass: false,
-		},
-		{
-			desc: "forceTransfer is not by the admin",
-			forceTransferMsg: *types.NewMsgForceTransfer(
-				addrs[1].String(),
-				sdk.NewInt64Coin(defaultDenom, 10),
-				addrs[1].String(),
-				addrs[2].String(),
-			),
-			expectPass: false,
-		},
-		{
-			desc: "forceTransfer is greater than the balance of",
-			forceTransferMsg: *types.NewMsgForceTransfer(
-				addrs[0].String(),
-				sdk.NewInt64Coin(defaultDenom, 10000),
-				addrs[1].String(),
-				addrs[2].String(),
-			),
-			expectPass: false,
-		},
-	} {
-		t.Run(fmt.Sprintf("Case %s", tc.desc), func(t *testing.T) {
-			_, err := msgServer.ForceTransfer(ctx, &tc.forceTransferMsg)
-			if tc.expectPass {
-				require.NoError(t, err)
-
-				balances[tc.forceTransferMsg.TransferFromAddress] -= tc.forceTransferMsg.Amount.Amount.Int64()
-				balances[tc.forceTransferMsg.TransferToAddress] += tc.forceTransferMsg.Amount.Amount.Int64()
-			} else {
-				require.Error(t, err)
-			}
-
-			fromAddr, err := sdk.AccAddressFromBech32(tc.forceTransferMsg.TransferFromAddress)
-			require.NoError(t, err)
-			fromBal := bankKeeper.GetBalance(ctx, fromAddr, defaultDenom).Amount
-			require.True(t, fromBal.Int64() == balances[tc.forceTransferMsg.TransferFromAddress])
-
-			toAddr, err := sdk.AccAddressFromBech32(tc.forceTransferMsg.TransferToAddress)
-			require.NoError(t, err)
-			toBal := bankKeeper.GetBalance(ctx, toAddr, defaultDenom).Amount
-			require.True(t, toBal.Int64() == balances[tc.forceTransferMsg.TransferToAddress])
+			require.Equal(t, bal.Int64(), balances[tc.burnMsg.Sender])
 		})
 	}
 }

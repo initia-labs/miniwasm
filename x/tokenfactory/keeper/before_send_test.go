@@ -147,12 +147,13 @@ func TestBeforeSendHook(t *testing.T) {
 // to properly test if we are gas metering trackBeforeSend properly.
 func TestInfiniteTrackBeforeSend(t *testing.T) {
 	for _, tc := range []struct {
-		name            string
-		wasmFile        string
-		tokenToSend     sdk.Coins
-		useFactoryDenom bool
-		blockBeforeSend bool
-		expectedError   bool
+		name               string
+		wasmFile           string
+		tokenToSend        sdk.Coins
+		useFactoryDenom    bool
+		blockBeforeSend    bool
+		expectedError      bool
+		useInvalidContract bool
 	}{
 		{
 			name:            "sending tokenfactory denom from module to module with infinite contract should panic",
@@ -175,6 +176,13 @@ func TestInfiniteTrackBeforeSend(t *testing.T) {
 			name:            "Try using no 100 ",
 			wasmFile:        "./testdata/no100.wasm",
 			useFactoryDenom: true,
+		},
+		{
+			name:               "Try using invalid contract",
+			wasmFile:           "./testdata/no100.wasm",
+			useFactoryDenom:    true,
+			useInvalidContract: true,
+			expectedError:      true,
 		},
 	} {
 		t.Run(fmt.Sprintf("Case %s", tc.name), func(t *testing.T) {
@@ -211,9 +219,18 @@ func TestInfiniteTrackBeforeSend(t *testing.T) {
 				input.Faucet.Fund(ctx, input.AccountKeeper.GetModuleAccount(ctx, authtypes.Minter).GetAddress(), tokenToSend...)
 			}
 
+			if tc.useInvalidContract {
+				cosmwasmAddress = make(sdk.AccAddress, 32)
+			}
+
 			// set beforesend hook to the new denom
 			// we register infinite loop contract here to test if we are gas metering properly
 			_, err = msgServer.SetBeforeSendHook(ctx, types.NewMsgSetBeforeSendHook(addrs[0].String(), factoryDenom, cosmwasmAddress.String()))
+			if tc.useInvalidContract {
+				require.Error(t, err, "test: %v", tc.name)
+				return
+			}
+
 			require.NoError(t, err, "test: %v", tc.name)
 
 			if tc.blockBeforeSend {

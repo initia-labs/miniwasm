@@ -101,11 +101,7 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 		return nil, types.ErrUnauthorized
 	}
 
-	if msg.BurnFromAddress == "" {
-		msg.BurnFromAddress = msg.Sender
-	}
-
-	acc, err := server.ac.StringToBytes(msg.BurnFromAddress)
+	acc, err := server.ac.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +112,7 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 		return nil, types.ErrBurnFromModuleAccount
 	}
 
-	err = server.Keeper.burnFrom(ctx, msg.Amount, msg.BurnFromAddress)
+	err = server.Keeper.burnFrom(ctx, msg.Amount, msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -125,44 +121,12 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeMsgBurn,
-			sdk.NewAttribute(types.AttributeBurnFromAddress, msg.BurnFromAddress),
+			sdk.NewAttribute(types.AttributeBurnFromAddress, msg.Sender),
 			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
 		),
 	})
 
 	return &types.MsgBurnResponse{}, nil
-}
-
-func (server msgServer) ForceTransfer(ctx context.Context, msg *types.MsgForceTransfer) (*types.MsgForceTransferResponse, error) {
-	if err := msg.Validate(server.ac); err != nil {
-		return nil, err
-	}
-
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
-	if err != nil {
-		return nil, err
-	}
-
-	if msg.Sender != authorityMetadata.GetAdmin() {
-		return nil, types.ErrUnauthorized
-	}
-
-	err = server.Keeper.forceTransfer(ctx, msg.Amount, msg.TransferFromAddress, msg.TransferToAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeMsgForceTransfer,
-			sdk.NewAttribute(types.AttributeTransferFromAddress, msg.TransferFromAddress),
-			sdk.NewAttribute(types.AttributeTransferToAddress, msg.TransferToAddress),
-			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
-		),
-	})
-
-	return &types.MsgForceTransferResponse{}, nil
 }
 
 func (server msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdmin) (*types.MsgChangeAdminResponse, error) {

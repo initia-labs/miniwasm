@@ -17,7 +17,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgChangeAdmin{}, "tokenfactory/MsgChangeAdmin")
 	legacy.RegisterAminoMsg(cdc, &MsgSetDenomMetadata{}, "tokenfactory/MsgSetDenomMetadata")
 	legacy.RegisterAminoMsg(cdc, &MsgSetBeforeSendHook{}, "tokenfactory/MsgSetBeforeSendHook")
-	legacy.RegisterAminoMsg(cdc, &MsgForceTransfer{}, "tokenfactory/MsgForceTransfer")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "tokenfactory/MsgUpdateParams")
 }
 
@@ -30,7 +29,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgChangeAdmin{},
 		&MsgSetDenomMetadata{},
 		&MsgSetBeforeSendHook{},
-		&MsgForceTransfer{},
 		&MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
