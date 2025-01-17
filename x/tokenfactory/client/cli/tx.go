@@ -108,9 +108,9 @@ func NewMintCmd(ac address.Codec) *cobra.Command {
 
 func NewBurnCmd(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "burn [amount] [burn-from-address] [flags]",
+		Use:   "burn [amount] [flags]",
 		Short: "Burn tokens from an address. Must have admin authority to do so.",
-		Args:  cobra.RangeArgs(1, 2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -127,15 +127,9 @@ func NewBurnCmd(ac address.Codec) *cobra.Command {
 				return err
 			}
 
-			burnFromAddress := ""
-			if len(args) == 2 {
-				burnFromAddress = args[1]
-			}
-
-			msg := types.NewMsgBurnFrom(
+			msg := types.NewMsgBurn(
 				fromAddr,
 				amount,
-				burnFromAddress,
 			)
 
 			if err = msg.Validate(ac); err != nil {

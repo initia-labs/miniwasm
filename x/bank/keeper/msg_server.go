@@ -91,7 +91,8 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		return nil, types.ErrNoOutputs
 	}
 
-	if err := types.ValidateInputOutputs(msg.Inputs[0], msg.Outputs); err != nil {
+	input := msg.Inputs[0]
+	if err := types.ValidateInputOutputs(input, msg.Outputs); err != nil {
 		return nil, err
 	}
 
@@ -104,18 +105,29 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		}
 	}
 
+	inAddr, err := k.ak.AddressCodec().StringToBytes(input.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, out := range msg.Outputs {
-		accAddr, err := k.ak.AddressCodec().StringToBytes(out.Address)
+		outAddr, err := k.ak.AddressCodec().StringToBytes(out.Address)
 		if err != nil {
 			return nil, err
 		}
 
-		if k.BlockedAddr(accAddr) {
+		if k.BlockedAddr(outAddr) {
 			return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", out.Address)
 		}
+
+		if err := k.BlockBeforeSend(ctx, inAddr, outAddr, out.Coins); err != nil {
+			return nil, err
+		}
+
+		k.TrackBeforeSend(ctx, inAddr, outAddr, out.Coins)
 	}
 
-	err := k.InputOutputCoins(ctx, msg.Inputs[0], msg.Outputs)
+	err = k.InputOutputCoins(ctx, input, msg.Outputs)
 	if err != nil {
 		return nil, err
 	}
