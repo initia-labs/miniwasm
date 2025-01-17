@@ -180,6 +180,8 @@ func TestBurnDenom(t *testing.T) {
 		balances[acc.String()] = 1000
 	}
 
+
+	moduleAddress := accountKeeper.GetModuleAddress(types.ModuleName)
 	for _, tc := range []struct {
 		desc       string
 		burnMsg    types.MsgBurn
@@ -208,6 +210,33 @@ func TestBurnDenom(t *testing.T) {
 				sdk.NewInt64Coin(defaultDenom, 10),
 			),
 			expectPass: true,
+		},
+		{
+			desc: "success case - burn from another address",
+			burnMsg: *types.NewMsgBurnFrom(
+				addrs[0].String(),
+				sdk.NewInt64Coin(defaultDenom, 10),
+				addrs[1].String(),
+			),
+			expectPass: true,
+		},
+		{
+			desc: "fail case - burn from module account",
+			burnMsg: *types.NewMsgBurnFrom(
+				addrs[0].String(),
+				sdk.NewInt64Coin(defaultDenom, 10),
+				moduleAddress.String(),
+			),
+			expectPass: false,
+		},
+		{
+			desc: "fail case - burn non-tokenfactory denom",
+			burnMsg: *types.NewMsgBurnFrom(
+				addrs[0].String(),
+				sdk.NewInt64Coin("uinit", 10),
+				moduleAddress.String(),
+			),
+			expectPass: false,
 		},
 	} {
 		t.Run(fmt.Sprintf("Case %s", tc.desc), func(t *testing.T) {
