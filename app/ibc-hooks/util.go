@@ -39,8 +39,6 @@ func isIcs20Packet(packetData []byte) (isIcs20 bool, ics20data transfertypes.Fun
 	return true, data
 }
 
-const wasmPortPrefix = "wasm."
-
 func isIcs721Packet(packetData []byte) (isIcs721 bool, ics721data nfttransfertypes.NonFungibleTokenPacketData) {
 	// Use wasm port prefix to ack like normal wasm chain.
 	//
