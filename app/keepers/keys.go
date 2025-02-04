@@ -43,7 +43,7 @@ import (
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
 	// noble forwarding keeper
-	forwardingtypes "github.com/noble-assets/forwarding/v2/x/forwarding/types"
+	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {

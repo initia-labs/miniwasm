@@ -96,9 +96,9 @@ import (
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
 	// noble forwarding keeper
-	forwarding "github.com/noble-assets/forwarding/v2/x/forwarding"
-	forwardingkeeper "github.com/noble-assets/forwarding/v2/x/forwarding/keeper"
-	forwardingtypes "github.com/noble-assets/forwarding/v2/x/forwarding/types"
+	forwarding "github.com/noble-assets/forwarding/v2"
+	forwardingkeeper "github.com/noble-assets/forwarding/v2/keeper"
+	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
 	// kvindexer
 )
 
@@ -317,7 +317,7 @@ func NewAppKeeper(
 		authorityAddr,
 	)
 
-	appKeepers.IBCKeeper.ClientKeeper.WithPostUpdateHandler(
+	appKeepers.IBCKeeper.ClientKeeper.SetPostUpdateHandler(
 		appKeepers.OPChildKeeper.UpdateHostValidatorSet,
 	)
 

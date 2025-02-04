@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 AS go-builder
+FROM golang:1.23-alpine AS go-builder
 #ARG arch=x86_64
 
 # See https://github.com/CosmWasm/wasmvm/releases

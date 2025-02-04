@@ -129,7 +129,7 @@ func Test_OnReceivePacket_ICS721(t *testing.T) {
 	_, _, addr := keyPubAddr()
 	_, _, addr2 := keyPubAddr()
 
-	data := nfttransfertypes.NonFungibleTokenPacketDataWasm{
+	data := nfttransfertypes.NonFungibleTokenPacketData{
 		ClassId:   "classId",
 		ClassUri:  "classUri",
 		ClassData: "classData",
@@ -176,7 +176,7 @@ func Test_onReceivePacket_memo_ICS721(t *testing.T) {
 	require.NoError(t, err)
 
 	contractAddrBech32 := instantiateRes.Address
-	data := nfttransfertypes.NonFungibleTokenPacketDataWasm{
+	data := nfttransfertypes.NonFungibleTokenPacketData{
 		ClassId:   "classId",
 		ClassUri:  "classUri",
 		ClassData: "classData",
