@@ -132,7 +132,7 @@ func Test_OnAckPacket_ICS721(t *testing.T) {
 	_, _, addr := keyPubAddr()
 	_, _, addr2 := keyPubAddr()
 
-	data := nfttransfertypes.NonFungibleTokenPacketDataWasm{
+	data := nfttransfertypes.NonFungibleTokenPacketData{
 		ClassId:   "classId",
 		ClassUri:  "classUri",
 		ClassData: "classData",
@@ -184,7 +184,7 @@ func Test_OnAckPacket_memo_ICS721(t *testing.T) {
 	contractAddr, err := sdk.AccAddressFromBech32(contractAddrBech32)
 	require.NoError(t, err)
 
-	data := nfttransfertypes.NonFungibleTokenPacketDataWasm{
+	data := nfttransfertypes.NonFungibleTokenPacketData{
 		ClassId:   "classId",
 		ClassUri:  "classUri",
 		ClassData: "classData",

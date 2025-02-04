@@ -35,7 +35,7 @@ func Test_isIcs20Packet(t *testing.T) {
 func Test_isIcs721Packet(t *testing.T) {
 	nftTransferMsg := nfttransfertypes.NewNonFungibleTokenPacketData("class_id", "uri", "data", []string{"1", "2", "3"}, []string{"uri1", "uri2", "uri3"}, []string{"data1", "data2", "data3"}, "sender", "receiver", "memo")
 
-	ok, _nftTransferMsg := isIcs721Packet(nftTransferMsg.GetBytes(wasmPortPrefix))
+	ok, _nftTransferMsg := isIcs721Packet(nftTransferMsg.GetBytes())
 	require.True(t, ok)
 	require.Equal(t, nftTransferMsg, _nftTransferMsg)
 
