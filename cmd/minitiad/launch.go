@@ -76,9 +76,9 @@ func StoreAndInstantiateNFTContracts(input *launchtools.Config) launchtools.Laun
 		ctx.Logger().Info("Storing and instantiating cw721 and ics721 contracts")
 		fs := contrib.FS()
 
-		cw721, err := fs.ReadFile("wasm/cw721_base.wasm")
+		cw721, err := fs.ReadFile("wasm/cw721_metadata_onchain.wasm")
 		if err != nil {
-			return errors.Wrapf(err, "failed to read cw721_base.wasm")
+			return errors.Wrapf(err, "failed to read cw721_metadata_onchain.wasm")
 		}
 
 		ics721, err := fs.ReadFile("wasm/ics721_base.wasm")
