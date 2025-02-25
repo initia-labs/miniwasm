@@ -12,6 +12,8 @@ COSMWASM_URL=github.com/CosmWasm/wasmd
 INDEXER_URL=github.com/initia-labs/kvindexer
 CONNECT_URL=github.com/skip-mev/connect
 CONNECT_V=v2
+BLOCK_SDK_URL=github.com/skip-mev/block-sdk
+BLOCK_SDK_V=v2
 
 COSMOS_SDK_VERSION=$(cat ./go.mod | grep "$COSMOS_URL v" | sed -n -e "s/^.* //p")
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -n -e "s/^.* //p")
@@ -20,6 +22,7 @@ INITIA_VERSION=$(cat ./go.mod | grep "$INITIA_URL v" | sed -n -e "s/^.* //p")
 OPINIT_VERSION=$(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
 INDEXER_VERSION=$(cat ./go.mod | grep "$INDEXER_URL v" | sed -n -e "s/^.* //p")
 CONNECT_VERSION=$(cat ./go.mod | grep "$CONNECT_URL/$CONNECT_V v" | sed -n -e "s/^.* //p")
+BLOCK_SDK_VERSION=$(cat ./go.mod | grep "$BLOCK_SDK_URL/$BLOCK_SDK_V v" | sed -n -e "s/^.* //p")
 
 mkdir -p ./third_party
 cd third_party
@@ -30,6 +33,7 @@ git clone -b $IBC_VERSION https://$IBC_URL
 git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
 git clone -b $INDEXER_VERSION https://$INDEXER_URL
 git clone -b $CONNECT_VERSION https://$CONNECT_URL
+git clone -b $BLOCK_SDK_VERSION https://$BLOCK_SDK_URL
 cd ..
 
 
@@ -45,6 +49,7 @@ proto_dirs=$(find \
   ../third_party/wasmd/proto \
   ../third_party/kvindexer/proto \
   ../third_party/connect/proto \
+  ../third_party/block-sdk/proto \
   -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
   # generate swagger files (filter query files)
