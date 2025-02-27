@@ -37,7 +37,7 @@ require (
 	github.com/initia-labs/initia v0.7.0
 	github.com/initia-labs/kvindexer v0.1.10
 	github.com/initia-labs/kvindexer/submodules/block v0.1.2
-	github.com/initia-labs/kvindexer/submodules/tx v0.1.3
+	github.com/initia-labs/kvindexer/submodules/tx v0.1.4
 	github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.7
 	github.com/initia-labs/kvindexer/submodules/wasm-pair v0.1.2
 	github.com/noble-assets/forwarding/v2 v2.0.1
