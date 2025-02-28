@@ -6,8 +6,9 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	tmcfg "github.com/cometbft/cometbft/config"
-	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	indexerconfig "github.com/initia-labs/kvindexer/config"
+
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 
 	"github.com/initia-labs/miniwasm/types"
 )

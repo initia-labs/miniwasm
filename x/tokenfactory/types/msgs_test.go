@@ -7,20 +7,23 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 
 	"github.com/cometbft/cometbft/crypto/ed25519"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	proto "github.com/cosmos/gogoproto/proto"
 	initiaappparams "github.com/initia-labs/initia/app/params"
+
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 )
 
 func testMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {

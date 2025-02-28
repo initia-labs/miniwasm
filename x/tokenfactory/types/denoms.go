@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/core/address"
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

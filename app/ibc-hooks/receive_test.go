@@ -9,9 +9,10 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
 	ibchooks "github.com/initia-labs/miniwasm/app/ibc-hooks"
