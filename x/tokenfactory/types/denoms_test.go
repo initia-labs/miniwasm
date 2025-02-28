@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/cometbft/cometbft/crypto/ed25519"
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-	"github.com/stretchr/testify/require"
 
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 )
