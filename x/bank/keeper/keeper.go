@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -40,47 +39,6 @@ func NewKeeper(
 		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeService, ak, blockedAddrs, authority, logger),
 		ak:         ak,
 	}
-}
-
-func (k Keeper) DelegateCoins(ctx context.Context, delegatorAddr, moduleAccAddr sdk.AccAddress, amt sdk.Coins) error {
-	moduleAcc := k.ak.GetAccount(ctx, moduleAccAddr)
-	if moduleAcc == nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleAccAddr)
-	}
-
-	if !amt.IsValid() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, amt.String())
-	}
-
-	err := k.BlockBeforeSend(ctx, delegatorAddr, moduleAccAddr, amt)
-	if err != nil {
-		return err
-	}
-	// call the TrackBeforeSend hooks and the BlockBeforeSend hooks
-	k.TrackBeforeSend(ctx, delegatorAddr, moduleAccAddr, amt)
-
-	return k.BaseKeeper.DelegateCoins(ctx, delegatorAddr, moduleAccAddr, amt)
-}
-
-func (k Keeper) UndelegateCoins(ctx context.Context, moduleAccAddr, delegatorAddr sdk.AccAddress, amt sdk.Coins) error {
-	moduleAcc := k.ak.GetAccount(ctx, moduleAccAddr)
-	if moduleAcc == nil {
-		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleAccAddr)
-	}
-
-	if !amt.IsValid() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, amt.String())
-	}
-
-	// call the TrackBeforeSend hooks and the BlockBeforeSend hooks
-	err := k.BlockBeforeSend(ctx, moduleAccAddr, delegatorAddr, amt)
-	if err != nil {
-		return err
-	}
-
-	k.TrackBeforeSend(ctx, moduleAccAddr, delegatorAddr, amt)
-
-	return k.BaseKeeper.UndelegateCoins(ctx, moduleAccAddr, moduleAccAddr, amt)
 }
 
 // SendCoinsFromModuleToModule transfers coins from a ModuleAccount to another.
@@ -130,42 +88,6 @@ func (k Keeper) SendCoinsFromAccountToModule(
 	}
 
 	return k.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
-}
-
-// DelegateCoinsFromAccountToModule delegates coins and transfers them from a
-// delegator account to a module account. It will panic if the module account
-// does not exist or is unauthorized.
-func (k Keeper) DelegateCoinsFromAccountToModule(
-	ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins,
-) error {
-	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
-	if recipientAcc == nil {
-		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
-	}
-
-	if !recipientAcc.HasPermission(authtypes.Staking) {
-		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive delegated coins", recipientModule))
-	}
-
-	return k.DelegateCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
-}
-
-// UndelegateCoinsFromModuleToAccount undelegates the unbonding coins and transfers
-// them from a module account to the delegator account. It will panic if the
-// module account does not exist or is unauthorized.
-func (k Keeper) UndelegateCoinsFromModuleToAccount(
-	ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
-) error {
-	acc := k.ak.GetModuleAccount(ctx, senderModule)
-	if acc == nil {
-		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
-	}
-
-	if !acc.HasPermission(authtypes.Staking) {
-		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to undelegate coins", senderModule))
-	}
-
-	return k.UndelegateCoins(ctx, acc.GetAddress(), recipientAddr, amt)
 }
 
 type BankHooks interface {
