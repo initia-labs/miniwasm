@@ -6,11 +6,12 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	tokenFactorykeeper "github.com/initia-labs/miniwasm/x/tokenfactory/keeper"
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func TestCreateDenom(t *testing.T) {

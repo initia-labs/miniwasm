@@ -2,11 +2,12 @@ package cli
 
 import (
 	"cosmossdk.io/core/address"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
 
 	"github.com/initia-labs/miniwasm/x/tokenfactory/types"
 )
