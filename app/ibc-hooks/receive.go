@@ -27,7 +27,7 @@ func (h WasmHooks) onRecvIcs20Packet(
 	data transfertypes.FungibleTokenPacketData,
 ) ibcexported.Acknowledgement {
 	isWasmRouted, hookData, err := validateAndParseMemo(data.GetMemo())
-	if !isWasmRouted || hookData.Message == nil {
+	if !isWasmRouted || (err == nil && hookData.Message == nil) {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	} else if err != nil {
 		return newEmitErrorAcknowledgement(err)
@@ -91,7 +91,7 @@ func (h WasmHooks) onRecvIcs721Packet(
 	data nfttransfertypes.NonFungibleTokenPacketData,
 ) ibcexported.Acknowledgement {
 	isWasmRouted, hookData, err := validateAndParseMemo(data.GetMemo())
-	if !isWasmRouted || hookData.Message == nil {
+	if !isWasmRouted || (err == nil && hookData.Message == nil) {
 		return im.App.OnRecvPacket(ctx, packet, relayer)
 	} else if err != nil {
 		return newEmitErrorAcknowledgement(err)
