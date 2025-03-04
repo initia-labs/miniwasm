@@ -34,7 +34,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v0.7.2
-	github.com/initia-labs/initia v0.7.0
+	github.com/initia-labs/initia v0.7.3
 	github.com/initia-labs/kvindexer v0.1.10
 	github.com/initia-labs/kvindexer/submodules/block v0.1.2
 	github.com/initia-labs/kvindexer/submodules/tx v0.1.4
