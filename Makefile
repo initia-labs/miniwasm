@@ -122,14 +122,14 @@ endif
 build-linux:
 	mkdir -p $(BUILDDIR)
 	docker build --no-cache --tag initia/minimwasm ./
-	docker create --name temp initia/minimwasm:latest
+	docker create --name temp initia/minimwasm:latest --env VERSION=$(VERSION)
 	docker cp temp:/usr/local/bin/minitiad $(BUILDDIR)/
 	docker rm temp
 
 build-linux-with-shared-library:
 	mkdir -p $(BUILDDIR)
 	docker build --tag initia/miniwasm-shared ./ -f ./shared.Dockerfile
-	docker create --name temp initia/miniwasm-shared:latest
+	docker create --name temp initia/miniwasm-shared:latest --env VERSION=$(VERSION)
 	docker cp temp:/usr/local/bin/minitiad $(BUILDDIR)/
 	docker cp temp:/lib/libwasmvm.so $(BUILDDIR)/
 	docker rm temp
