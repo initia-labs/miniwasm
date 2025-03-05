@@ -175,12 +175,6 @@ func (m MsgSetBeforeSendHook) Validate(accAddrCodec address.Codec) error {
 		return ErrEmptySender
 	}
 
-	if addr, err := accAddrCodec.StringToBytes(m.CosmwasmAddress); err != nil {
-		return err
-	} else if len(addr) == 0 {
-		return ErrEmptySender
-	}
-
 	if _, _, err := DeconstructDenom(accAddrCodec, m.Denom); err != nil {
 		return ErrInvalidDenom
 	}
