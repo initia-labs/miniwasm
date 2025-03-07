@@ -301,7 +301,7 @@ func (a appCreator) appExport(
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
-	jailAllowedAddrs []string,
+	_ []string,
 	appOpts servertypes.AppOptions,
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
@@ -322,7 +322,7 @@ func (a appCreator) appExport(
 		initiaApp = minitiaapp.NewMinitiaApp(logger, db, dbm.NewMemDB(), traceStore, true, []wasmkeeper.Option{}, appOpts)
 	}
 
-	return initiaApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return initiaApp.ExportAppStateAndValidators(forZeroHeight, modulesToExport)
 }
 
 func readEnv(clientCtx client.Context) (client.Context, error) {

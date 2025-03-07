@@ -106,7 +106,7 @@ func (m MsgBurn) Validate(accAddrCodec address.Codec) error {
 	return nil
 }
 
-// NewMsgChangeAdmin creates a message to burn tokens
+// NewMsgChangeAdmin creates a message to change the admin of a denom
 func NewMsgChangeAdmin(sender, denom, newAdmin string) *MsgChangeAdmin {
 	return &MsgChangeAdmin{
 		Sender:   sender,
@@ -134,7 +134,7 @@ func (m MsgChangeAdmin) Validate(accAddrCodec address.Codec) error {
 	return nil
 }
 
-// NewMsgChangeAdmin creates a message to burn tokens
+// NewMsgChangeAdmin creates a message to set metadata for a denom
 func NewMsgSetDenomMetadata(sender string, metadata banktypes.Metadata) *MsgSetDenomMetadata {
 	return &MsgSetDenomMetadata{
 		Sender:   sender,
@@ -159,7 +159,7 @@ func (m MsgSetDenomMetadata) Validate(accAddrCodec address.Codec) error {
 	return nil
 }
 
-// NewMsgSetBeforeSendHook creates a message to set a new before send hook
+// NewMsgSetBeforeSendHook create a message to set a before-send hook for a denom
 func NewMsgSetBeforeSendHook(sender string, denom string, cosmwasmAddress string) *MsgSetBeforeSendHook {
 	return &MsgSetBeforeSendHook{
 		Sender:          sender,

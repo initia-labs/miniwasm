@@ -41,11 +41,7 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 		return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 
-	if !msg.Amount.IsValid() {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
-	}
-
-	if !msg.Amount.IsAllPositive() {
+	if !msg.Amount.IsValid() || msg.Amount.Empty() {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
