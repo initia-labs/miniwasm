@@ -37,10 +37,14 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateDenomCreationGasConsume(p.DenomCreationGasConsume); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func validateDenomCreationFee(i interface{}) error {
+func validateDenomCreationFee(i any) error {
 	v, ok := i.(sdk.Coins)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -53,7 +57,7 @@ func validateDenomCreationFee(i interface{}) error {
 	return nil
 }
 
-func validateDenomCreationGasConsume(i interface{}) error {
+func validateDenomCreationGasConsume(i any) error {
 	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
