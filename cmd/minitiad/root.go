@@ -97,7 +97,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(minitiaapp.DefaultNodeHome).
 		WithViper(minitiaapp.EnvPrefix).
-		WithKeyringOptions(cryptokeyring.Option())
+		WithKeyringOptions(cryptokeyring.EthSecp256k1Option())
 
 	rootCmd := &cobra.Command{
 		Use:   basename,
@@ -178,7 +178,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		genesisCommand(encodingConfig, basicManager),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(),
+		cryptokeyring.OverrideDefaultKeyType(keys.Commands()),
 	)
 
 	// add launch commands
