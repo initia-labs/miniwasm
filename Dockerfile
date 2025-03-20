@@ -1,6 +1,9 @@
 FROM golang:1.23-alpine AS go-builder
 #ARG arch=x86_64
 
+ARG VERSION
+ARG COMMIT
+
 # See https://github.com/CosmWasm/wasmvm/releases
 ENV LIBWASMVM_VERSION=v2.1.4
 
@@ -32,7 +35,7 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/li
 RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a
 
 # force it to use static lib (from above) not standard libwasmvm.so file
-RUN VERSION=${VERSION} LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
+RUN VERSION=${VERSION} COMMIT=${COMMIT} LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
 
 FROM alpine:3.18
 
