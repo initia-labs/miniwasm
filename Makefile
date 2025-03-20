@@ -5,7 +5,7 @@ LEDGER_ENABLED ?= true
 BINDIR ?= $(GOPATH)/bin
 BUILDDIR ?= $(CURDIR)/build
 DOCKER := $(shell which docker)
-
+HTTPS_GIT := https://github.com/initia-labs/miniwasm.git
 
 # don't override user values of COMMIT and VERSION
 ifeq (,$(COMMIT))
