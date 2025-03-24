@@ -6,6 +6,7 @@ ARG COMMIT
 
 # See https://github.com/CosmWasm/wasmvm/releases
 ENV LIBWASMVM_VERSION=v2.1.4
+ENV MIMALLOC_VERSION=v2.2.2
 
 # this comes from standard alpine nightly file
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
@@ -20,7 +21,7 @@ WORKDIR /code
 COPY . /code/
 
 # Install mimalloc
-RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
+RUN git clone -b ${MIMALLOC_VERSION} --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # See https://github.com/\!cosm\!wasm/wasmvm/releases
