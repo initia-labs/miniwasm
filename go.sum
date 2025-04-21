@@ -1423,8 +1423,8 @@ github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANyt
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
-github.com/initia-labs/OPinit v1.0.0-rc.0 h1:F31cgQwdoLUmnz+2mS5Bb7mp5fzJ7eLmsz8eCp1GIFI=
-github.com/initia-labs/OPinit v1.0.0-rc.0/go.mod h1:E3C1kaDWjWd+Pd/c+m0XflL/aPDaZEPcbtH1xzM97ig=
+github.com/initia-labs/OPinit v1.0.0 h1:8nc7UIFsf2JiMqVeoxq0sM0Hf4Rug+UG1LsbrAPXC8w=
+github.com/initia-labs/OPinit v1.0.0/go.mod h1:nO24xmTxOPcIs5Zem5S/libjiKQkqItQ7dw4amcHC1I=
 github.com/initia-labs/OPinit/api v1.0.0 h1:l1WjRl8dK1HoEn+1mPXCmEnRqLwXrfoBA9CI1lAUnnU=
 github.com/initia-labs/OPinit/api v1.0.0/go.mod h1:Qz11o6zlTtJe495JO7FhEyLhJLPit0rEuLN4pweKL24=
 github.com/initia-labs/cometbft v0.0.0-20250418052104-edfb178d9ce8 h1:GEWzxRGs9cTWrXeop1E1SgiHmuT/qwFed6y1Pjip2uY=
@@ -1435,8 +1435,8 @@ github.com/initia-labs/cosmos-sdk v0.0.0-20250415174140-9fd233bcf847 h1:MUusHIRb
 github.com/initia-labs/cosmos-sdk v0.0.0-20250415174140-9fd233bcf847/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
 github.com/initia-labs/ibc-go/v8 v8.0.0-20250313020428-36b81501adfc h1:fHVkBDhQl3uRtY2GMoYWt0rfh8vNZ+KKZlst+GrDxqc=
 github.com/initia-labs/ibc-go/v8 v8.0.0-20250313020428-36b81501adfc/go.mod h1:G2z+Q6ZQSMcyHI2+BVcJdvfOupb09M2h/tgpXOEdY6k=
-github.com/initia-labs/initia v1.0.0-rc.1 h1:HwTFJAHnsbJGxJtUnxY6i8cReBGH29ODShE6O1kc63A=
-github.com/initia-labs/initia v1.0.0-rc.1/go.mod h1:rJTWwsSR9mF5mjoKALI1UKwv/H7UpzFsrY6B+wU7Pos=
+github.com/initia-labs/initia v1.0.0 h1:m8m0EeA03LTyslTkPCsVHyN/fsWDTywlwkHzDhgh8xU=
+github.com/initia-labs/initia v1.0.0/go.mod h1:YHVUsJdVM+q6z5V+uG+WkL2GTcYDQKvOVRSID8wMkHQ=
 github.com/initia-labs/kvindexer v0.1.12 h1:8styi0TyiVMFiHyxgBpKYBiKIx2MzSiibSeMQ/bd7AI=
 github.com/initia-labs/kvindexer v0.1.12/go.mod h1:T9u+bAPMra15W+4CRoMuvXXz2KvWZOROihrJ8Sr6b9A=
 github.com/initia-labs/kvindexer/submodules/block v0.1.2 h1:n28l1O0VEKGdX3OAIBeD72JRS21naq5Sj6bBYQ7sFDs=
@@ -1447,8 +1447,8 @@ github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.7 h1:y2PG1vMP1vkDb4qWS
 github.com/initia-labs/kvindexer/submodules/wasm-nft v0.1.7/go.mod h1:8Vmkr9Or+lXWf8D5ij+eoEWpMteVO02g14I9v8WEsWA=
 github.com/initia-labs/kvindexer/submodules/wasm-pair v0.1.2 h1:+4kPc8D4j2XpmVlLdogBgkNb2vZ4JqYmPWMSf9yijsI=
 github.com/initia-labs/kvindexer/submodules/wasm-pair v0.1.2/go.mod h1:gn8Dekrq1YcWQroPzMgJrbHrNPQrdg6M8AgT/xZOa20=
-github.com/initia-labs/movevm v1.0.0-rc.1 h1:toK3fEssrjNHLRpSntmBZr+8U8DYYl1mc116SeK7Mik=
-github.com/initia-labs/movevm v1.0.0-rc.1/go.mod h1:sj/kXD7mUQASqogPTjqltIr4Uid3xxnlcbfiFvvqeXA=
+github.com/initia-labs/movevm v1.0.0 h1:6/799kyQGCujfvRhAmlu11RkRSRG4Cc1Xk0L91DjzFw=
+github.com/initia-labs/movevm v1.0.0/go.mod h1:sj/kXD7mUQASqogPTjqltIr4Uid3xxnlcbfiFvvqeXA=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jhump/protoreflect v1.15.3 h1:6SFRuqU45u9hIZPJAoZ8c28T3nK64BNdp9w6jFonzls=
