@@ -283,10 +283,15 @@ func (a *appCreator) AppCreator() servertypes.AppCreator {
 			wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 		}
 
-		dbDir, kvdbConfig := getDBConfig(appOpts)
-		kvindexerDB, err := kvindexerstore.OpenDB(dbDir, kvindexerkeeper.StoreName, kvdbConfig.BackendConfig)
-		if err != nil {
-			panic(err)
+		dbDir, kvindexerConfig := getDBConfig(appOpts)
+
+		var kvindexerDB dbm.DB
+		if kvindexerConfig.IsEnabled() {
+			db, err := kvindexerstore.OpenDB(dbDir, kvindexerkeeper.StoreName, kvindexerConfig.BackendConfig)
+			if err != nil {
+				panic(err)
+			}
+			kvindexerDB = db
 		}
 
 		app := minitiaapp.NewMinitiaApp(
