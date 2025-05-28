@@ -55,6 +55,8 @@ import (
 
 	// skip imports
 	blockchecktx "github.com/skip-mev/block-sdk/v2/abci/checktx"
+	"github.com/skip-mev/block-sdk/v2/block"
+	blockservice "github.com/skip-mev/block-sdk/v2/block/service"
 
 	// CosmWasm imports
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -64,9 +66,6 @@ import (
 	// local imports
 	"github.com/initia-labs/miniwasm/app/keepers"
 	"github.com/initia-labs/miniwasm/app/upgrades/v1_1_0"
-
-	"github.com/skip-mev/block-sdk/v2/block"
-	blockservice "github.com/skip-mev/block-sdk/v2/block/service"
 
 	// kvindexer
 	kvindexermodule "github.com/initia-labs/kvindexer/x/kvindexer"
