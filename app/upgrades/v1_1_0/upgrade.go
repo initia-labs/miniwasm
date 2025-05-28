@@ -16,7 +16,7 @@ func RegisterUpgradeHandlers(app upgrades.MinitiaApp) {
 	app.GetUpgradeKeeper().SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-			return vm, nil
+			return app.GetModuleManager().RunMigrations(ctx, app.GetConfigurator(), vm)
 		},
 	)
 }
