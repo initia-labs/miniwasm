@@ -54,7 +54,8 @@ jobs:
           cd ./build \
           && mv libwasmvm.so libwasmvm.${ARCH_NAME}.so \
           && tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz minitiad libwasmvm.${ARCH_NAME}.so \
-          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz ../
+          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz $GITHUB_WORKSPACE/ \
+          && rm -rf ./minitiad ./libwasmvm.${ARCH_NAME}.so
 
           # Check build results
           cd ..
