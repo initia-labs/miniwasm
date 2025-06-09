@@ -36,18 +36,19 @@ jobs:
         run: |
           export GOARCH=${GOARCH}
           export GOOS=${GOOS}
-          make build-linux-with-shared-library
-          cd ./build
-          mkdir -p miniwasm_${VERSION}
-          mv libwasmvm.so miniwasm_${VERSION}/libwasmvm.${ARCH_NAME}.so
-          mv minitiad miniwasm_${VERSION}/
-          tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz miniwasm_${VERSION}
+          make build-linux-with-shared-library \
+          && cd ./build \
+          && mv libwasmvm.so libwasmvm.${ARCH_NAME}.so \
+          && tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz minitiad libwasmvm.${ARCH_NAME}.so \
+          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz $GITHUB_WORKSPACE/ \
+          && rm -rf ./minitiad ./libwasmvm.${ARCH_NAME}.so
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            ./build/miniwasm_${{ env.VERSION }}_Linux_${{ env.ARCH_NAME }}.tar.gz
+          name: miniwasm-linux-amd64
+          path: miniwasm_${{ env.VERSION }}_Linux_${{ env.ARCH_NAME }}.tar.gz
+          retention-days: 1
         env:
           VERSION: ${{ env.VERSION }}
           ARCH_NAME: ${{ env.ARCH_NAME }}
