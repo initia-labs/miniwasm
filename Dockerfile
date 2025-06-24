@@ -13,7 +13,7 @@ ENV MIMALLOC_VERSION=v2.2.2
 # with some changes to support our toolchain, etc
 RUN set -eux; apk add --no-cache ca-certificates build-base;
 
-RUN apk add git cmake
+RUN apk add git cmake curl
 # NOTE: add these to run with LEDGER_ENABLED=true
 # RUN apk add libusb-dev linux-headers
 
