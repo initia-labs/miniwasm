@@ -278,10 +278,10 @@ func _createTestInput(
 	queryRouter := baseapp.NewGRPCQueryRouter()
 	queryRouter.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
-	queryAllowlist := make(map[string]proto.Message)
-	queryAllowlist["/connect.oracle.v2.Query/GetAllCurrencyPairs"] = &oracletypes.GetAllCurrencyPairsResponse{}
-	queryAllowlist["/connect.oracle.v2.Query/GetPrice"] = &oracletypes.GetPriceResponse{}
-	queryAllowlist["/connect.oracle.v2.Query/GetPrices"] = &oracletypes.GetPricesResponse{}
+	queryAllowlist := make(wasmkeeper.AcceptedQueries)
+	queryAllowlist["/connect.oracle.v2.Query/GetAllCurrencyPairs"] = func() proto.Message { return &oracletypes.GetAllCurrencyPairsResponse{} }
+	queryAllowlist["/connect.oracle.v2.Query/GetPrice"] = func() proto.Message { return &oracletypes.GetPriceResponse{} }
+	queryAllowlist["/connect.oracle.v2.Query/GetPrices"] = func() proto.Message { return &oracletypes.GetPricesResponse{} }
 
 	// use accept list stargate querier
 	wasmOpts := []wasmkeeper.Option{}
@@ -304,7 +304,8 @@ func _createTestInput(
 		msgRouter,
 		queryRouter,
 		t.TempDir(),
-		wasmtypes.DefaultWasmConfig(),
+		wasmtypes.DefaultNodeConfig(),
+		wasmtypes.VMConfig{},
 		slices.DeleteFunc(wasmkeeper.BuiltInCapabilities(), func(s string) bool {
 			return s == "staking"
 		}),

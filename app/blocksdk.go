@@ -27,7 +27,7 @@ import (
 func setupBlockSDK(
 	app *MinitiaApp,
 	mempoolMaxTxs int,
-	wasmConfig wasmtypes.WasmConfig,
+	wasmConfig wasmtypes.NodeConfig,
 	txCounterStoreKey *storetypes.KVStoreKey,
 ) (
 	mempool.Mempool,

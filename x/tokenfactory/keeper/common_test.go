@@ -327,7 +327,8 @@ func _createTestInput(
 		msgRouter,
 		nil,
 		t.TempDir(),
-		wasmtypes.DefaultWasmConfig(),
+		wasmtypes.DefaultNodeConfig(),
+		wasmtypes.VMConfig{},
 		wasmkeeper.BuiltInCapabilities(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

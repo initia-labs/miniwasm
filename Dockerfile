@@ -5,7 +5,7 @@ ARG VERSION
 ARG COMMIT
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ENV LIBWASMVM_VERSION=v2.1.4
+ENV LIBWASMVM_VERSION=v2.2.4
 ENV MIMALLOC_VERSION=v2.2.2
 
 # this comes from standard alpine nightly file
