@@ -12,10 +12,7 @@ ENV MIMALLOC_VERSION=v2.2.2
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
 # with some changes to support our toolchain, etc
 RUN set -eux; apk add --no-cache ca-certificates build-base;
-
-RUN apk add git cmake curl
-# NOTE: add these to run with LEDGER_ENABLED=true
-# RUN apk add libusb-dev linux-headers
+RUN apk add git cmake
 
 WORKDIR /code
 COPY . /code/
@@ -39,6 +36,9 @@ RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a
 RUN VERSION=${VERSION} COMMIT=${COMMIT} LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
 
 FROM alpine:3.18
+
+# install curl for health check
+RUN apk add curl 
 
 RUN addgroup minitia \
     && adduser -G minitia -D -h /minitia minitia
