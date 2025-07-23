@@ -63,6 +63,7 @@ import (
 	"github.com/initia-labs/miniwasm/x/bank"
 	"github.com/initia-labs/miniwasm/x/tokenfactory"
 	tokenfactorytypes "github.com/initia-labs/miniwasm/x/tokenfactory/types"
+	"github.com/initia-labs/miniwasm/x/wasmextension"
 
 	// noble forwarding keeper
 	forwarding "github.com/noble-assets/forwarding/v2"
@@ -120,6 +121,8 @@ func appModules(
 		// connect modules
 		oracle.NewAppModule(app.appCodec, *app.OracleKeeper),
 		marketmap.NewAppModule(app.appCodec, app.MarketMapKeeper),
+
+		wasmextension.NewAppModule(app.appCodec, app.WasmKeeper, app.OPChildKeeper),
 	}
 }
 
