@@ -122,7 +122,7 @@ func appModules(
 		oracle.NewAppModule(app.appCodec, *app.OracleKeeper),
 		marketmap.NewAppModule(app.appCodec, app.MarketMapKeeper),
 
-		wasmextension.NewAppModule(app.appCodec, app.WasmKeeper, app.OPChildKeeper),
+		wasmextension.NewAppModule(app.appCodec, app.WasmKeeper, app.OPChildKeeper.GetAuthority()),
 	}
 }
 

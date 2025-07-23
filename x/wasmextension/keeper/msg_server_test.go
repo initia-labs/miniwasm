@@ -14,29 +14,28 @@ import (
 
 func TestMsgServer_StoreCodeAdmin(t *testing.T) {
 	ctx, input := createDefaultTestInput(t)
-	_, _, admin := keyPubAddr()
 	_, _, addr := keyPubAddr()
+	_, _, addr2 := keyPubAddr()
 
 	code, err := os.ReadFile("../../../app/ibc-hooks/contracts/artifacts/counter-aarch64.wasm")
 	require.NoError(t, err)
 
-	opchildParams, err := input.OPChildKeeper.GetParams(ctx)
-	require.NoError(t, err)
-	opchildParams.Admin = admin.String()
-	require.NoError(t, input.OPChildKeeper.Params.Set(ctx, opchildParams))
+	authority := input.OPChildKeeper.GetAuthority()
 
-	wasmMsgServer := wasmextensionkeeper.NewMsgServerImpl(&input.WasmKeeper, input.OPChildKeeper)
+	wasmMsgServer := wasmextensionkeeper.NewMsgServerImpl(&input.WasmKeeper, authority)
 
-	// not admin
+	// invalid authority
 	_, err = wasmMsgServer.StoreCodeAdmin(ctx, &wasmextensiontypes.MsgStoreCodeAdmin{
-		Sender:       addr.String(),
+		Authority:    addr.String(),
+		Creator:      addr2.String(),
 		WASMByteCode: code,
 	})
 	require.Error(t, err)
 
 	// invalid code
 	_, err = wasmMsgServer.StoreCodeAdmin(ctx, &wasmextensiontypes.MsgStoreCodeAdmin{
-		Sender:       admin.String(),
+		Authority:    authority,
+		Creator:      addr2.String(),
 		WASMByteCode: []byte("invalid code"),
 	})
 	require.Error(t, err)
@@ -44,14 +43,16 @@ func TestMsgServer_StoreCodeAdmin(t *testing.T) {
 	// heavy code
 	longCode := make([]byte, 1024*1024*10)
 	_, err = wasmMsgServer.StoreCodeAdmin(ctx, &wasmextensiontypes.MsgStoreCodeAdmin{
-		Sender:       admin.String(),
+		Authority:    authority,
+		Creator:      addr2.String(),
 		WASMByteCode: longCode,
 	})
 	require.Contains(t, err.Error(), wasmtypes.ErrLimit.Error())
 
-	// valid code and admin
+	// valid code and authority
 	storeRes, err := wasmMsgServer.StoreCodeAdmin(ctx, &wasmextensiontypes.MsgStoreCodeAdmin{
-		Sender:       admin.String(),
+		Authority:    authority,
+		Creator:      addr2.String(),
 		WASMByteCode: code,
 	})
 	require.NoError(t, err)

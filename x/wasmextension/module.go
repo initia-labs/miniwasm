@@ -2,7 +2,6 @@ package wasmextension
 
 import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
 
@@ -12,12 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/initia-labs/miniwasm/x/wasmextension/client/cli"
 	"github.com/initia-labs/miniwasm/x/wasmextension/keeper"
 	"github.com/initia-labs/miniwasm/x/wasmextension/types"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 )
 
 var (
@@ -41,11 +38,6 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// GetTxCmd returns the root tx command for the wasm module.
-func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
-}
-
 // RegisterInterfaces implements InterfaceModule
 func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
@@ -57,22 +49,22 @@ var _ appmodule.AppModule = AppModule{}
 // AppModule implements an application module for the wasm module.
 type AppModule struct {
 	AppModuleBasic
-	cdc           codec.Codec
-	keeper        *wasmkeeper.Keeper
-	opchildKeeper *opchildkeeper.Keeper
+	cdc       codec.Codec
+	keeper    *wasmkeeper.Keeper
+	authority string
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *wasmkeeper.Keeper,
-	opchildKeeper *opchildkeeper.Keeper,
+	authority string,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		cdc:            cdc,
 		keeper:         keeper,
-		opchildKeeper:  opchildKeeper,
+		authority:      authority,
 	}
 }
 
@@ -91,7 +83,7 @@ func (am AppModule) IsAppModule() { // marker
 func (AppModule) ConsensusVersion() uint64 { return 4 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.opchildKeeper))
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.authority))
 }
 
 // RegisterInvariants registers the wasm module invariants.

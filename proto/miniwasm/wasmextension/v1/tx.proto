@@ -22,17 +22,21 @@ service Msg {
 // MsgStoreCodeAdmin submit Wasm code to the system with admin permission
 message MsgStoreCodeAdmin {
   option (amino.name) = "wasmextension/MsgStoreCodeAdmin";
-  option (cosmos.msg.v1.signer) = "sender";
+  option (cosmos.msg.v1.signer) = "authority";
 
-  // Sender is the actor that signed the messages
-  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // Authority is the actor that signed the messages
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // Creator is the actor that created the code
+  string creator = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
   // WASMByteCode can be raw or gzip compressed
-  bytes wasm_byte_code = 2 [ (gogoproto.customname) = "WASMByteCode" ];
+  bytes wasm_byte_code = 3 [ (gogoproto.customname) = "WASMByteCode" ];
   // Used in v1beta1
-  reserved 3, 4;
+  reserved 4, 5;
   // InstantiatePermission access control to apply on contract creation,
   // optional
-  cosmwasm.wasm.v1.AccessConfig instantiate_permission = 5;
+  cosmwasm.wasm.v1.AccessConfig instantiate_permission = 6;
 }
 // MsgStoreCodeAdminResponse returns store result data.
 message MsgStoreCodeAdminResponse {

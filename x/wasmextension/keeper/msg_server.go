@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/initia-labs/miniwasm/x/wasmextension/types"
 )
 
@@ -17,29 +17,25 @@ var _ types.MsgServer = msgServer{}
 
 // grpc message server implementation
 type msgServer struct {
-	keeper        *wasmkeeper.Keeper
-	opchildKeeper *opchildkeeper.Keeper
+	keeper    *wasmkeeper.Keeper
+	authority string
 }
 
 // NewMsgServerImpl default constructor
-func NewMsgServerImpl(k *wasmkeeper.Keeper, opchildKeeper *opchildkeeper.Keeper) types.MsgServer {
-	return &msgServer{keeper: k, opchildKeeper: opchildKeeper}
+func NewMsgServerImpl(k *wasmkeeper.Keeper, authority string) types.MsgServer {
+	return &msgServer{keeper: k, authority: authority}
 }
 
 // StoreCode stores a new wasm code on chain
 func (m msgServer) StoreCodeAdmin(ctx context.Context, msg *types.MsgStoreCodeAdmin) (*types.MsgStoreCodeAdminResponse, error) {
-	opchildParams, err := m.opchildKeeper.GetParams(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if opchildParams.Admin != msg.Sender {
-		return nil, errorsmod.Wrap(types.ErrUnauthorized, "sender is not the admin")
+	if m.authority != msg.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", m.authority, msg.Authority)
 	}
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
-	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "sender")
 	}

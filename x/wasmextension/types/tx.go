@@ -13,7 +13,7 @@ const (
 )
 
 func (msg MsgStoreCodeAdmin) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return err
 	}
 
