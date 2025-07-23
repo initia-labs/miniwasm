@@ -309,7 +309,7 @@ func _createTestInput(
 		cac,
 		ctx.Logger().With("module", "x/"+opchildtypes.ModuleName),
 	)
-	opchildKeeper.Params.Set(ctx, opchildtypes.DefaultParams()) //nolint:errcheck
+	require.NoError(t, opchildKeeper.Params.Set(ctx, opchildtypes.DefaultParams()))
 
 	faucet := NewTestFaucet(t, ctx, bankKeeper, authtypes.Minter, initialTotalSupply()...)
 

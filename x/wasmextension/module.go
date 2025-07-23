@@ -26,7 +26,7 @@ type AppModuleBasic struct{}
 
 // RegisterGRPCGatewayRoutes implements module.AppModuleBasic.
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(client.Context, *runtime.ServeMux) {
-	panic("unimplemented")
+
 }
 
 func (b AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
@@ -80,7 +80,7 @@ func (am AppModule) IsAppModule() { // marker
 // module. It should be incremented on each consensus-breaking change
 // introduced by the module. To avoid wrong/empty versions, the initial version
 // should be set to 1.
-func (AppModule) ConsensusVersion() uint64 { return 4 }
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.authority))

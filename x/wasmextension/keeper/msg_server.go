@@ -35,9 +35,9 @@ func (m msgServer) StoreCodeAdmin(ctx context.Context, msg *types.MsgStoreCodeAd
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
-	senderAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "sender")
+		return nil, errorsmod.Wrap(err, "invalid creator address")
 	}
 
 	govPermissionKeeper := wasmkeeper.NewGovPermissionKeeper(m.keeper)

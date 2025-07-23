@@ -1,7 +1,6 @@
 syntax = "proto3";
 package miniwasm.wasmextension.v1;
 
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "cosmwasm/wasm/v1/types.proto";
@@ -32,11 +31,9 @@ message MsgStoreCodeAdmin {
 
   // WASMByteCode can be raw or gzip compressed
   bytes wasm_byte_code = 3 [ (gogoproto.customname) = "WASMByteCode" ];
-  // Used in v1beta1
-  reserved 4, 5;
   // InstantiatePermission access control to apply on contract creation,
   // optional
-  cosmwasm.wasm.v1.AccessConfig instantiate_permission = 6;
+  cosmwasm.wasm.v1.AccessConfig instantiate_permission = 4;
 }
 // MsgStoreCodeAdminResponse returns store result data.
 message MsgStoreCodeAdminResponse {

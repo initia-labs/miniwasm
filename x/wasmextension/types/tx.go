@@ -8,16 +8,12 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
-const (
-	MaxWasmSizeForAdmin = 3 * 1024 * 1024
-)
-
 func (msg MsgStoreCodeAdmin) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
 		return err
 	}
 
-	if err := validateWasmCode(msg.WASMByteCode, MaxWasmSizeForAdmin); err != nil {
+	if err := validateWasmCode(msg.WASMByteCode, wasmtypes.MaxProposalWasmSize); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "code bytes %s", err.Error())
 	}
 
