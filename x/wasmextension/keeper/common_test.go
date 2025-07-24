@@ -285,7 +285,8 @@ func _createTestInput(
 		nil,
 		nil,
 		t.TempDir(),
-		wasmtypes.DefaultWasmConfig(),
+		wasmtypes.DefaultNodeConfig(),
+		wasmtypes.VMConfig{},
 		slices.DeleteFunc(wasmkeeper.BuiltInCapabilities(), func(s string) bool {
 			return s == "staking"
 		}),
