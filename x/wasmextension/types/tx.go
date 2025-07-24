@@ -18,7 +18,7 @@ func (msg MsgStoreCodeAdmin) ValidateBasic() error {
 	}
 
 	if msg.InstantiatePermission != nil {
-		if err := msg.InstantiatePermission.ValidateBasic(); err != nil {
+		if err := msg.InstantiatePermission.ToWasmAccessConfig().ValidateBasic(); err != nil {
 			return errorsmod.Wrap(err, "instantiate permission")
 		}
 	}

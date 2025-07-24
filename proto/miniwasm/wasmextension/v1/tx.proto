@@ -3,9 +3,9 @@ package miniwasm.wasmextension.v1;
 
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
-import "cosmwasm/wasm/v1/types.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
+import "miniwasm/wasmextension/v1/types.proto";
 
 option go_package = "github.com/initia-labs/miniwasm/x/wasmextension/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -33,7 +33,7 @@ message MsgStoreCodeAdmin {
   bytes wasm_byte_code = 3 [ (gogoproto.customname) = "WASMByteCode" ];
   // InstantiatePermission access control to apply on contract creation,
   // optional
-  cosmwasm.wasm.v1.AccessConfig instantiate_permission = 4;
+  AccessConfig instantiate_permission = 4;
 }
 // MsgStoreCodeAdminResponse returns store result data.
 message MsgStoreCodeAdminResponse {

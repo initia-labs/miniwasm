@@ -43,7 +43,7 @@ func (m msgServer) StoreCodeAdmin(ctx context.Context, msg *types.MsgStoreCodeAd
 	govPermissionKeeper := wasmkeeper.NewGovPermissionKeeper(m.keeper)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	codeID, checksum, err := govPermissionKeeper.Create(sdkCtx, senderAddr, msg.WASMByteCode, msg.InstantiatePermission)
+	codeID, checksum, err := govPermissionKeeper.Create(sdkCtx, senderAddr, msg.WASMByteCode, msg.InstantiatePermission.ToWasmAccessConfig())
 	if err != nil {
 		return nil, err
 	}
