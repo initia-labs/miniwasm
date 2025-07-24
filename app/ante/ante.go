@@ -39,7 +39,7 @@ type HandlerOptions struct {
 
 	// wasm ante options
 	WasmKeeper            *wasmkeeper.Keeper
-	WasmConfig            *wasmtypes.WasmConfig
+	WasmConfig            *wasmtypes.NodeConfig
 	TXCounterStoreService corestoretypes.KVStoreService
 }
 

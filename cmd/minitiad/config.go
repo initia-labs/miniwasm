@@ -16,7 +16,7 @@ import (
 // minitiaAppConfig initia specify app config
 type minitiaAppConfig struct {
 	serverconfig.Config
-	WasmConfig    wasmtypes.WasmConfig        `mapstructure:"wasm"`
+	WasmConfig    wasmtypes.NodeConfig        `mapstructure:"wasm"`
 	IndexerConfig indexerconfig.IndexerConfig `mapstructure:"indexer"`
 }
 
@@ -53,7 +53,7 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.GRPC.Enable = true
 	srvCfg.GRPC.Address = "0.0.0.0:9090"
 
-	wasmCfg := wasmtypes.DefaultWasmConfig()
+	wasmCfg := wasmtypes.DefaultNodeConfig()
 	wasmCfg.SmartQueryGasLimit = 10_000_000
 	wasmCfg.SimulationGasLimit = &wasmCfg.SmartQueryGasLimit
 

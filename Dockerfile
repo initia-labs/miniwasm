@@ -5,15 +5,14 @@ ARG VERSION
 ARG COMMIT
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ENV LIBWASMVM_VERSION=v2.1.4
+ENV LIBWASMVM_VERSION=v2.2.4
 ENV MIMALLOC_VERSION=v2.2.2
 
 # this comes from standard alpine nightly file
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
 # with some changes to support our toolchain, etc
 RUN set -eux; apk add --no-cache ca-certificates build-base;
-
-RUN apk add git cmake 
+RUN apk add git cmake
 
 WORKDIR /code
 COPY . /code/
