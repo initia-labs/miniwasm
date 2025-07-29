@@ -178,29 +178,18 @@ func (k Keeper) safeSudo(ctx context.Context, cwAddr sdk.AccAddress, msgBz []byt
 		WithEventManager(sdk.NewEventManager())
 
 	defer func() {
-		if r := recover(); r != nil {
-			switch r.(type) {
-			case storetypes.ErrorOutOfGas:
-				// propagate out of gas error
-				panic(r)
-			default:
-				k.Logger(ctx).Error("panic in callBeforeSendListener", "error", r)
-				err = errors.New("panic in callBeforeSendListener occurred")
-			}
-		}
-
-		// consume gas used for calling contract to the parent ctx
+		// Consume gas used by the contract call in the parent context.
+		// Using defer ensures gas consumption happens even if the call errors or panics.
 		sdkCtx.GasMeter().ConsumeGas(childCtx.GasMeter().GasConsumedToLimit(), "track before send gas")
-		if err == nil {
-			// emit events from child context to parent context only if no error is returned
-			sdkCtx.EventManager().EmitEvents(childCtx.EventManager().Events())
-		}
 	}()
 
 	_, err = k.contractKeeper.Sudo(childCtx, cwAddr, msgBz)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to call before send hook for denom %s", denom)
 	}
+
+	// emit events if no error is returned
+	sdkCtx.EventManager().EmitEvents(childCtx.EventManager().Events())
 
 	return nil
 }
