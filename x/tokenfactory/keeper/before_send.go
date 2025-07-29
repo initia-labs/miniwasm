@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 
 	storetypes "cosmossdk.io/store/types"
@@ -95,7 +96,14 @@ func (h Hooks) BlockBeforeSend(ctx context.Context, from, to sdk.AccAddress, amo
 func (k Keeper) callBeforeSendListener(ctx context.Context, from, to sdk.AccAddress, amount sdk.Coins, blockBeforeSend bool) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = errorsmod.Wrapf(types.ErrBeforeSendHookOutOfGas, "%v", r)
+			switch r.(type) {
+			case storetypes.ErrorOutOfGas:
+				k.Logger(ctx).Error("out of gas in callBeforeSendListener", "error", r)
+				err = types.ErrBeforeSendHookOutOfGas
+			default:
+				k.Logger(ctx).Error("panic in callBeforeSendListener", "error", r)
+				err = errors.New("panic in callBeforeSendListener occurred")
+			}
 		}
 	}()
 
@@ -151,18 +159,48 @@ func (k Keeper) callBeforeSendListener(ctx context.Context, from, to sdk.AccAddr
 			if err != nil {
 				return err
 			}
-			em := sdk.NewEventManager()
 
-			sdkCtx := sdk.UnwrapSDKContext(ctx)
-			childCtx := sdkCtx.WithGasMeter(storetypes.NewGasMeter(types.BeforeSendHookGasLimit))
-			_, err = k.contractKeeper.Sudo(childCtx.WithEventManager(em), cwAddr, msgBz)
+			// safe guard against out of gas error
+			err = k.safeSudo(ctx, cwAddr, msgBz, coin.Denom)
 			if err != nil {
-				return errorsmod.Wrapf(err, "failed to call before send hook for denom %s", coin.Denom)
+				return err
 			}
-
-			// consume gas used for calling contract to the parent ctx
-			sdkCtx.GasMeter().ConsumeGas(childCtx.GasMeter().GasConsumed(), "track before send gas")
 		}
 	}
+	return nil
+}
+
+func (k Keeper) safeSudo(ctx context.Context, cwAddr sdk.AccAddress, msgBz []byte, denom string) (err error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	gasLimit := min(sdkCtx.GasMeter().GasRemaining(), types.BeforeSendHookGasLimit)
+	childCtx := sdkCtx.
+		WithGasMeter(storetypes.NewGasMeter(gasLimit)).
+		WithEventManager(sdk.NewEventManager())
+
+	defer func() {
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case storetypes.ErrorOutOfGas:
+				// propagate out of gas error
+				panic(r)
+			default:
+				k.Logger(ctx).Error("panic in callBeforeSendListener", "error", r)
+				err = errors.New("panic in callBeforeSendListener occurred")
+			}
+		}
+
+		// consume gas used for calling contract to the parent ctx
+		sdkCtx.GasMeter().ConsumeGas(childCtx.GasMeter().GasConsumedToLimit(), "track before send gas")
+		if err == nil {
+			// emit events from child context to parent context only if no error is returned
+			sdkCtx.EventManager().EmitEvents(childCtx.EventManager().Events())
+		}
+	}()
+
+	_, err = k.contractKeeper.Sudo(childCtx, cwAddr, msgBz)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to call before send hook for denom %s", denom)
+	}
+
 	return nil
 }
