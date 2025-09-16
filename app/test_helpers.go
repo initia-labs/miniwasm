@@ -58,7 +58,6 @@ func setup(homeDir string, db *dbm.DB, withGenesis bool) (*MinitiaApp, GenesisSt
 	app := NewMinitiaApp(
 		log.NewNopLogger(),
 		getOrCreateMemDB(db),
-		getOrCreateMemDB(nil),
 		nil,
 		true,
 		[]wasmkeeper.Option{},

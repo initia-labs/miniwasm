@@ -6,7 +6,6 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	tmcfg "github.com/cometbft/cometbft/config"
-	indexerconfig "github.com/initia-labs/kvindexer/config"
 
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 
@@ -16,8 +15,7 @@ import (
 // minitiaAppConfig initia specify app config
 type minitiaAppConfig struct {
 	serverconfig.Config
-	WasmConfig    wasmtypes.NodeConfig        `mapstructure:"wasm"`
-	IndexerConfig indexerconfig.IndexerConfig `mapstructure:"indexer"`
+	WasmConfig wasmtypes.NodeConfig `mapstructure:"wasm"`
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -58,13 +56,12 @@ func initAppConfig() (string, interface{}) {
 	wasmCfg.SimulationGasLimit = &wasmCfg.SmartQueryGasLimit
 
 	minitiaAppConfig := minitiaAppConfig{
-		Config:        *srvCfg,
-		WasmConfig:    wasmCfg,
-		IndexerConfig: indexerconfig.DefaultConfig(),
+		Config:     *srvCfg,
+		WasmConfig: wasmCfg,
 	}
 
 	minitiaAppTemplate := serverconfig.DefaultConfigTemplate +
-		wasmtypes.DefaultConfigTemplate() + indexerconfig.DefaultConfigTemplate
+		wasmtypes.DefaultConfigTemplate()
 
 	return minitiaAppTemplate, minitiaAppConfig
 }
