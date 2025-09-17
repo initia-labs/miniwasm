@@ -68,7 +68,7 @@ func TestInitGenesisOnMigration(t *testing.T) {
 	db := dbm.NewMemDB()
 	logger := log.NewLogger(os.Stdout)
 	app := NewMinitiaApp(
-		logger, db, getOrCreateMemDB(nil), nil, true, []wasmkeeper.Option{}, EmptyAppOptions{homeDir: t.TempDir()})
+		logger, db, nil, true, []wasmkeeper.Option{}, EmptyAppOptions{homeDir: t.TempDir()})
 	ctx := app.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
 
 	// Create a mock module. This module will serve as the new module we're
@@ -124,7 +124,7 @@ func TestGetKey(t *testing.T) {
 	db := dbm.NewMemDB()
 	app := NewMinitiaApp(
 		log.NewLogger(os.Stdout),
-		db, dbm.NewMemDB(), nil, true, []wasmkeeper.Option{}, EmptyAppOptions{homeDir: t.TempDir()})
+		db, nil, true, []wasmkeeper.Option{}, EmptyAppOptions{homeDir: t.TempDir()})
 
 	require.NotEmpty(t, app.GetKey(banktypes.StoreKey))
 	require.NotEmpty(t, app.GetMemKey(capabilitytypes.MemStoreKey))

@@ -26,7 +26,6 @@ func tempApp() *MinitiaApp {
 	return NewMinitiaApp(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
-		dbm.NewMemDB(),
 		nil,
 		false,
 		[]wasmkeeper.Option{},
