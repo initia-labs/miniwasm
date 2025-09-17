@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
 
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 
@@ -368,12 +367,4 @@ func readEnv(clientCtx client.Context) (client.Context, error) {
 	}
 
 	return clientCtx, nil
-}
-
-// helper function to make config creation independent of root dir
-func rootify(path, root string) string {
-	if filepath.IsAbs(path) {
-		return path
-	}
-	return filepath.Join(root, path)
 }
