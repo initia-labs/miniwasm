@@ -808,8 +808,6 @@ github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CosmWasm/wasmd v0.54.2 h1:FIaiHSDXPwiKY6YuupqJDenGXz70mq11HOTC538RYyc=
-github.com/CosmWasm/wasmd v0.54.2/go.mod h1:33OJ+Rj6nhX1HAPMvNo2WyuaNc+CgAEg24TPXjefdM0=
 github.com/CosmWasm/wasmvm/v2 v2.2.4 h1:V3UwXJMA8TNOuQETppDQkaXAevF7gOWLYpKvrThPv7o=
 github.com/CosmWasm/wasmvm/v2 v2.2.4/go.mod h1:Aj/rB2KMRM8nAdbWxkO23rnQYb5KsoPuH9ZizSi0sVg=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
@@ -1432,6 +1430,8 @@ github.com/initia-labs/initia v1.1.2 h1:u+rrvGa4eaFPyC2dEzOTm7wEsRtMIwqoBM6Qb7Lp
 github.com/initia-labs/initia v1.1.2/go.mod h1:vcg6ACutiGW3duxh1TQObrBTf9eihmj4VbCLV5y+u+4=
 github.com/initia-labs/movevm v1.0.0 h1:6/799kyQGCujfvRhAmlu11RkRSRG4Cc1Xk0L91DjzFw=
 github.com/initia-labs/movevm v1.0.0/go.mod h1:sj/kXD7mUQASqogPTjqltIr4Uid3xxnlcbfiFvvqeXA=
+github.com/initia-labs/wasmd v0.54.3-0.20251021023040-12418c897c7f h1:ua+WvhfHANY7vZ7cV2rZDKmCTWZbrPh9q8EByqoxUhc=
+github.com/initia-labs/wasmd v0.54.3-0.20251021023040-12418c897c7f/go.mod h1:33OJ+Rj6nhX1HAPMvNo2WyuaNc+CgAEg24TPXjefdM0=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jhump/protoreflect v1.15.3 h1:6SFRuqU45u9hIZPJAoZ8c28T3nK64BNdp9w6jFonzls=
