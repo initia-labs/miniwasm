@@ -58,7 +58,7 @@ func (server msgServer) Mint(ctx context.Context, msg *types.MsgMint) (*types.Ms
 		return nil, types.ErrDenomDoesNotExist.Wrapf("denom: %s", msg.Amount.Denom)
 	}
 
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
+	authorityMetadata, err := server.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (server msgServer) Mint(ctx context.Context, msg *types.MsgMint) (*types.Ms
 		msg.MintToAddress = msg.Sender
 	}
 
-	err = server.Keeper.mintTo(ctx, msg.Amount, msg.MintToAddress)
+	err = server.mintTo(ctx, msg.Amount, msg.MintToAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 		return nil, err
 	}
 
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
+	authorityMetadata, err := server.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +107,13 @@ func (server msgServer) Burn(ctx context.Context, msg *types.MsgBurn) (*types.Ms
 		return nil, err
 	}
 
-	accountI := server.Keeper.accountKeeper.GetAccount(ctx, acc)
+	accountI := server.accountKeeper.GetAccount(ctx, acc)
 	_, ok := accountI.(sdk.ModuleAccountI)
 	if ok {
 		return nil, types.ErrBurnFromModuleAccount
 	}
 
-	err = server.Keeper.burnFrom(ctx, msg.Amount, msg.Sender)
+	err = server.burnFrom(ctx, msg.Amount, msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (server msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdm
 		return nil, err
 	}
 
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Denom)
+	authorityMetadata, err := server.GetAuthorityMetadata(ctx, msg.Denom)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (server msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdm
 		return nil, types.ErrUnauthorized
 	}
 
-	err = server.Keeper.setAdmin(ctx, msg.Denom, msg.NewAdmin)
+	err = server.setAdmin(ctx, msg.Denom, msg.NewAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (server msgServer) SetDenomMetadata(ctx context.Context, msg *types.MsgSetD
 		return nil, err
 	}
 
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Metadata.Base)
+	authorityMetadata, err := server.GetAuthorityMetadata(ctx, msg.Metadata.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (server msgServer) SetDenomMetadata(ctx context.Context, msg *types.MsgSetD
 		return nil, types.ErrUnauthorized
 	}
 
-	server.Keeper.bankKeeper.SetDenomMetaData(ctx, msg.Metadata)
+	server.bankKeeper.SetDenomMetaData(ctx, msg.Metadata)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
@@ -200,7 +200,7 @@ func (server msgServer) SetBeforeSendHook(ctx context.Context, msg *types.MsgSet
 		return nil, err
 	}
 
-	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Denom)
+	authorityMetadata, err := server.GetAuthorityMetadata(ctx, msg.Denom)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (server msgServer) SetBeforeSendHook(ctx context.Context, msg *types.MsgSet
 		return nil, types.ErrUnauthorized
 	}
 
-	err = server.Keeper.setBeforeSendHook(ctx, msg.Denom, msg.CosmwasmAddress)
+	err = server.setBeforeSendHook(ctx, msg.Denom, msg.CosmwasmAddress)
 	if err != nil {
 		return nil, err
 	}
