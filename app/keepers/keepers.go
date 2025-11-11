@@ -260,6 +260,7 @@ func NewAppKeeper(
 		ac,
 		vc,
 		cc,
+		ac, // should be L1 address codec, currently same as L2
 		logger,
 	)
 
