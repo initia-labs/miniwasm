@@ -67,14 +67,28 @@ func (h WasmHooks) onRecvIcs20Packet(
 	}
 
 	// Extract the denom and amount from the packet data
-	denom := MustExtractDenomFromPacketOnRecv(packet)
+	localDenom := LocalDenom(packet, data.GetDenom())
 	amount, ok := math.NewIntFromString(data.GetAmount())
 	if !ok {
 		return newEmitErrorAcknowledgement(fmt.Errorf("invalid amount: %s", data.GetAmount()))
 	}
 
 	msg.Sender = intermediateSender
-	msg.Funds = sdk.NewCoins(sdk.NewCoin(denom, amount))
+
+	// if the denom was migrated, then user will receive L2 denom instead of original IBC denom
+	if ok, err := h.opchildKeeper.HasIBCToL2DenomMap(ctx, localDenom); err != nil {
+		return newEmitErrorAcknowledgement(err)
+	} else if ok {
+		l2Denom, err := h.opchildKeeper.GetIBCToL2DenomMap(ctx, localDenom)
+		if err != nil {
+			return newEmitErrorAcknowledgement(err)
+		}
+
+		// use L2 denom
+		localDenom = l2Denom
+	}
+
+	msg.Funds = sdk.NewCoins(sdk.NewCoin(localDenom, amount))
 	_, err = h.execMsg(ctx, msg)
 	if err != nil {
 		return newEmitErrorAcknowledgement(err)

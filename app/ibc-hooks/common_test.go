@@ -1,6 +1,7 @@
 package wasm_hooks_test
 
 import (
+	"context"
 	"encoding/binary"
 	"slices"
 	"testing"
@@ -178,6 +179,7 @@ type TestKeepers struct {
 	IBCHooksKeeper     *ibchookskeeper.Keeper
 	IBCHooksMiddleware ibchooks.IBCMiddleware
 	WasmKeeper         wasmkeeper.Keeper
+	OPChildKeeper      *MockOPChildKeeper
 
 	EncodingConfig EncodingConfig
 	Faucet         *TestFaucet
@@ -220,9 +222,13 @@ func _createTestInput(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		distributiontypes.StoreKey, wasmtypes.StoreKey, ibchookstypes.StoreKey,
 	)
+	tkeys := storetypes.NewTransientStoreKeys(ibchookstypes.TStoreKey)
 	ms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	for _, v := range keys {
 		ms.MountStoreWithDB(v, storetypes.StoreTypeIAVL, db)
+	}
+	for _, v := range tkeys {
+		ms.MountStoreWithDB(v, storetypes.StoreTypeTransient, db)
 	}
 	memKeys := storetypes.NewMemoryStoreKeys()
 	for _, v := range memKeys {
@@ -275,6 +281,7 @@ func _createTestInput(
 	ibcHooksKeeper := ibchookskeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ibchookstypes.StoreKey]),
+		runtime.NewTransientStoreService(tkeys[ibchookstypes.TStoreKey]),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ac,
 	)
@@ -310,7 +317,10 @@ func _createTestInput(
 	// ibc middleware setup
 
 	mockIBCMiddleware := mockIBCMiddleware{}
-	wasmHooks := wasmhooks.NewWasmHooks(appCodec, ac, &wasmKeeper)
+	mockOPChildKeeper := &MockOPChildKeeper{
+		IBCToL2DenomMap: map[string]string{},
+	}
+	wasmHooks := wasmhooks.NewWasmHooks(appCodec, ac, &wasmKeeper, mockOPChildKeeper)
 
 	middleware := ibchooks.NewICS4Middleware(mockIBCMiddleware, wasmHooks)
 	ibcHookMiddleware := ibchooks.NewIBCMiddleware(mockIBCMiddleware, middleware, ibcHooksKeeper)
@@ -321,6 +331,7 @@ func _createTestInput(
 		IBCHooksMiddleware: ibcHookMiddleware,
 		WasmKeeper:         wasmKeeper,
 		BankKeeper:         bankKeeper,
+		OPChildKeeper:      mockOPChildKeeper,
 		EncodingConfig:     encodingConfig,
 		Faucet:             faucet,
 		MultiStore:         ms,
@@ -392,4 +403,22 @@ func (m mockIBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnTimeoutPacket implements types.IBCModule.
 func (m mockIBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	return nil
+}
+
+// MockOPChildKeeper is a mock implementation of the OPChildKeeper interface for testing purposes.
+type MockOPChildKeeper struct {
+	IBCToL2DenomMap map[string]string
+}
+
+func (k *MockOPChildKeeper) GetIBCToL2DenomMap(ctx context.Context, ibcDenom string) (string, error) {
+	l2Denom, ok := k.IBCToL2DenomMap[ibcDenom]
+	if !ok {
+		return "", nil
+	}
+	return l2Denom, nil
+}
+
+func (k *MockOPChildKeeper) HasIBCToL2DenomMap(ctx context.Context, ibcDenom string) (bool, error) {
+	_, ok := k.IBCToL2DenomMap[ibcDenom]
+	return ok, nil
 }

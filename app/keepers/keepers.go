@@ -21,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -72,6 +73,7 @@ import (
 
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
 	opchildlanes "github.com/initia-labs/OPinit/x/opchild/lanes"
+	opchildmigration "github.com/initia-labs/OPinit/x/opchild/middleware/migration"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
@@ -260,7 +262,7 @@ func NewAppKeeper(
 		ac,
 		vc,
 		cc,
-		ac, // should be L1 address codec, currently same as L2
+		authcodec.NewBech32Codec("init"),
 		logger,
 	)
 
@@ -336,6 +338,7 @@ func NewAppKeeper(
 	appKeepers.IBCHooksKeeper = ibchookskeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[ibchookstypes.StoreKey]),
+		runtime.NewTransientStoreService(appKeepers.tkeys[ibchookstypes.TStoreKey]),
 		authorityAddr,
 		ac,
 	)
@@ -431,20 +434,31 @@ func NewAppKeeper(
 			transferStack,
 		)
 
+		// create opchild migration middleware for transfer
+		transferStack = opchildmigration.NewIBCMiddleware(
+			ac,
+			appCodec,
+			// receive: migration -> rate limit -> packet forward -> forwarding -> transfer
+			transferStack,
+			nil, /* ics4wrapper: not used */
+			appKeepers.BankKeeper,
+			appKeepers.OPChildKeeper,
+		)
+
 		// create wasm middleware for transfer
 		transferStack = ibchooks.NewIBCMiddleware(
-			// receive: wasm -> rate limit -> packet forward -> forwarding -> transfer
+			// receive: wasm -> migration -> rate limit -> packet forward -> forwarding -> transfer
 			transferStack,
 			ibchooks.NewICS4Middleware(
 				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper),
+				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
 			),
 			appKeepers.IBCHooksKeeper,
 		)
 
 		// create ibcfee middleware for transfer
 		transferStack = ibcfee.NewIBCMiddleware(
-			// receive: fee -> wasm -> rate limit -> packet forward -> forwarding -> transfer
+			// receive: fee -> wasm -> migration -> rate limit -> packet forward -> forwarding -> transfer
 			transferStack,
 			// ics4wrapper: transfer -> packet forward -> rate limit -> fee -> channel
 			*appKeepers.IBCFeeKeeper,
@@ -518,7 +532,7 @@ func NewAppKeeper(
 			wasmIBCModule,
 			ibchooks.NewICS4Middleware(
 				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper),
+				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
 			),
 			appKeepers.IBCHooksKeeper,
 		)
