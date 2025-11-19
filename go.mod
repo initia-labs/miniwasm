@@ -298,7 +298,7 @@ require (
 // - https://github.com/initia-labs/connect/pull/1
 replace (
 	github.com/CosmWasm/wasmd => github.com/initia-labs/wasmd v0.54.3-initia.0
-	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19-minitia.1
+	github.com/cometbft/cometbft => github.com/initia-labs/cometbft v0.38.19-minitia.2
 	github.com/cosmos/cosmos-sdk => github.com/initia-labs/cosmos-sdk v0.50.14-initia.2
 	github.com/cosmos/ibc-go/v8 => github.com/initia-labs/ibc-go/v8 v8.0.0-20250313020428-36b81501adfc
 	github.com/noble-assets/forwarding/simapp => github.com/initia-labs/forwarding/simapp v1.0.0
