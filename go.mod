@@ -34,7 +34,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/initia-labs/OPinit v1.2.2
-	github.com/initia-labs/initia v1.1.3-0.20251119030457-2471a717f37c
+	github.com/initia-labs/initia v1.2.0
 	github.com/noble-assets/forwarding/v2 v2.0.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.0
