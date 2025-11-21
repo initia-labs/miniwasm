@@ -308,6 +308,7 @@ func _createTestInput(
 		ac,
 		vc,
 		cac,
+		ac,
 		ctx.Logger().With("module", "x/"+opchildtypes.ModuleName),
 	)
 	require.NoError(t, opchildKeeper.Params.Set(ctx, opchildtypes.DefaultParams()))

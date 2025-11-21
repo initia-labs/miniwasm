@@ -19,16 +19,18 @@ var (
 )
 
 type WasmHooks struct {
-	codec      codec.Codec
-	ac         address.Codec
-	wasmKeeper *wasmkeeper.Keeper
+	codec         codec.Codec
+	ac            address.Codec
+	wasmKeeper    *wasmkeeper.Keeper
+	opchildKeeper OPChildKeeper
 }
 
-func NewWasmHooks(codec codec.Codec, ac address.Codec, wasmKeeper *wasmkeeper.Keeper) *WasmHooks {
+func NewWasmHooks(codec codec.Codec, ac address.Codec, wasmKeeper *wasmkeeper.Keeper, opchildKeeper OPChildKeeper) *WasmHooks {
 	return &WasmHooks{
-		codec:      codec,
-		ac:         ac,
-		wasmKeeper: wasmKeeper,
+		codec:         codec,
+		ac:            ac,
+		wasmKeeper:    wasmKeeper,
+		opchildKeeper: opchildKeeper,
 	}
 }
 
