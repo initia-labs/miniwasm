@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -25,30 +27,34 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=x86_64" >> $GITHUB_ENV
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')
+          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV
+      
+      - name: Ensure dependencies
+        run: |
+          go mod tidy
+          go get github.com/CosmWasm/wasmvm/v2@${WASMVM_VERSION}
 
       - name: Print environment variables
         run: |
           echo "GOARCH=${GOARCH}"
           echo "GOOS=${GOOS}"
           echo "VERSION=${VERSION}"
+          echo "ARCH_NAME=${ARCH_NAME}"
+          echo "WASMVM_VERSION=${WASMVM_VERSION}"
 
       - name: Build for Linux AMD64
         run: |
-          export GOARCH=${GOARCH}
-          export GOOS=${GOOS}
-          make build-linux-with-shared-library \
+          make build \
           && cd ./build \
-          && mv libwasmvm.so libwasmvm.${ARCH_NAME}.so \
+          && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@${WASMVM_VERSION}/internal/api/libwasmvm.${ARCH_NAME}.so ./ \
           && tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz minitiad libwasmvm.${ARCH_NAME}.so \
-          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz $GITHUB_WORKSPACE/ \
+          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz ${GITHUB_WORKSPACE}/ \
           && rm -rf ./minitiad ./libwasmvm.${ARCH_NAME}.so
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: miniwasm-linux-amd64
-          path: miniwasm_${{ env.VERSION }}_Linux_${{ env.ARCH_NAME }}.tar.gz
+          path: miniwasm_*.tar.gz
           retention-days: 1
-        env:
-          VERSION: ${{ env.VERSION }}
-          ARCH_NAME: ${{ env.ARCH_NAME }}
