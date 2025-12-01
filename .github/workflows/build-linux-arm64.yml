@@ -12,13 +12,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          platforms: arm64
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          go-version: "1.23"
 
       - name: Set environment variables
         run: |
@@ -31,49 +28,34 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=aarch64" >> $GITHUB_ENV
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')
+          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV
+
+      - name: Ensure dependencies
+        run: |
+          go mod tidy
+          go get github.com/CosmWasm/wasmvm/v2@${WASMVM_VERSION}
+
+      - name: Print environment variables
+        run: |
+          echo "GOARCH=${GOARCH}"
+          echo "GOOS=${GOOS}"
+          echo "VERSION=${VERSION}"
+          echo "ARCH_NAME=${ARCH_NAME}"
+          echo "WASMVM_VERSION=${WASMVM_VERSION}"
 
       - name: Build for ARM64
-        env:
-          DOCKER_BUILDKIT: 1
         run: |
-          # Activate BuildKit and create a new builder
-          docker buildx create --use --name arm64-builder --platform linux/arm64
-          docker buildx inspect --bootstrap
-
-          # Building images for ARM64
-          docker buildx build --platform linux/arm64 --load --tag minitia/minitiad-shared:arm64 . -f Dockerfile.arm64
-
-          # Extract build output using ARM64 images
-          mkdir -p ./build
-          docker create --name temp minitia/minitiad-shared:arm64
-          docker cp temp:/usr/local/bin/minitiad ./build/
-          docker cp temp:/lib/libwasmvm.so ./build/
-          docker rm temp
-
-          # Packaging of results
-          cd ./build \
-          && mv libwasmvm.so libwasmvm.${ARCH_NAME}.so \
+          make build \
+          && cd ./build \
+          && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@${WASMVM_VERSION}/internal/api/libwasmvm.${ARCH_NAME}.so ./
           && tar -czvf miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz minitiad libwasmvm.${ARCH_NAME}.so \
-          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz $GITHUB_WORKSPACE/ \
+          && mv miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz ${GITHUB_WORKSPACE}/ \
           && rm -rf ./minitiad ./libwasmvm.${ARCH_NAME}.so
-
-          # Check build results
-          cd ..
-          ls -l
-          file miniwasm_${VERSION}_Linux_${ARCH_NAME}.tar.gz
-
-          # Remove builder
-          docker buildx rm arm64-builder
-
-      - name: List files
-        run: ls -l
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: miniwasm-linux-arm64
-          path: miniwasm_${{ env.VERSION }}_Linux_${{ env.ARCH_NAME }}.tar.gz
+          path: miniwasm_*.tar.gz
           retention-days: 1
-        env:
-          VERSION: ${{ env.VERSION }}
-          ARCH_NAME: ${{ env.ARCH_NAME }}

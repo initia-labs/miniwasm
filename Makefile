@@ -122,21 +122,6 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/minitiad ./cmd/minitiad
 endif
 
-build-linux:
-	mkdir -p $(BUILDDIR)
-	docker build --no-cache --tag initia/miniwasm ./
-	docker create --name temp initia/miniwasm:latest --env VERSION=$(VERSION)
-	docker cp temp:/usr/local/bin/minitiad $(BUILDDIR)/
-	docker rm temp
-
-build-linux-with-shared-library:
-	mkdir -p $(BUILDDIR)
-	docker build --tag initia/miniwasm-shared ./ -f ./shared.Dockerfile
-	docker create --name temp initia/miniwasm-shared:latest --env VERSION=$(VERSION)
-	docker cp temp:/usr/local/bin/minitiad $(BUILDDIR)/
-	docker cp temp:/lib/libwasmvm.so $(BUILDDIR)/
-	docker rm temp
-
 install: go.sum 
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/minitiad
 
@@ -149,7 +134,7 @@ update-swagger-docs: statik
         echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
 
-.PHONY: build build-linux install update-swagger-docs
+.PHONY: build install update-swagger-docs
 
 ###############################################################################
 ###                                Protobuf                                 ###

@@ -5,22 +5,20 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.23"
+
       - name: Set environment variables
         run: |
-          MINIWASM_NETWORK_NAME="miniwasm-1"
-          echo "MINIWASM_NETWORK_NAME=${MINIWASM_NETWORK_NAME}" >> $GITHUB_ENV
-          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')    
-          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV        
           echo "GOARCH=arm64" >> $GITHUB_ENV
           echo "GOOS=darwin" >> $GITHUB_ENV
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
@@ -30,6 +28,8 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=aarch64" >> $GITHUB_ENV
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')    
+          echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV
 
       - name: Ensure dependencies
         run: |
@@ -42,23 +42,20 @@ jobs:
           echo "GOOS=${GOOS}"
           echo "VERSION=${VERSION}"
           echo "ARCH_NAME=${ARCH_NAME}"
-          echo "MINIWASM_NETWORK_NAME=${MINIWASM_NETWORK_NAME}"
+          echo "WASMVM_VERSION=${WASMVM_VERSION}"
 
       - name: Build and Package for Darwin ARM64
         run: |
           make build \
           && cd ./build \
           && cp ~/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@${WASMVM_VERSION}/internal/api/libwasmvm.dylib ./ \
-          && tar -czvf miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz minitiad libwasmvm.dylib \
-          && mv ./miniwasm_"$VERSION"_Darwin_"$ARCH_NAME".tar.gz $GITHUB_WORKSPACE/ \
+          && tar -czvf miniwasm_"${VERSION}"_Darwin_"${ARCH_NAME}".tar.gz minitiad libwasmvm.dylib \
+          && mv ./miniwasm_"${VERSION}"_Darwin_"${ARCH_NAME}".tar.gz ${GITHUB_WORKSPACE}/ \
           && rm -rf ./libwasmvm.dylib ./minitiad
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: miniwasm-darwin-arm64
-          path: miniwasm_${{ env.VERSION }}_Darwin_${{ env.ARCH_NAME }}.tar.gz
+          path: miniwasm_*.tar.gz
           retention-days: 1
-        env:
-          VERSION: ${{ env.VERSION }}
-          ARCH_NAME: ${{ env.ARCH_NAME }}
