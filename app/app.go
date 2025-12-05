@@ -15,6 +15,7 @@ import (
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -66,6 +67,9 @@ import (
 	"github.com/initia-labs/miniwasm/app/keepers"
 	"github.com/initia-labs/miniwasm/app/upgrades/v1_2_1"
 
+	// memiavl store
+	initiastore "github.com/initia-labs/store"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/initia-labs/miniwasm/client/docs/statik"
 )
@@ -112,6 +116,9 @@ type MinitiaApp struct {
 
 	// Override of BaseApp's CheckTx
 	checkTxHandler blockchecktx.CheckTx
+
+	// QueryMultiStore
+	qms storetypes.MultiStore
 }
 
 // NewMinitiaApp returns a reference to an initialized Initia.
@@ -142,6 +149,7 @@ func NewMinitiaApp(
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 	txConfig := encodingConfig.TxConfig
 
+	baseAppOptions = initiastore.SetupMemIAVL(logger, appOpts, false, baseAppOptions)
 	bApp := baseapp.NewBaseApp(AppName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
@@ -329,6 +337,20 @@ func NewMinitiaApp(
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}
+
+	// create streaming manager
+	streamingManager := &storetypes.StreamingManager{
+		ABCIListeners: []storetypes.ABCIListener{},
+		StopNodeOnErr: true,
+	}
+
+	// setup versiondb; this should be called after LoadLatestVersion
+	if err := initiastore.SetupVersionDB(app, streamingManager, appOpts); err != nil {
+		tmos.Exit(err.Error())
+	}
+
+	// override base-app's streaming manager
+	app.SetStreamingManager(*streamingManager)
 
 	return app
 }

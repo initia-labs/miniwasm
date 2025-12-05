@@ -46,10 +46,8 @@ import (
 	forwardingtypes "github.com/noble-assets/forwarding/v2/types"
 )
 
-func (appKeepers *AppKeepers) GenerateKeys() {
-	// Define what keys will be used in the cosmos-sdk key/value store.
-	// Cosmos-SDK modules each have a "key" that allows the application to reference what they've stored on the chain.
-	appKeepers.keys = storetypes.NewKVStoreKeys(
+func KVStoreKeys() []string {
+	return []string{
 		authtypes.StoreKey, banktypes.StoreKey, group.StoreKey, consensusparamtypes.StoreKey,
 		crisistypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, authzkeeper.StoreKey, feegrant.StoreKey,
@@ -58,7 +56,12 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		auctiontypes.StoreKey, packetforwardtypes.StoreKey, oracletypes.StoreKey,
 		tokenfactorytypes.StoreKey, ibchookstypes.StoreKey, forwardingtypes.StoreKey,
 		marketmaptypes.StoreKey, ratelimittypes.StoreKey,
-	)
+	}
+}
+func (appKeepers *AppKeepers) GenerateKeys() {
+	// Define what keys will be used in the cosmos-sdk key/value store.
+	// Cosmos-SDK modules each have a "key" that allows the application to reference what they've stored on the chain.
+	appKeepers.keys = storetypes.NewKVStoreKeys(KVStoreKeys()...)
 
 	// Define transient store keys
 	appKeepers.tkeys = storetypes.NewTransientStoreKeys(forwardingtypes.TransientStoreKey, ibchookstypes.TStoreKey)
