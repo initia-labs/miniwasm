@@ -43,11 +43,17 @@ import (
 
 	"github.com/initia-labs/initia/app/params"
 	cryptokeyring "github.com/initia-labs/initia/crypto/keyring"
+
 	minitiaapp "github.com/initia-labs/miniwasm/app"
+	"github.com/initia-labs/miniwasm/app/keepers"
 
 	opchildcli "github.com/initia-labs/OPinit/x/opchild/client/cli"
 
 	cmtcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+
+	initiastoreclient "github.com/initia-labs/store/client"
+	initiastoreconfig "github.com/initia-labs/store/config"
+	initiastoreopendb "github.com/initia-labs/store/opendb"
 )
 
 // NewRootCmd creates a new root command for initiad. It is called once in the
@@ -158,10 +164,20 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			initiaappTemplate, initiaappConfig := initAppConfig()
+			minitiaAppTemplate, minitiaAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
 
-			return server.InterceptConfigsPreRunHandler(cmd, initiaappTemplate, initiaappConfig, customTMConfig)
+			err = server.InterceptConfigsPreRunHandler(cmd, minitiaAppTemplate, minitiaAppConfig, customTMConfig)
+			if err != nil {
+				return err
+			}
+
+			// set the db dir for opendb
+			if serverCtx := cmd.Context().Value(server.ServerContextKey); serverCtx != nil {
+				initiastoreopendb.DBDir = cast.ToString(serverCtx.(*server.Context).Viper.Get("db_dir"))
+			}
+
+			return nil
 		},
 	}
 
@@ -190,7 +206,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		snapshot.Cmd(a.AppCreator()),
 	)
 
-	server.AddCommands(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, addModuleInitFlags)
+	server.AddCommandsWithStartCmdOptions(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, server.StartCmdOptions{
+		AddFlags: addModuleInitFlags,
+		DBOpener: initiastoreopendb.OpenDB,
+	})
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -206,10 +225,17 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 	rootCmd.AddCommand(LaunchCommand(a, encodingConfig, basicManager))
 	rootCmd.AddCommand(NewMultipleRollbackCmd(a.AppCreator()))
 	rootCmd.AddCommand(cmtcmd.FetchGenesisCmd)
+
+	// add store commands
+	if storeCmd := initiastoreclient.ChangeSetGroupCmd(keepers.KVStoreKeys()); storeCmd != nil {
+		rootCmd.AddCommand(storeCmd)
+	}
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	initiastoreconfig.AddMemIAVLConfigFlags(startCmd)
+	initiastoreconfig.AddVersionDBConfigFlags(startCmd)
 }
 
 func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.BasicManager) *cobra.Command {
