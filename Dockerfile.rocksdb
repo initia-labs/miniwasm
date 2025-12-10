@@ -17,7 +17,7 @@ ENV CGO_CFLAGS="-I/usr/local/include"
 RUN VERSION=${VERSION} COMMIT=${COMMIT} LEDGER_ENABLED=false COSMOS_BUILD_OPTIONS=rocksdb make build
 
 # Copy WasmVM shared libs from Go module cache
-RUN cp /go/pkg/mod/github.com/CosmWasm/wasmvm/v2@v*/internal/api/libwasmvm.x86_64.so /usr/local/lib/libwasmvm.x86_64.so
+RUN cp /go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@v*/internal/api/libwasmvm.x86_64.so /usr/local/lib/libwasmvm.x86_64.so
 
 FROM debian:bullseye-slim
 
