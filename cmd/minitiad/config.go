@@ -10,17 +10,21 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 
 	"github.com/initia-labs/miniwasm/types"
+
+	initiastorecfg "github.com/initia-labs/store/config"
 )
 
 // minitiaAppConfig initia specify app config
 type minitiaAppConfig struct {
 	serverconfig.Config
-	WasmConfig wasmtypes.NodeConfig `mapstructure:"wasm"`
+	MemIAVL    initiastorecfg.MemIAVLConfig   `mapstructure:"memiavl"`
+	VersionDB  initiastorecfg.VersionDBConfig `mapstructure:"versiondb"`
+	WasmConfig wasmtypes.NodeConfig           `mapstructure:"wasm"`
 }
 
 // initAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func initAppConfig() (string, interface{}) {
+func initAppConfig() (string, any) {
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
 	srvCfg := serverconfig.DefaultConfig()
@@ -55,13 +59,20 @@ func initAppConfig() (string, interface{}) {
 	wasmCfg.SmartQueryGasLimit = 10_000_000
 	wasmCfg.SimulationGasLimit = &wasmCfg.SmartQueryGasLimit
 
+	memIAVLCfg := initiastorecfg.DefaultMemIAVLConfig()
+	versionDBCfg := initiastorecfg.DefaultVersionDBConfig()
+
 	minitiaAppConfig := minitiaAppConfig{
 		Config:     *srvCfg,
 		WasmConfig: wasmCfg,
+		MemIAVL:    memIAVLCfg,
+		VersionDB:  versionDBCfg,
 	}
 
 	minitiaAppTemplate := serverconfig.DefaultConfigTemplate +
-		wasmtypes.DefaultConfigTemplate()
+		wasmtypes.DefaultConfigTemplate() +
+		initiastorecfg.DefaultMemIAVLConfigTemplate +
+		initiastorecfg.DefaultVersionDBConfigTemplate
 
 	return minitiaAppTemplate, minitiaAppConfig
 }
