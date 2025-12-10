@@ -7,6 +7,9 @@ BUILDDIR ?= $(CURDIR)/build
 DOCKER := $(shell which docker)
 HTTPS_GIT := https://github.com/initia-labs/miniwasm.git
 
+# default to CGO_ENABLED=1 for wasmvm, ledger and rocksdb support
+CGO_ENABLED := 1
+
 # don't override user values of COMMIT and VERSION
 ifeq (,$(COMMIT))
   COMMIT := $(shell git log -1 --format='%H')
@@ -68,7 +71,6 @@ endef
 
 ifeq (rocksdb,$(findstring rocksdb,$(COSMOS_BUILD_OPTIONS)))
   $(info $(ROCKSDB_INSTRUCTIONS))
-  CGO_ENABLED ?= 1
   build_tags += rocksdb grocksdb_clean_link
 
   ifeq ($(shell uname -s),Darwin)
