@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -545,9 +546,22 @@ func GetMaccPerms() map[string][]string {
 // Close closes the underlying baseapp, the oracle service, and the prometheus server if required.
 // This method blocks on the closure of both the prometheus server, and the oracle-service
 func (app *MinitiaApp) Close() error {
+	var errs []error
+
 	if err := app.BaseApp.Close(); err != nil {
-		return err
+		errs = append(errs, err)
 	}
 
-	return nil
+	for _, store := range []storetypes.MultiStore{app.CommitMultiStore(), app.qms} {
+		if store == nil {
+			continue
+		}
+		if closer, ok := store.(io.Closer); ok {
+			if err := closer.Close(); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	return errors.Join(errs...)
 }
