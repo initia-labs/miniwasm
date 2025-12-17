@@ -23,6 +23,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtstate "github.com/cometbft/cometbft/state"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -66,7 +67,7 @@ import (
 
 	// local imports
 	"github.com/initia-labs/miniwasm/app/keepers"
-	"github.com/initia-labs/miniwasm/app/upgrades/v1_2_1"
+	"github.com/initia-labs/miniwasm/app/upgrades/v1_2_5"
 
 	// memiavl store
 	initiastore "github.com/initia-labs/store"
@@ -251,7 +252,7 @@ func NewMinitiaApp(
 	// The cosmos upgrade handler attempts to create ${HOME}/.minitia/data to check for upgrade info,
 	// but this isn't required during initial encoding config setup.
 	if loadLatest {
-		v1_2_1.RegisterUpgradeHandlers(app)
+		v1_2_5.RegisterUpgradeHandlers(app)
 	}
 
 	// register executor change plans for later use
@@ -279,6 +280,9 @@ func NewMinitiaApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.setPostHandler()
 	app.SetEndBlocker(app.EndBlocker)
+
+	// register context decorator for message router
+	app.RegisterMessageRouterContextDecorator()
 
 	// setup BlockSDK
 	mempool, anteHandler, checkTx, prepareProposalHandler, processProposalHandler, err := setupBlockSDK(app, mempoolMaxTxs, wasmConfig, app.GetKVStoreKey()[wasmtypes.StoreKey])
@@ -564,4 +568,18 @@ func (app *MinitiaApp) Close() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// RegisterMessageRouterContextDecorator registers a context decorator for the message router
+func (app *MinitiaApp) RegisterMessageRouterContextDecorator() {
+	app.MsgServiceRouter().SetContextDecorator(func(ctx sdk.Context, msg sdk.Msg) sdk.Context {
+		if ctx.ExecMode() == sdk.ExecModeSimulate {
+			// in simulation mode, ctx.BlockTime() is referring previous block time
+			// so we need to adjust it to be at least now to avoid issues with
+			// time-based logic in messages
+			ctx = ctx.WithBlockTime(cmtstate.LocalTime(ctx.BlockTime()))
+		}
+
+		return ctx
+	})
 }
