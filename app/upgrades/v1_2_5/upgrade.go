@@ -1,4 +1,4 @@
-package v1_2_1
+package v1_2_5
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/initia-labs/miniwasm/app/upgrades"
 )
 
-const upgradeName = "v1.2.1"
+const upgradeName = "v1.2.5"
 
 // RegisterUpgradeHandlers returns upgrade handlers
 func RegisterUpgradeHandlers(app upgrades.MinitiaApp) {
