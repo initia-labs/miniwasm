@@ -35,21 +35,21 @@ RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a
 # force it to use static lib (from above) not standard libwasmvm.so file
 RUN VERSION=${VERSION} COMMIT=${COMMIT} LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
 
-FROM alpine:3.18
+# use bullseye-slim as base image for rly binary at launch
+FROM debian:bullseye-slim
 
 # install curl for health check
-RUN apk add curl 
+RUN apt-get update && \
+    apt-get install -y ca-certificates vim curl && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN addgroup minitia \
-    && adduser -G minitia -D -h /minitia minitia
+COPY --from=go-builder  /code/build/minitiad /usr/local/bin/minitiad
 
+# Setup minitia user
 WORKDIR /minitia
-
-COPY --from=go-builder /code/build/minitiad /usr/local/bin/minitiad
-
-# for new-metric setup
-COPY --from=go-builder /code/contrib /minitia/contrib
-
+RUN addgroup minitia \
+    && adduser --ingroup minitia --disabled-password --home /minitia minitia
+RUN chown -R minitia:minitia /minitia
 USER minitia
 
 # rest server
