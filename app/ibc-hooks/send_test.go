@@ -28,7 +28,7 @@ func Test_SendPacket_asyncCallback_only(t *testing.T) {
 		Amount:   "10000",
 		Sender:   addr.String(),
 		Receiver: addr2.String(),
-		Memo:     fmt.Sprintf(`{"wasm":{"async_callback":"%s"}}`, addr.String()),
+		Memo:     fmt.Sprintf(`{"wasm":{"async_callback":"%s"},"key":"value"}`, addr.String()),
 	}
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
@@ -39,7 +39,7 @@ func Test_SendPacket_asyncCallback_only(t *testing.T) {
 
 	var gotData transfertypes.FungibleTokenPacketData
 	require.NoError(t, json.Unmarshal(input.MockIBCMiddleware.lastData, &gotData))
-	require.Equal(t, "{}", gotData.Memo)
+	require.Equal(t, `{"key":"value"}`, gotData.Memo)
 
 	callbackBz, err := input.IBCHooksKeeper.GetAsyncCallback(ctx, "transfer", "channel-0", seq)
 	require.NoError(t, err)
@@ -63,7 +63,8 @@ func Test_SendPacket_asyncCallback_with_message(t *testing.T) {
 				"msg": {"increase":{}}
 			},
 			"async_callback": "%s"
-		}
+		},
+		"key":"value"
 	}`, addr.String(), addr2.String(), addr.String())
 	data := transfertypes.FungibleTokenPacketData{
 		Denom:    "foo",
@@ -90,6 +91,9 @@ func Test_SendPacket_asyncCallback_with_message(t *testing.T) {
 	require.False(t, hasAsync)
 	_, hasMessage := wasmMap["message"]
 	require.True(t, hasMessage)
+	keyMap, ok := memoMap["key"].(string)
+	require.True(t, ok)
+	require.Equal(t, "value", keyMap)
 
 	callbackBz, err := input.IBCHooksKeeper.GetAsyncCallback(ctx, "transfer", "channel-1", seq)
 	require.NoError(t, err)
