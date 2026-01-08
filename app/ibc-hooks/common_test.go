@@ -322,7 +322,7 @@ func _createTestInput(
 	}
 	wasmHooks := wasmhooks.NewWasmHooks(appCodec, ac, &wasmKeeper, mockOPChildKeeper)
 
-	middleware := ibchooks.NewICS4Middleware(mockIBCMiddleware, wasmHooks)
+	middleware := ibchooks.NewICS4Middleware(mockIBCMiddleware, ibcHooksKeeper, wasmHooks)
 	ibcHookMiddleware := ibchooks.NewIBCMiddleware(mockIBCMiddleware, middleware, ibcHooksKeeper)
 
 	keepers := TestKeepers{

@@ -19,3 +19,8 @@ type HookData struct {
 	// AsyncCallback is a contract address
 	AsyncCallback string `json:"async_callback,omitempty"`
 }
+
+// WasmMemo is a wrapper for wasm hook data in memo field.
+type WasmMemo struct {
+	Wasm *HookData `json:"wasm,omitempty"`
+}
