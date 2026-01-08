@@ -55,11 +55,10 @@ func (h WasmHooks) handleSendPacket(
 	icsData ibchookstypes.ICSData,
 ) (uint64, error) {
 	hookData, routed, err := parseHookData(icsData.GetMemo())
-	if !routed {
-		return im.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, icsData.GetBytes())
-	} else if err != nil {
+	if err != nil {
 		return 0, err
-	} else if hookData == nil || hookData.AsyncCallback == "" {
+	}
+	if !routed || hookData == nil || hookData.AsyncCallback == "" {
 		return im.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, icsData.GetBytes())
 	}
 
@@ -72,10 +71,7 @@ func (h WasmHooks) handleSendPacket(
 		delete(memoMap, wasmHookMemoKey)
 	} else {
 		hookData.AsyncCallback = ""
-		wasmMemo := WasmMemo{
-			Wasm: hookData,
-		}
-		bz, err := json.Marshal(wasmMemo)
+		bz, err := json.Marshal(hookData)
 		if err != nil {
 			return 0, err
 		}
