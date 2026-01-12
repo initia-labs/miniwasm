@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cosmossdk.io/collections"
+
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
@@ -42,6 +44,43 @@ func Test_OnAckPacket(t *testing.T) {
 		Data: dataBz,
 	}, ackBz, addr)
 	require.NoError(t, err)
+}
+
+func Test_OnAckPacket_acl_not_allowed(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	_, _, addr := keyPubAddr()
+	_, _, receiver := keyPubAddr()
+
+	sourcePort := "transfer"
+	sourceChannel := "channel-acl"
+	sequence := uint64(3)
+
+	data := transfertypes.FungibleTokenPacketData{
+		Denom:    "foo",
+		Amount:   "10000",
+		Sender:   addr.String(),
+		Receiver: receiver.String(),
+		Memo:     fmt.Sprintf(`{"wasm":{"async_callback":"%s"}}`, addr.String()),
+	}
+	dataBz, err := json.Marshal(&data)
+	require.NoError(t, err)
+
+	callbackBz := []byte(addr.String())
+	require.NoError(t, input.IBCHooksKeeper.SetAsyncCallback(ctx, sourcePort, sourceChannel, sequence, callbackBz))
+
+	ackBz := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+
+	err = input.IBCHooksMiddleware.OnAcknowledgementPacket(ctx, channeltypes.Packet{
+		Data:          dataBz,
+		SourcePort:    sourcePort,
+		SourceChannel: sourceChannel,
+		Sequence:      sequence,
+	}, ackBz, addr)
+	require.NoError(t, err)
+
+	_, err = input.IBCHooksKeeper.GetAsyncCallback(ctx, sourcePort, sourceChannel, sequence)
+	require.Error(t, err)
+	require.True(t, errors.Is(err, collections.ErrNotFound))
 }
 
 func Test_OnAckPacket_memo(t *testing.T) {
@@ -92,8 +131,7 @@ func Test_OnAckPacket_memo(t *testing.T) {
 
 	successAckBz := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	failedAckBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
-	callbackBz, err := json.Marshal(contractAddrBech32)
-	require.NoError(t, err)
+	callbackBz := []byte(contractAddrBech32)
 	require.NoError(t, input.IBCHooksKeeper.SetAsyncCallback(ctx, sourcePort, sourceChannel, sequence, callbackBz))
 
 	// hook should not be called to due to acl
@@ -224,8 +262,7 @@ func Test_OnAckPacket_memo_ICS721(t *testing.T) {
 
 	successAckBz := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	failedAckBz := channeltypes.NewErrorAcknowledgement(errors.New("failed")).Acknowledgement()
-	callbackBz, err := json.Marshal(contractAddrBech32)
-	require.NoError(t, err)
+	callbackBz := []byte(contractAddrBech32)
 	require.NoError(t, input.IBCHooksKeeper.SetAsyncCallback(ctx, sourcePort, sourceChannel, sequence, callbackBz))
 
 	// success with success ack

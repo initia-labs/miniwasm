@@ -63,6 +63,9 @@ func (h WasmHooks) handleSendPacket(
 	}
 
 	asyncCallback := hookData.AsyncCallback
+	if _, err := h.ac.StringToBytes(asyncCallback); err != nil {
+		return 0, err
+	}
 
 	var memoMap map[string]any
 	// ignore error, it is already checked in parseHookData
@@ -88,11 +91,7 @@ func (h WasmHooks) handleSendPacket(
 		return sequence, err
 	}
 
-	asyncCallbackBz, err := json.Marshal(asyncCallback)
-	if err != nil {
-		return sequence, err
-	}
-	if err := im.HooksKeeper.SetAsyncCallback(ctx, sourcePort, sourceChannel, sequence, asyncCallbackBz); err != nil {
+	if err := im.HooksKeeper.SetAsyncCallback(ctx, sourcePort, sourceChannel, sequence, []byte(asyncCallback)); err != nil {
 		return sequence, err
 	}
 

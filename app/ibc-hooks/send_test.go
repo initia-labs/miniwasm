@@ -43,9 +43,35 @@ func Test_SendPacket_asyncCallback_only(t *testing.T) {
 
 	callbackBz, err := input.IBCHooksKeeper.GetAsyncCallback(ctx, "transfer", "channel-0", seq)
 	require.NoError(t, err)
-	expectedCallbackBz, err := json.Marshal(addr.String())
-	require.NoError(t, err)
+	expectedCallbackBz := []byte(addr.String())
 	require.Equal(t, expectedCallbackBz, callbackBz)
+}
+
+func Test_SendPacket_asyncCallback_invalid(t *testing.T) {
+	ctx, input := createDefaultTestInput(t)
+	_, _, addr := keyPubAddr()
+	_, _, addr2 := keyPubAddr()
+
+	input.MockIBCMiddleware.setSequence(99)
+
+	data := transfertypes.FungibleTokenPacketData{
+		Denom:    "foo",
+		Amount:   "10000",
+		Sender:   addr.String(),
+		Receiver: addr2.String(),
+		Memo:     `{"wasm":{"async_callback":"not-a-bech32"}}`,
+	}
+	dataBz, err := json.Marshal(&data)
+	require.NoError(t, err)
+
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "transfer", "channel-invalid", clienttypes.ZeroHeight(), 0, dataBz)
+	require.Error(t, err)
+	require.Zero(t, seq)
+	require.Nil(t, input.MockIBCMiddleware.lastData)
+
+	_, err = input.IBCHooksKeeper.GetAsyncCallback(ctx, "transfer", "channel-invalid", 99)
+	require.Error(t, err)
+	require.True(t, errors.Is(err, collections.ErrNotFound))
 }
 
 func Test_SendPacket_asyncCallback_with_message(t *testing.T) {
@@ -97,8 +123,7 @@ func Test_SendPacket_asyncCallback_with_message(t *testing.T) {
 
 	callbackBz, err := input.IBCHooksKeeper.GetAsyncCallback(ctx, "transfer", "channel-1", seq)
 	require.NoError(t, err)
-	expectedCallbackBz, err := json.Marshal(addr.String())
-	require.NoError(t, err)
+	expectedCallbackBz := []byte(addr.String())
 	require.Equal(t, expectedCallbackBz, callbackBz)
 }
 
@@ -131,8 +156,7 @@ func Test_SendPacket_asyncCallback_ics721(t *testing.T) {
 
 	callbackBz, err := input.IBCHooksKeeper.GetAsyncCallback(ctx, "nft-transfer", "channel-2", seq)
 	require.NoError(t, err)
-	expectedCallbackBz, err := json.Marshal(addr.String())
-	require.NoError(t, err)
+	expectedCallbackBz := []byte(addr.String())
 	require.Equal(t, expectedCallbackBz, callbackBz)
 }
 

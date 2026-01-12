@@ -1,7 +1,6 @@
 package wasm_hooks
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -64,16 +63,7 @@ func (h WasmHooks) handleOnTimeout(
 	// ignore error on removal; it should not happen
 	_ = im.HooksKeeper.RemoveAsyncCallback(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	var asyncCallback string
-	if err := json.Unmarshal(bz, &asyncCallback); err != nil {
-		h.wasmKeeper.Logger(ctx).Error("failed to unmarshal async callback", "error", err)
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeHookFailed,
-			sdk.NewAttribute(types.AttributeKeyReason, "failed to unmarshal async callback"),
-			sdk.NewAttribute(types.AttributeKeyError, err.Error()),
-		))
-		return nil
-	}
+	asyncCallback := string(bz)
 
 	// create a new cache context to ignore errors during
 	// the execution of the callback
