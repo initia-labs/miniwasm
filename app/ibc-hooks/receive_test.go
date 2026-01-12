@@ -116,7 +116,6 @@ func Test_onReceivePacket_memo(t *testing.T) {
 		DestinationPort:    "wasm",
 		DestinationChannel: "channel-0",
 	}, addr)
-	fmt.Println(string(ack.Acknowledgement()))
 	require.True(t, ack.Success())
 
 	// check the contract state

@@ -368,6 +368,7 @@ func NewAppKeeper(
 	{
 		packetForwardKeeper := &packetforwardkeeper.Keeper{}
 		rateLimitKeeper := &ratelimitkeeper.Keeper{}
+		ibcHooksICS4Wrapper := &ibchooks.ICS4Middleware{}
 
 		// Create Transfer Keepers
 		transferKeeper := ibctransferkeeper.NewKeeper(
@@ -422,8 +423,8 @@ func NewAppKeeper(
 			authorityAddr,
 			appKeepers.BankKeeper,
 			appKeepers.IBCKeeper.ChannelKeeper,
-			// ics4wrapper: transfer -> packet forward -> rate limit -> fee
-			appKeepers.IBCFeeKeeper,
+			// ics4wrapper: transfer -> packet forward -> rate limit -> ibchooks
+			ibcHooksICS4Wrapper,
 		)
 		appKeepers.RatelimitKeeper = rateLimitKeeper
 
@@ -446,13 +447,16 @@ func NewAppKeeper(
 		)
 
 		// create wasm middleware for transfer
+		*ibcHooksICS4Wrapper = *ibchooks.NewICS4Middleware(
+			// ics4wrapper: transfer -> packet forward -> rate limit -> ibchooks -> fee
+			appKeepers.IBCFeeKeeper,
+			appKeepers.IBCHooksKeeper,
+			ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
+		)
 		transferStack = ibchooks.NewIBCMiddleware(
 			// receive: wasm -> migration -> rate limit -> packet forward -> forwarding -> transfer
 			transferStack,
-			ibchooks.NewICS4Middleware(
-				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
-			),
+			ibcHooksICS4Wrapper,
 			appKeepers.IBCHooksKeeper,
 		)
 
@@ -519,21 +523,26 @@ func NewAppKeeper(
 
 	var wasmIBCStack porttypes.IBCModule
 	{
+		ibcHooksICS4Wrapper := &ibchooks.ICS4Middleware{}
+
 		wasmIBCModule := wasm.NewIBCHandler(
 			appKeepers.WasmKeeper,
 			appKeepers.IBCKeeper.ChannelKeeper,
-			// ics4wrapper: wasm -> fee
-			appKeepers.IBCFeeKeeper,
+			// ics4wrapper: wasm -> ibchooks
+			ibcHooksICS4Wrapper,
 		)
 
 		// create wasm middleware for wasm IBC stack
+		*ibcHooksICS4Wrapper = *ibchooks.NewICS4Middleware(
+			// ics4wrapper: wasm -> ibchooks -> fee
+			appKeepers.IBCFeeKeeper,
+			appKeepers.IBCHooksKeeper,
+			ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
+		)
 		hookMiddleware := ibchooks.NewIBCMiddleware(
 			// receive: hook -> wasm
 			wasmIBCModule,
-			ibchooks.NewICS4Middleware(
-				nil, /* ics4wrapper: not used */
-				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
-			),
+			ibcHooksICS4Wrapper,
 			appKeepers.IBCHooksKeeper,
 		)
 
