@@ -79,7 +79,7 @@ func (h WasmHooks) handleOnTimeout(
 
 		return nil
 	} else if !allowed {
-		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "not allowed")
+		h.wasmKeeper.Logger(cacheCtx).Error("failed to check ACL", "reason", "not allowed")
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeHookFailed,
 			sdk.NewAttribute(types.AttributeKeyReason, "failed to check ACL"),
