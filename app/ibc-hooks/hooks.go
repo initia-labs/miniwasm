@@ -2,6 +2,8 @@ package wasm_hooks
 
 import (
 	"cosmossdk.io/core/address"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
@@ -16,6 +18,7 @@ var (
 	_ ibchooks.OnRecvPacketOverrideHooks            = WasmHooks{}
 	_ ibchooks.OnAcknowledgementPacketOverrideHooks = WasmHooks{}
 	_ ibchooks.OnTimeoutPacketOverrideHooks         = WasmHooks{}
+	_ ibchooks.SendPacketOverrideHooks              = WasmHooks{}
 )
 
 type WasmHooks struct {
@@ -44,6 +47,18 @@ func (h WasmHooks) OnRecvPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Conte
 	}
 
 	return im.App.OnRecvPacket(ctx, packet, relayer)
+}
+
+func (h WasmHooks) SendPacketOverride(im ibchooks.ICS4Middleware, ctx sdk.Context, chanCap *capabilitytypes.Capability, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
+	if isIcs20, ics20Data := isIcs20Packet(data); isIcs20 {
+		return h.sendIcs20Packet(ctx, im, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, ics20Data)
+	}
+
+	if isIcs721, ics721Data := isIcs721Packet(data); isIcs721 {
+		return h.sendIcs721Packet(ctx, im, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, ics721Data)
+	}
+
+	return im.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 func (h WasmHooks) OnAcknowledgementPacketOverride(im ibchooks.IBCMiddleware, ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
