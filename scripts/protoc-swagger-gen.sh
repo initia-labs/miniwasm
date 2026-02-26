@@ -15,23 +15,23 @@ COSMWASM_URL=github.com/CosmWasm/wasmd
 CONNECT_URL=github.com/skip-mev/connect
 CONNECT_V=v2
 
+CONNECT_VERSION=$(cat ./go.mod | grep "$CONNECT_URL/$CONNECT_V v" | sed -n -e "s/^.* //p")
 COSMOS_SDK_VERSION=$(cat ./go.mod | grep "$COSMOS_URL v" | sed -n -e "s/^.* //p")
+COSMWASM_VERSION=$(cat ./go.mod | grep "$COSMWASM_URL v" | sed -n -e "s/^.* //p")
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -n -e "s/^.* //p")
 IBC_RATE_LIMITING_VERSION=$(cat ./go.mod | grep "$IBC_RATE_LIMITING_URL/$IBC_V v" | sed -n -e "s/^.* //p")
-COSMWASM_VERSION=$(cat ./go.mod | grep "$COSMWASM_URL v" | sed -n -e "s/^.* //p")
 INITIA_VERSION=$(cat ./go.mod | grep "$INITIA_URL v" | sed -n -e "s/^.* //p")
 OPINIT_VERSION=(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
-CONNECT_VERSION=$(cat ./go.mod | grep "$CONNECT_URL/$CONNECT_V v" | sed -n -e "s/^.* //p")
 
 mkdir -p ./third_party
 cd third_party
-git clone -b $INITIA_VERSION https://$INITIA_URL
-git clone -b $OPINIT_VERSION https://$OPINIT_URL
+git clone -b $CONNECT_VERSION https://$CONNECT_URL
 git clone -b $COSMOS_SDK_VERSION https://$COSMOS_URL
+git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
 git clone -b $IBC_VERSION https://$IBC_URL
 git clone -b $IBC_RATE_LIMITING_PATH/$IBC_RATE_LIMITING_VERSION https://$IBC_APP_URL ibc-rate-limiting
-git clone -b $COSMWASM_VERSION https://$COSMWASM_URL
-git clone -b $CONNECT_VERSION https://$CONNECT_URL
+git clone -b $INITIA_VERSION https://$INITIA_URL
+git clone -b $OPINIT_VERSION https://$OPINIT_URL
 cd ..
 
 # start generating
