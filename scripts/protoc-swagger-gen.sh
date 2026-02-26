@@ -21,7 +21,7 @@ COSMWASM_VERSION=$(cat ./go.mod | grep "$COSMWASM_URL v" | sed -n -e "s/^.* //p"
 IBC_VERSION=$(cat ./go.mod | grep "$IBC_URL/$IBC_V v" | sed -n -e "s/^.* //p")
 IBC_RATE_LIMITING_VERSION=$(cat ./go.mod | grep "$IBC_RATE_LIMITING_URL/$IBC_V v" | sed -n -e "s/^.* //p")
 INITIA_VERSION=$(cat ./go.mod | grep "$INITIA_URL v" | sed -n -e "s/^.* //p")
-OPINIT_VERSION=(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
+OPINIT_VERSION=$(cat ./go.mod | grep "$OPINIT_URL v" | sed -n -e "s/^.* //p")
 
 mkdir -p ./third_party
 cd third_party
