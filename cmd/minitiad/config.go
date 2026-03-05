@@ -9,6 +9,7 @@ import (
 
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 
+	"github.com/initia-labs/initia/abcipp"
 	"github.com/initia-labs/miniwasm/types"
 
 	initiastorecfg "github.com/initia-labs/store/config"
@@ -17,6 +18,7 @@ import (
 // minitiaAppConfig initia specify app config
 type minitiaAppConfig struct {
 	serverconfig.Config
+	ABCIPP     abcipp.AppConfig               `mapstructure:"abcipp"`
 	MemIAVL    initiastorecfg.MemIAVLConfig   `mapstructure:"memiavl"`
 	VersionDB  initiastorecfg.VersionDBConfig `mapstructure:"versiondb"`
 	WasmConfig wasmtypes.NodeConfig           `mapstructure:"wasm"`
@@ -59,17 +61,20 @@ func initAppConfig() (string, any) {
 	wasmCfg.SmartQueryGasLimit = 10_000_000
 	wasmCfg.SimulationGasLimit = &wasmCfg.SmartQueryGasLimit
 
+	abcippCfg := abcipp.DefaultAppConfig()
 	memIAVLCfg := initiastorecfg.DefaultMemIAVLConfig()
 	versionDBCfg := initiastorecfg.DefaultVersionDBConfig()
 
 	minitiaAppConfig := minitiaAppConfig{
 		Config:     *srvCfg,
+		ABCIPP:     abcippCfg,
 		WasmConfig: wasmCfg,
 		MemIAVL:    memIAVLCfg,
 		VersionDB:  versionDBCfg,
 	}
 
 	minitiaAppTemplate := serverconfig.DefaultConfigTemplate +
+		abcipp.DefaultConfigTemplate +
 		wasmtypes.DefaultConfigTemplate() +
 		initiastorecfg.DefaultMemIAVLConfigTemplate +
 		initiastorecfg.DefaultVersionDBConfigTemplate
