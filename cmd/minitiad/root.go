@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
 	"path"
 
+	"golang.org/x/sync/errgroup"
+
 	tmcli "github.com/cometbft/cometbft/libs/cli"
+	cmtmempool "github.com/cometbft/cometbft/mempool"
+	"github.com/cometbft/cometbft/rpc/client/local"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -209,6 +214,17 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 	server.AddCommandsWithStartCmdOptions(rootCmd, minitiaapp.DefaultNodeHome, a.AppCreator(), a.appExport, server.StartCmdOptions{
 		AddFlags: addModuleInitFlags,
 		DBOpener: initiastoreopendb.OpenDB,
+		PostSetup: func(svrCtx *server.Context, clientCtx client.Context, ctx context.Context, g *errgroup.Group) error {
+			if lc, ok := clientCtx.Client.(*local.Local); ok {
+				if ep, ok := lc.Mempool().(cmtmempool.EventProvider); ok {
+					if app, ok := a.App().(*minitiaapp.MinitiaApp); ok {
+						app.ConnectMempoolEvents(ep.AppEventCh())
+					}
+				}
+			}
+
+			return nil
+		},
 	})
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 

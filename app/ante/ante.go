@@ -14,12 +14,7 @@ import (
 
 	opchildante "github.com/initia-labs/OPinit/x/opchild/ante"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
-	"github.com/initia-labs/initia/app/ante/accnum"
 	"github.com/initia-labs/initia/app/ante/sigverify"
-
-	"github.com/skip-mev/block-sdk/v2/block"
-	auctionante "github.com/skip-mev/block-sdk/v2/x/auction/ante"
-	auctionkeeper "github.com/skip-mev/block-sdk/v2/x/auction/keeper"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -32,10 +27,6 @@ type HandlerOptions struct {
 	Codec         codec.BinaryCodec
 	IBCkeeper     *ibckeeper.Keeper
 	OPChildKeeper *opchildkeeper.Keeper
-	AuctionKeeper *auctionkeeper.Keeper
-	TxEncoder     sdk.TxEncoder
-	MevLane       auctionante.MEVLane
-	FreeLane      block.Lane
 
 	// wasm ante options
 	WasmKeeper            *wasmkeeper.Keeper
@@ -68,9 +59,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.OPChildKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "opchild keeper is required for ante builder")
 	}
-	if options.AuctionKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "auction keeper is required for ante builder")
-	}
 	if options.IBCkeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "IBC keeper is required for ante builder")
 	}
@@ -82,26 +70,10 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	txFeeChecker := options.TxFeeChecker
 	if txFeeChecker == nil {
-		txFeeChecker = opchildante.NewMempoolFeeChecker(options.OPChildKeeper).CheckTxFeeWithMinGasPrices
-	}
-
-	freeLaneFeeChecker := func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
-		// skip fee checker if the tx is free lane tx.
-		if !options.FreeLane.Match(ctx, tx) {
-			return txFeeChecker(ctx, tx)
-		}
-
-		// return fee without fee check
-		feeTx, ok := tx.(sdk.FeeTx)
-		if !ok {
-			return nil, 0, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
-		}
-
-		return feeTx.GetFee(), 1 /* FIFO */, nil
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "tx fee checker is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
-		accnum.NewAccountNumberDecorator(options.AccountKeeper),
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// NOTE - WASM simulation gas limit can affect other module messages.
@@ -112,7 +84,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, freeLaneFeeChecker),
+		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, txFeeChecker),
 		// SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewSetPubKeyDecorator(options.AccountKeeper),
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
@@ -120,7 +92,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		sigverify.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCkeeper),
-		auctionante.NewAuctionDecorator(options.AuctionKeeper, options.TxEncoder, options.MevLane),
 		opchildante.NewRedundantBridgeDecorator(options.OPChildKeeper),
 	}
 
@@ -137,4 +108,15 @@ func CreateAnteHandlerForOPinit(ak ante.AccountKeeper, signModeHandler *txsignin
 		sigverify.NewSigVerificationDecorator(ak, signModeHandler),
 		ante.NewIncrementSequenceDecorator(ak),
 	)
+}
+
+// NewDualAnteHandler returns an AnteHandler that routes to the minimal handler
+// during CheckTx/ReCheckTx and to the full handler otherwise.
+func NewDualAnteHandler(minimal, full sdk.AnteHandler) sdk.AnteHandler {
+	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		if ctx.IsCheckTx() || ctx.IsReCheckTx() {
+			return minimal(ctx, tx, simulate)
+		}
+		return full(ctx, tx, simulate)
+	}
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
+	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -71,15 +72,13 @@ import (
 
 	// OPinit imports
 
+	"github.com/initia-labs/OPinit/x/opchild"
 	opchildkeeper "github.com/initia-labs/OPinit/x/opchild/keeper"
-	opchildlanes "github.com/initia-labs/OPinit/x/opchild/lanes"
 	opchildmigration "github.com/initia-labs/OPinit/x/opchild/middleware/migration"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
 
-	auctionkeeper "github.com/skip-mev/block-sdk/v2/x/auction/keeper"
-	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 	marketmapkeeper "github.com/skip-mev/connect/v2/x/marketmap/keeper"
 	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
@@ -128,7 +127,6 @@ type AppKeepers struct {
 	IBCFeeKeeper          *ibcfeekeeper.Keeper
 	WasmKeeper            *wasmkeeper.Keeper
 	OPChildKeeper         *opchildkeeper.Keeper
-	AuctionKeeper         *auctionkeeper.Keeper // x/auction keeper used to process bids for POB auctions
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	OracleKeeper          *oraclekeeper.Keeper // x/oracle keeper used for the connect oracle
 	MarketMapKeeper       *marketmapkeeper.Keeper
@@ -146,6 +144,7 @@ type AppKeepers struct {
 	ScopedWasmKeeper          capabilitykeeper.ScopedKeeper
 	ScopedICQKeeper           capabilitykeeper.ScopedKeeper
 	ScopedFetchPriceKeeper    capabilitykeeper.ScopedKeeper
+	ScopedOPChildKeeper       capabilitykeeper.ScopedKeeper
 }
 
 func NewAppKeeper(
@@ -196,6 +195,7 @@ func NewAppKeeper(
 	appKeepers.ScopedICAControllerKeeper = appKeepers.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	appKeepers.ScopedICAAuthKeeper = appKeepers.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
 	appKeepers.ScopedWasmKeeper = appKeepers.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
+	appKeepers.ScopedOPChildKeeper = appKeepers.CapabilityKeeper.ScopeToModule(opchildtypes.ModuleName)
 
 	appKeepers.CapabilityKeeper.Seal()
 
@@ -319,6 +319,15 @@ func NewAppKeeper(
 		appKeepers.ScopedIBCKeeper,
 		authorityAddr,
 	)
+
+	if err := appKeepers.OPChildKeeper.SetIBCKeepers(
+		appKeepers.IBCKeeper.ClientKeeper,
+		appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.ScopedOPChildKeeper,
+	); err != nil {
+		logger.Error("failed to setup IBCKeepers on OPChildKeeper", "error", err.Error())
+		tmos.Exit(err.Error())
+	}
 
 	appKeepers.IBCKeeper.ClientKeeper.SetPostUpdateHandler(
 		appKeepers.OPChildKeeper.UpdateHostValidatorSet,
@@ -469,6 +478,15 @@ func NewAppKeeper(
 		)
 	}
 
+	///////////////////////////
+	// OPChild configuration //
+	///////////////////////////
+
+	opchildStack := ibcfee.NewIBCMiddleware(
+		opchild.NewIBCModule(*appKeepers.OPChildKeeper),
+		*appKeepers.IBCFeeKeeper,
+	)
+
 	///////////////////////
 	// ICA configuration //
 	///////////////////////
@@ -563,7 +581,8 @@ func NewAppKeeper(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
-		AddRoute(wasmtypes.ModuleName, wasmIBCStack)
+		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
+		AddRoute(opchildtypes.ModuleName, opchildStack)
 
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 	appKeepers.OPChildKeeper.
@@ -612,19 +631,6 @@ func NewAppKeeper(
 		authorityAddr,
 		wasmOpts...,
 	)
-
-	// x/auction module keeper initialization
-
-	// initialize the keeper
-	auctionKeeper := auctionkeeper.NewKeeperWithRewardsAddressProvider(
-		appCodec,
-		appKeepers.keys[auctiontypes.StoreKey],
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		opchildlanes.NewRewardsAddressProvider(authtypes.FeeCollectorName),
-		authorityAddr,
-	)
-	appKeepers.AuctionKeeper = &auctionKeeper
 
 	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(appKeepers.WasmKeeper)
 
