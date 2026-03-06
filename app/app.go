@@ -68,8 +68,7 @@ import (
 
 	// local imports
 	"github.com/initia-labs/miniwasm/app/keepers"
-	"github.com/initia-labs/miniwasm/app/upgrades/v1_2_5"
-	v1_3_0 "github.com/initia-labs/miniwasm/app/upgrades/v1_3_0"
+	"github.com/initia-labs/miniwasm/app/upgrades/v1_3_0"
 
 	// memiavl store
 	initiastore "github.com/initia-labs/store"
@@ -254,7 +253,6 @@ func NewMinitiaApp(
 	// The cosmos upgrade handler attempts to create ${HOME}/.minitia/data to check for upgrade info,
 	// but this isn't required during initial encoding config setup.
 	if loadLatest {
-		v1_2_5.RegisterUpgradeHandlers(app)
 		v1_3_0.RegisterUpgradeHandlers(app)
 	}
 
