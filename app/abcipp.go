@@ -29,42 +29,42 @@ func (app *MinitiaApp) setupABCIPP(mempoolMaxTxs int, wasmConfig wasmtypes.NodeC
 	error,
 ) {
 
-	feeChecker := opchildante.NewMempoolFeeChecker(app.OPChildKeeper).CheckTxFeeWithMinGasPrices
-	feeCheckerWrapper := func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
-		freeFeeChecker := func() bool {
-			feeTx, ok := tx.(sdk.FeeTx)
-			if !ok {
-				return false
-			}
-
-			whitelist, err := app.OPChildKeeper.FeeWhitelist(ctx)
-			if err != nil {
-				return false
-			}
-
-			payer, err := app.ac.BytesToString(feeTx.FeePayer())
-			if err != nil {
-				return false
-			}
-
-			var granter string
-			if feeTx.FeeGranter() != nil {
-				granter, err = app.ac.BytesToString(feeTx.FeeGranter())
-				if err != nil {
-					return false
-				}
-			}
-
-			for _, addr := range whitelist {
-				if addr == payer || addr == granter {
-					return true
-				}
-			}
-
+	freeFeeChecker := func(ctx sdk.Context, tx sdk.Tx) bool {
+		feeTx, ok := tx.(sdk.FeeTx)
+		if !ok {
 			return false
 		}
 
-		if !freeFeeChecker() {
+		whitelist, err := app.OPChildKeeper.FeeWhitelist(ctx)
+		if err != nil {
+			return false
+		}
+
+		payer, err := app.ac.BytesToString(feeTx.FeePayer())
+		if err != nil {
+			return false
+		}
+
+		var granter string
+		if feeTx.FeeGranter() != nil {
+			granter, err = app.ac.BytesToString(feeTx.FeeGranter())
+			if err != nil {
+				return false
+			}
+		}
+
+		for _, addr := range whitelist {
+			if addr == payer || addr == granter {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	feeChecker := opchildante.NewMempoolFeeChecker(app.OPChildKeeper).CheckTxFeeWithMinGasPrices
+	feeCheckerWrapper := func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+		if !freeFeeChecker(ctx, tx) {
 			return feeChecker(ctx, tx)
 		}
 
@@ -130,40 +130,6 @@ func (app *MinitiaApp) setupABCIPP(mempoolMaxTxs int, wasmConfig wasmtypes.NodeC
 		return true
 	}
 
-	// admin tier: fee-whitelisted addresses
-	adminTierMatcher := func(ctx sdk.Context, tx sdk.Tx) bool {
-		feeTx, ok := tx.(sdk.FeeTx)
-		if !ok {
-			return false
-		}
-
-		whitelist, err := app.OPChildKeeper.FeeWhitelist(ctx)
-		if err != nil {
-			return false
-		}
-
-		payer, err := app.ac.BytesToString(feeTx.FeePayer())
-		if err != nil {
-			return false
-		}
-
-		var granter string
-		if feeTx.FeeGranter() != nil {
-			granter, err = app.ac.BytesToString(feeTx.FeeGranter())
-			if err != nil {
-				return false
-			}
-		}
-
-		for _, addr := range whitelist {
-			if addr == payer || addr == granter {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	mempool := abcipp.NewPriorityMempool(
 		abcipp.PriorityMempoolConfig{
 			MaxTx:              mempoolMaxTxs,
@@ -173,7 +139,7 @@ func (app *MinitiaApp) setupABCIPP(mempoolMaxTxs int, wasmConfig wasmtypes.NodeC
 			AnteHandler:        fullHandler, // cleaning worker uses full handler
 			Tiers: []abcipp.Tier{
 				{Name: "system", Matcher: systemTierMatcher},
-				{Name: "admin", Matcher: adminTierMatcher},
+				{Name: "admin", Matcher: freeFeeChecker},
 			},
 		}, app.Logger(), app.txConfig.TxEncoder(), app.GetAccountKeeper(),
 	)
