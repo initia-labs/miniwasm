@@ -32,7 +32,6 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
-	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
 
@@ -53,7 +52,7 @@ func KVStoreKeys() []string {
 		capabilitytypes.StoreKey, authzkeeper.StoreKey, feegrant.StoreKey,
 		icahosttypes.StoreKey, icacontrollertypes.StoreKey, icaauthtypes.StoreKey,
 		ibcfeetypes.StoreKey, wasmtypes.StoreKey, opchildtypes.StoreKey,
-		auctiontypes.StoreKey, packetforwardtypes.StoreKey, oracletypes.StoreKey,
+		packetforwardtypes.StoreKey, oracletypes.StoreKey,
 		tokenfactorytypes.StoreKey, ibchookstypes.StoreKey, forwardingtypes.StoreKey,
 		marketmaptypes.StoreKey, ratelimittypes.StoreKey,
 	}

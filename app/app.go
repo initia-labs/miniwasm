@@ -55,10 +55,11 @@ import (
 	"github.com/initia-labs/initia/app/params"
 	cryptocodec "github.com/initia-labs/initia/crypto/codec"
 
-	// skip imports
-	blockchecktx "github.com/skip-mev/block-sdk/v2/abci/checktx"
-	"github.com/skip-mev/block-sdk/v2/block"
-	blockservice "github.com/skip-mev/block-sdk/v2/block/service"
+	// cometbft mempool
+	cmtmempool "github.com/cometbft/cometbft/mempool"
+
+	// initia abcipp
+	"github.com/initia-labs/initia/abcipp"
 
 	// CosmWasm imports
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -67,7 +68,7 @@ import (
 
 	// local imports
 	"github.com/initia-labs/miniwasm/app/keepers"
-	"github.com/initia-labs/miniwasm/app/upgrades/v1_2_5"
+	"github.com/initia-labs/miniwasm/app/upgrades/v1_3_0"
 
 	// memiavl store
 	initiastore "github.com/initia-labs/store"
@@ -117,7 +118,7 @@ type MinitiaApp struct {
 	configurator module.Configurator
 
 	// Override of BaseApp's CheckTx
-	checkTxHandler blockchecktx.CheckTx
+	checkTxHandler abcipp.CheckTx
 
 	// QueryMultiStore
 	qms storetypes.MultiStore
@@ -252,7 +253,7 @@ func NewMinitiaApp(
 	// The cosmos upgrade handler attempts to create ${HOME}/.minitia/data to check for upgrade info,
 	// but this isn't required during initial encoding config setup.
 	if loadLatest {
-		v1_2_5.RegisterUpgradeHandlers(app)
+		v1_3_0.RegisterUpgradeHandlers(app)
 	}
 
 	// register executor change plans for later use
@@ -284,8 +285,8 @@ func NewMinitiaApp(
 	// register context decorator for message router
 	app.RegisterMessageRouterContextDecorator()
 
-	// setup BlockSDK
-	mempool, anteHandler, checkTx, prepareProposalHandler, processProposalHandler, err := setupBlockSDK(app, mempoolMaxTxs, wasmConfig, app.GetKVStoreKey()[wasmtypes.StoreKey])
+	// setup ABCIPP
+	mempool, anteHandler, prepareProposalHandler, processProposalHandler, checkTx, err := app.setupABCIPP(mempoolMaxTxs, wasmConfig, app.GetKVStoreKey()[wasmtypes.StoreKey], appOpts)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -302,6 +303,13 @@ func NewMinitiaApp(
 
 	// override base-app's CheckTx
 	app.SetCheckTx(checkTx)
+
+	// wire PrepareCheckStater to promote queued txs after each block commit
+	if pm, ok := mempool.(*abcipp.PriorityMempool); ok {
+		app.SetPrepareCheckStater(func(ctx sdk.Context) {
+			pm.PromoteQueued(ctx)
+		})
+	}
 
 	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
@@ -369,7 +377,7 @@ func (app *MinitiaApp) CheckTx(req *abci.RequestCheckTx) (*abci.ResponseCheckTx,
 }
 
 // SetCheckTx sets the checkTxHandler for the app.
-func (app *MinitiaApp) SetCheckTx(handler blockchecktx.CheckTx) {
+func (app *MinitiaApp) SetCheckTx(handler abcipp.CheckTx) {
 	app.checkTxHandler = handler
 }
 
@@ -479,8 +487,8 @@ func (app *MinitiaApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register node gRPC service for grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
-	// Register the Block SDK mempool API routes.
-	blockservice.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
+	// Register the ABCIPP mempool API routes.
+	abcipp.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -505,13 +513,13 @@ func (app *MinitiaApp) RegisterTxService(clientCtx client.Context) {
 		app.Simulate, app.interfaceRegistry,
 	)
 
-	// Register the Block SDK mempool transaction service.
-	mempool, ok := app.Mempool().(block.Mempool)
+	// Register the ABCIPP mempool query server.
+	mempool, ok := app.Mempool().(abcipp.Mempool)
 	if !ok {
-		panic("mempool is not a block.Mempool")
+		panic("mempool is not an abcipp.Mempool")
 	}
 
-	blockservice.RegisterMempoolService(app.GRPCQueryRouter(), mempool)
+	abcipp.RegisterQueryServer(app.GRPCQueryRouter(), mempool)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
@@ -552,6 +560,10 @@ func GetMaccPerms() map[string][]string {
 func (app *MinitiaApp) Close() error {
 	var errs []error
 
+	if mempool, ok := app.Mempool().(interface{ Stop() }); ok {
+		mempool.Stop()
+	}
+
 	if err := app.BaseApp.Close(); err != nil {
 		errs = append(errs, err)
 	}
@@ -568,6 +580,13 @@ func (app *MinitiaApp) Close() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// ConnectMempoolEvents wires cometbft ProxyMempool event channel to the app mempool.
+func (app *MinitiaApp) ConnectMempoolEvents(eventCh chan cmtmempool.AppMempoolEvent) {
+	if pm, ok := app.Mempool().(*abcipp.PriorityMempool); ok {
+		pm.SetEventCh(eventCh)
+	}
 }
 
 // RegisterMessageRouterContextDecorator registers a context decorator for the message router

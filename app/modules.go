@@ -48,8 +48,6 @@ import (
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 
 	// skip imports
-	"github.com/skip-mev/block-sdk/v2/x/auction"
-	auctiontypes "github.com/skip-mev/block-sdk/v2/x/auction/types"
 	marketmap "github.com/skip-mev/connect/v2/x/marketmap"
 	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/skip-mev/connect/v2/x/oracle"
@@ -76,9 +74,6 @@ var maccPerms = map[string][]string{
 	icatypes.ModuleName:         nil,
 	ibcfeetypes.ModuleName:      nil,
 	ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	// x/auction's module account must be instantiated upon genesis to accrue auction rewards not
-	// distributed to proposers
-	auctiontypes.ModuleName:      nil,
 	opchildtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 	tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 
@@ -105,7 +100,6 @@ func appModules(
 		groupmodule.NewAppModule(app.appCodec, *app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(app.appCodec, *app.ConsensusParamsKeeper),
 		wasm.NewAppModule(app.appCodec, app.WasmKeeper, nil /* unused */, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), nil),
-		auction.NewAppModule(app.appCodec, *app.AuctionKeeper),
 		tokenfactory.NewAppModule(app.appCodec, app.TokenFactoryKeeper, *app.AccountKeeper, *app.BankKeeper),
 		// ibc modules
 		ibc.NewAppModule(app.IBCKeeper),
@@ -196,7 +190,7 @@ func orderInitBlockers() []string {
 		genutiltypes.ModuleName, authz.ModuleName, group.ModuleName, crisistypes.ModuleName,
 		upgradetypes.ModuleName, feegrant.ModuleName, consensusparamtypes.ModuleName,
 		ibcexported.ModuleName, ibctransfertypes.ModuleName, icatypes.ModuleName,
-		icaauthtypes.ModuleName, ibcfeetypes.ModuleName, auctiontypes.ModuleName,
+		icaauthtypes.ModuleName, ibcfeetypes.ModuleName,
 		wasmtypes.ModuleName, oracletypes.ModuleName, marketmaptypes.ModuleName,
 		packetforwardtypes.ModuleName, tokenfactorytypes.ModuleName,
 		ibchookstypes.ModuleName, forwardingtypes.ModuleName,
