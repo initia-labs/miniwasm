@@ -54,6 +54,7 @@ import (
 	// initia imports
 	"github.com/initia-labs/initia/app/params"
 	cryptocodec "github.com/initia-labs/initia/crypto/codec"
+	initiatx "github.com/initia-labs/initia/tx"
 
 	// cometbft mempool
 	cmtmempool "github.com/cometbft/cometbft/mempool"
@@ -146,6 +147,7 @@ func NewMinitiaApp(
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	cryptocodec.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	cryptocodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	initiatx.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	appCodec := encodingConfig.Codec
 	legacyAmino := encodingConfig.Amino
