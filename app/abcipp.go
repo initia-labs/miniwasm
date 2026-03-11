@@ -16,6 +16,7 @@ import (
 	opchildante "github.com/initia-labs/OPinit/x/opchild/ante"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/initia-labs/initia/abcipp"
+	initiatx "github.com/initia-labs/initia/tx"
 
 	appante "github.com/initia-labs/miniwasm/app/ante"
 )
@@ -79,11 +80,12 @@ func (app *MinitiaApp) setupABCIPP(mempoolMaxTxs int, wasmConfig wasmtypes.NodeC
 
 	handlerOpts := appante.HandlerOptions{
 		HandlerOptions: cosmosante.HandlerOptions{
-			AccountKeeper:   app.AccountKeeper,
-			BankKeeper:      app.BankKeeper,
-			FeegrantKeeper:  app.FeeGrantKeeper,
-			SignModeHandler: app.txConfig.SignModeHandler(),
-			TxFeeChecker:    feeCheckerWrapper,
+			AccountKeeper:          app.AccountKeeper,
+			BankKeeper:             app.BankKeeper,
+			FeegrantKeeper:         app.FeeGrantKeeper,
+			SignModeHandler:        app.txConfig.SignModeHandler(),
+			ExtensionOptionChecker: initiatx.ExtensionOptionChecker,
+			TxFeeChecker:           feeCheckerWrapper,
 		},
 		IBCkeeper:             app.IBCKeeper,
 		Codec:                 app.appCodec,
