@@ -52,7 +52,9 @@ jobs:
 
       - name: Generate TypeScript from proto
         working-directory: proto
-        run: buf generate . --template buf.gen.es.yaml --include-imports
+        run: |
+          buf generate . --template buf.gen.es.yaml --include-imports
+          buf generate buf.build/cosmwasm/wasmd --template buf.gen.es.yaml --path cosmwasm/wasm/v1 --include-imports
 
       - name: Set package version (tag)
         if: startsWith(github.ref, 'refs/tags/v')
