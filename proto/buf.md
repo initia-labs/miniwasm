@@ -4,7 +4,10 @@ This is the public protocol buffers API for the [Miniwasm](https://github.com/in
 
 ## npm Package
 
-TypeScript definitions are published to npm as [`@initia/miniwasm-proto`](https://www.npmjs.com/package/@initia/miniwasm-proto) on every tagged release (`v*`).
+TypeScript definitions are published to npm as [`@initia/miniwasm-proto`](https://www.npmjs.com/package/@initia/miniwasm-proto).
+
+- **Tagged releases** (`v*`) are published as `latest` (e.g. `1.0.0`).
+- **Main branch** pushes are published as `canary` (e.g. `0.0.0-canary.<short-sha>`).
 
 ### Installation
 
