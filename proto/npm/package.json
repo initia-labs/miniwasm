@@ -1,0 +1,31 @@
+{
+  "name": "@initia/miniwasm-proto",
+  "version": "0.0.0",
+  "description": "Protocol Buffers TypeScript definitions for Miniwasm",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "miniwasm",
+    "amino",
+    "cosmos",
+    "cosmos_proto",
+    "cosmwasm",
+    "gogoproto",
+    "google"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": ["protobuf", "miniwasm", "initia", "cosmos", "cosmwasm"],
+  "homepage": "https://github.com/initia-labs/miniwasm/tree/main/proto/npm",
+  "bugs": "https://github.com/initia-labs/miniwasm/issues",
+  "peerDependencies": {
+    "@bufbuild/protobuf": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/initia-labs/miniwasm.git",
+    "directory": "proto/npm"
+  },
+  "license": "Apache-2.0"
+}
