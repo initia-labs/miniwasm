@@ -139,6 +139,9 @@ func runPreSignedBenchmark(
 		loadResult.EndTime.Sub(loadResult.StartTime).Seconds())
 
 	drainTimeout := mempoolDrainTimeout + time.Duration(cfg.TotalTx()/20)*time.Second
+	if cfg.DrainTimeoutOverride > 0 {
+		drainTimeout = cfg.DrainTimeoutOverride
+	}
 	endHeight, err := WaitForAllIncluded(ctx, cl, drainTimeout)
 	if err != nil {
 		t.Logf("Warning: mempool drain incomplete: %v (collecting partial results)", err)
@@ -515,8 +518,9 @@ func TestBenchmarkGossipPropagation(t *testing.T) {
 
 	poller := NewMempoolPoller(ctx, cl, mempoolPollInterval)
 
-	loadResult := SingleNodeLoad(ctx, cl, cfg, metas, 0)
-	t.Logf("Submitted %d txs to node 0", len(loadResult.Submissions))
+	targetNode := cfg.ValidatorCount // first edge fullnode
+	loadResult := SingleNodeLoad(ctx, cl, cfg, metas, targetNode)
+	t.Logf("Submitted %d txs to node %d (edge)", len(loadResult.Submissions), targetNode)
 
 	endHeight, err := WaitForAllIncluded(ctx, cl, mempoolDrainTimeout)
 	require.NoError(t, err)
@@ -660,6 +664,7 @@ func TestBenchmarkPreSignedSeqWasmExecStress(t *testing.T) {
 		cfg := MempoolOnlyConfig()
 		cfg.AccountCount = 20
 		cfg.TxPerAccount = 200
+		cfg.DrainTimeoutOverride = 10 * time.Minute
 		cfg.Label = "presigned-stress/iavl/seq-wasm-exec"
 
 		ctx := context.Background()

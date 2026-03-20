@@ -136,7 +136,7 @@ CLI-based tests are bottlenecked by CLI overhead (~50 TPS ceiling), masking IAVL
 
 Under saturated heavy state writes with continuously growing state tree, MemIAVL demonstrates decisive superiority.
 At 2000 txs (100 writes/tx): **+75.6% TPS** with 100% inclusion for both.
-At 4000 txs (100 writes/tx): **+96.7% TPS** (795 vs 404) and **-35.4% P50 latency** (1934 vs 3854ms).
+At 4000 txs (100 writes/tx): **+96.7% TPS** (795 vs 404) and **-35.4% P50 latency** (1322 vs 2047ms).
 IAVL degrades sharply as the state tree grows while MemIAVL maintains consistent throughput.
 
 ### 4. Capability demos
@@ -162,6 +162,7 @@ The Wasm exec benchmarks require a compiled CosmWasm contract.
 ```bash
 cd e2e/benchmark/bench_heavy_state
 cargo build --target wasm32-unknown-unknown --release
+cp target/wasm32-unknown-unknown/release/bench_heavy_state.wasm contract.wasm
 ```
 
 ### Phase 1: Collecting baselines (CList mempool)
@@ -341,11 +342,12 @@ The Wasm exec tests deploy the `BenchHeavyState` CosmWasm contract at runtime. E
 
 Each call writes to **unique keys** using a per-sender nonce, so the state tree grows continuously. This creates IAVL rebalancing pressure that MemIAVL handles more efficiently.
 
-CLI-based tests use `write_mixed{5, 25}` = 30 writes/tx. Pre-signed HTTP tests use `write_mixed{20, 80}` = 100 writes/tx. Stress tests use `write_mixed{40, 160}` = 200 writes/tx.
+CLI-based tests use `write_mixed{5, 25}` = 30 writes/tx. Pre-signed HTTP tests use `write_mixed{20, 80}` = 100 writes/tx.
 
 ### Building the contract
 
 ```bash
 cd bench_heavy_state
 cargo build --target wasm32-unknown-unknown --release
+cp target/wasm32-unknown-unknown/release/bench_heavy_state.wasm contract.wasm
 ```
