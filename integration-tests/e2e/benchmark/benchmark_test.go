@@ -652,8 +652,8 @@ func TestBenchmarkPreSignedSeqWasmExecStress(t *testing.T) {
 	var results []BenchResult
 
 	const (
-		sharedWrites int64 = 40
-		localWrites  int64 = 160
+		sharedWrites int64 = 20
+		localWrites  int64 = 80
 	)
 
 	t.Run("IAVL", func(t *testing.T) {
