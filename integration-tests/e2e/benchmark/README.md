@@ -47,12 +47,12 @@ Both use Proxy+Priority mempool. Isolates state storage impact.
 
 Bypasses CLI bottleneck. Txs are generated+signed offline, then POSTed via HTTP to `/broadcast_tx_sync`.
 
-| Test | Load | Config |
-|---|---|---|
-| `TestBenchmarkPreSignedSeqComparison` | Sequential, bank send, HTTP | 20 accts x 100 txs |
-| `TestBenchmarkPreSignedBurstComparison` | Burst, bank send, HTTP | 20 accts x 100 txs |
+| Test | Load | Config                            |
+|---|---|-----------------------------------|
+| `TestBenchmarkPreSignedSeqComparison` | Sequential, bank send, HTTP | 20 accts x 100 txs                |
+| `TestBenchmarkPreSignedBurstComparison` | Burst, bank send, HTTP | 20 accts x 100 txs                |
 | `TestBenchmarkPreSignedSeqWasmExec` | Sequential, Wasm exec, HTTP | 20 accts x 100 txs, 100 writes/tx |
-| `TestBenchmarkPreSignedSeqWasmExecStress` | Sequential, Wasm exec, HTTP (stress) | 20 accts x 200 txs, 200 writes/tx |
+| `TestBenchmarkPreSignedSeqWasmExecStress` | Sequential, Wasm exec, HTTP (stress) | 20 accts x 200 txs, 100 writes/tx |
 
 ### 4. Capability demos
 
