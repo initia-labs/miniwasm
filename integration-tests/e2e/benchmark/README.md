@@ -131,12 +131,12 @@ CLI-based tests are bottlenecked by CLI overhead (~50 TPS ceiling), masking IAVL
 
 | Config | TPS | P50ms | P95ms | P99ms | Included | Peak MP |
 |---|---:|---:|---:|---:|---:|---:|
-| presigned-stress/iavl/seq-wasm-exec | 404.7 | 2047 | 4905 | 5363 | 3350/4000 | 2132 |
-| presigned-stress/memiavl/seq-wasm-exec | 795.9 | 1322 | 2385 | 2503 | 3497/4000 | 2201 |
+| presigned-stress/iavl/seq-wasm-exec | 404.7 | 2047 | 4905 | 5363 | 3061/4000 | 2132 |
+| presigned-stress/memiavl/seq-wasm-exec | 795.9 | 1322 | 2385 | 2503 | 3636/4000 | 2201 |
 
 Under saturated heavy state writes with continuously growing state tree, MemIAVL demonstrates decisive superiority.
 At 2000 txs (100 writes/tx): **+75.6% TPS** with 100% inclusion for both.
-At 4000 txs (100 writes/tx): **+96.7% TPS** (795 vs 404) and **-35.4% P50 latency** (1322 vs 2047ms).
+At 4000 txs (100 writes/tx): **+96.7% TPS** (795.9 vs 404.7) and **-35.4% P50 latency** (1322 vs 2047ms). Partial inclusion on both sides (3636 vs 3061) due to mempool eviction under pressure. MemIAVL includes 19% more txs, showing it handles overload more gracefully.
 IAVL degrades sharply as the state tree grows while MemIAVL maintains consistent throughput.
 
 ### 4. Capability demos

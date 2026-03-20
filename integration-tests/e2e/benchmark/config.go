@@ -28,7 +28,8 @@ type BenchConfig struct {
 	TimeoutCommit  time.Duration `json:"timeout_commit_ms,omitempty"`
 	ValidatorCount int           `json:"validator_count,omitempty"`
 	MaxBlockGas    int64         `json:"max_block_gas,omitempty"`
-	NoAllowQueued  bool          `json:"no_allow_queued,omitempty"`
+	NoAllowQueued        bool          `json:"no_allow_queued,omitempty"`
+	DrainTimeoutOverride time.Duration `json:"drain_timeout_override,omitempty"`
 }
 
 // GetGasLimit returns the configured gas limit, falling back to defaultGasLimit.

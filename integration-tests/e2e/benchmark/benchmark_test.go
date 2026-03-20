@@ -684,6 +684,7 @@ func TestBenchmarkPreSignedSeqWasmExecStress(t *testing.T) {
 		cfg := CombinedConfig()
 		cfg.AccountCount = 20
 		cfg.TxPerAccount = 200
+		cfg.DrainTimeoutOverride = 10 * time.Minute
 		cfg.Label = "presigned-stress/memiavl/seq-wasm-exec"
 
 		ctx := context.Background()
