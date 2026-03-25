@@ -1,0 +1,29 @@
+[package]
+name = "bench_heavy_state"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+
+[dependencies]
+cosmwasm-std = "2.2"
+cosmwasm-schema = "2.2"
+cw-storage-plus = "2.0"
+schemars = "0.8"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+thiserror = "1.0"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "abort"
+incremental = false
+overflow-checks = true
