@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	tmos "github.com/cometbft/cometbft/libs/os"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

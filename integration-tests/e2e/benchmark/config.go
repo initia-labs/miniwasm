@@ -18,16 +18,16 @@ const (
 
 // BenchConfig defines the parameters for a benchmark run.
 type BenchConfig struct {
-	MemIAVL        bool          `json:"memiavl"`
-	NodeCount      int           `json:"node_count"`
-	AccountCount   int           `json:"account_count"`
-	TxPerAccount   int           `json:"tx_per_account"`
-	GasLimit       uint64        `json:"gas_limit"`
-	Label          string        `json:"label"`
-	Variant        Variant       `json:"variant"`
-	TimeoutCommit  time.Duration `json:"timeout_commit_ms,omitempty"`
-	ValidatorCount int           `json:"validator_count,omitempty"`
-	MaxBlockGas    int64         `json:"max_block_gas,omitempty"`
+	MemIAVL              bool          `json:"memiavl"`
+	NodeCount            int           `json:"node_count"`
+	AccountCount         int           `json:"account_count"`
+	TxPerAccount         int           `json:"tx_per_account"`
+	GasLimit             uint64        `json:"gas_limit"`
+	Label                string        `json:"label"`
+	Variant              Variant       `json:"variant"`
+	TimeoutCommit        time.Duration `json:"timeout_commit_ms,omitempty"`
+	ValidatorCount       int           `json:"validator_count,omitempty"`
+	MaxBlockGas          int64         `json:"max_block_gas,omitempty"`
 	NoAllowQueued        bool          `json:"no_allow_queued,omitempty"`
 	DrainTimeoutOverride time.Duration `json:"drain_timeout_override,omitempty"`
 }
