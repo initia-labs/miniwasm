@@ -70,10 +70,10 @@ import (
 
 // module account permissions
 var maccPerms = map[string][]string{
-	authtypes.FeeCollectorName:  nil,
-	icatypes.ModuleName:         nil,
-	ibcfeetypes.ModuleName:      nil,
-	ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+	authtypes.FeeCollectorName:   nil,
+	icatypes.ModuleName:          nil,
+	ibcfeetypes.ModuleName:       nil,
+	ibctransfertypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 	opchildtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
 	tokenfactorytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 

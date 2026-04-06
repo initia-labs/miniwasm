@@ -4,7 +4,6 @@ import (
 	"cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,13 +11,17 @@ import (
 	sdkmempool "github.com/cosmos/cosmos-sdk/types/mempool"
 	cosmosante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+
+	appante "github.com/initia-labs/miniwasm/app/ante"
+
 	opchildante "github.com/initia-labs/OPinit/x/opchild/ante"
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
 	"github.com/initia-labs/initia/abcipp"
 	initiatx "github.com/initia-labs/initia/tx"
 
-	appante "github.com/initia-labs/miniwasm/app/ante"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
 func (app *MinitiaApp) setupABCIPP(mempoolMaxTxs int, wasmConfig wasmtypes.NodeConfig, txCounterStoreKey *storetypes.KVStoreKey, appOpts servertypes.AppOptions) (
