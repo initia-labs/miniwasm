@@ -163,7 +163,7 @@ swaggerProtoVer=0.14.0
 swaggerProtoImageName=ghcr.io/cosmos/proto-builder:$(swaggerProtoVer)
 swaggerProtoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(swaggerProtoImageName)
 
-proto-all: proto-format proto-lint proto-gen
+proto-all: proto-format proto-lint proto-gen proto-pulsar-gen proto-swagger-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"

@@ -11,7 +11,9 @@ option (gogoproto.goproto_getters_all) = false;
 // AccessConfig access control type.
 message AccessConfig {
   option (gogoproto.goproto_stringer) = true;
-  cosmwasm.wasm.v1.AccessType permission = 1 [(gogoproto.moretags) = "yaml:\"permission\""];
+  cosmwasm.wasm.v1.AccessType permission = 1
+      [ (gogoproto.moretags) = "yaml:\"permission\"" ];
 
-  repeated string addresses = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string addresses = 2
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
