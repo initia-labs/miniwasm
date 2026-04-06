@@ -3,6 +3,10 @@ name: Spell Check
 on:
   pull_request:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   spellcheck:
     runs-on: ubuntu-22.04
