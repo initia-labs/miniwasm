@@ -21,6 +21,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+
 	"github.com/initia-labs/miniwasm/types"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"

@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
+
 	"github.com/initia-labs/miniwasm/app/upgrades"
 )
 

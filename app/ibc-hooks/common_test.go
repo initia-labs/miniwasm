@@ -56,6 +56,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	wasmhooks "github.com/initia-labs/miniwasm/app/ibc-hooks"
 )
 

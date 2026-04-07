@@ -2,6 +2,7 @@ package tokenfactory
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+
 	tokenfactoryv1 "github.com/initia-labs/miniwasm/api/miniwasm/tokenfactory/v1"
 )
 

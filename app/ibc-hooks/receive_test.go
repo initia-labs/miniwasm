@@ -15,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
+
 	ibchooks "github.com/initia-labs/miniwasm/app/ibc-hooks"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
