@@ -10,8 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/initia-labs/miniwasm/integration-tests/e2e/cluster"
 	"github.com/stretchr/testify/require"
+
+	"github.com/initia-labs/miniwasm/integration-tests/e2e/cluster"
 )
 
 const (

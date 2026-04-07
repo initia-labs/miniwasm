@@ -13,6 +13,7 @@ import (
 	"github.com/initia-labs/OPinit/contrib/launchtools/steps"
 
 	"github.com/initia-labs/initia/app/params"
+
 	minitiaapp "github.com/initia-labs/miniwasm/app"
 
 	"github.com/initia-labs/miniwasm/contrib"

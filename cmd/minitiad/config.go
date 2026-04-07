@@ -10,6 +10,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 
 	"github.com/initia-labs/initia/abcipp"
+
 	"github.com/initia-labs/miniwasm/types"
 
 	initiastorecfg "github.com/initia-labs/store/config"
