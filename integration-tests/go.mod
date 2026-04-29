@@ -1,6 +1,6 @@
 module github.com/initia-labs/miniwasm/integration-tests
 
-go 1.24.0
+go 1.26.0
 
 require (
 	github.com/cosmos/cosmos-sdk v0.50.14

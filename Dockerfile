@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS go-builder
+FROM golang:1.26-alpine AS go-builder
 #ARG arch=x86_64
 
 ARG VERSION
