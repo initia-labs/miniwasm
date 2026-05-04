@@ -84,7 +84,7 @@ func NewEmptyAppOptions() EmptyAppOptions {
 }
 
 // Get implements AppOptions
-func (ao EmptyAppOptions) Get(o string) interface{} {
+func (ao EmptyAppOptions) Get(o string) any {
 	if o == flags.FlagHome {
 		if ao.homeDir == "" {
 			return DefaultNodeHome
