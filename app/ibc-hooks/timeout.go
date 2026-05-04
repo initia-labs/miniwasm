@@ -100,9 +100,9 @@ func (h WasmHooks) handleOnTimeout(
 		return nil
 	}
 
-	sudoMsg := []byte(fmt.Sprintf(
+	sudoMsg := fmt.Appendf(nil,
 		`{"ibc_lifecycle_complete": {"ibc_timeout": {"channel": "%s", "sequence": %d}}}`,
-		packet.SourceChannel, packet.Sequence))
+		packet.SourceChannel, packet.Sequence)
 	_, err = h.wasmKeeper.Sudo(cacheCtx, contractAddr, sudoMsg)
 	if err != nil {
 		h.wasmKeeper.Logger(cacheCtx).Error("failed to execute callback", "error", err)

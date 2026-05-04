@@ -365,7 +365,6 @@ func TestMsgUpdateParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := keeper.NewMsgServerImpl(input.TokenFactoryKeeper).UpdateParams(ctx, tc.input)
 
