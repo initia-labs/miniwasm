@@ -50,7 +50,7 @@ func testMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {
 
 	// mutates mockMsg
 	testSerDeser := func(msg proto.Message, mockMsg proto.Message) {
-		msgGrantBytes := json.RawMessage(sdk.MustSortJSON(legacyAmino.MustMarshalJSON(msg)))
+		msgGrantBytes := json.RawMessage(legacyAmino.MustMarshalJSON(msg))
 		err := legacyAmino.UnmarshalJSON(msgGrantBytes, mockMsg)
 		require.NoError(t, err)
 	}

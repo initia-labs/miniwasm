@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/initia-labs/miniwasm/x/wasmextension/keeper"
@@ -85,6 +84,3 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.authority))
 }
-
-// RegisterInvariants registers the wasm module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
