@@ -10,8 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	opchildtypes "github.com/initia-labs/OPinit/x/opchild/types"
-
 	"github.com/initia-labs/miniwasm/app/upgrades"
 )
 
@@ -22,8 +20,10 @@ func RegisterUpgradeHandlers(app upgrades.MinitiaApp) {
 	// apply store upgrade only if this upgrade is scheduled at a height
 	if upgradeInfo, err := app.GetUpgradeKeeper().ReadUpgradeInfoFromDisk(); err == nil {
 		if upgradeInfo.Name == upgradeName && !app.GetUpgradeKeeper().IsSkipHeight(upgradeInfo.Height) {
+			// capability + feeibc were removed in ibc-go v10, crisis was removed in
+			// cosmos-sdk v0.53.
 			storeUpgrades := storetypes.StoreUpgrades{
-				Deleted: []string{"auction"},
+				Deleted: []string{"auction", "capability", "crisis", "feeibc"},
 			}
 
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
@@ -35,17 +35,6 @@ func RegisterUpgradeHandlers(app upgrades.MinitiaApp) {
 	app.GetUpgradeKeeper().SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-			// bind the opinit IBC port for opchild module
-			bound, err := app.GetOPChildKeeper().IsBound(ctx, opchildtypes.PortID)
-			if err != nil {
-				return nil, err
-			}
-			if !bound {
-				if err := app.GetOPChildKeeper().BindPort(ctx, opchildtypes.PortID); err != nil {
-					return nil, err
-				}
-			}
-
 			return app.GetModuleManager().RunMigrations(ctx, app.GetConfigurator(), vm)
 		},
 	)

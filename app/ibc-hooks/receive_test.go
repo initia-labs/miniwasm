@@ -9,11 +9,12 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibchookstypes "github.com/initia-labs/initia/x/ibc-hooks/types"
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
 
 	ibchooks "github.com/initia-labs/miniwasm/app/ibc-hooks"
@@ -38,7 +39,7 @@ func Test_OnReceivePacket(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, transfertypes.V1, channeltypes.Packet{
 		Data: dataBz,
 	}, addr)
 
@@ -91,15 +92,15 @@ func Test_onReceivePacket_memo(t *testing.T) {
 	// funds foo coins to the intermediate sender
 	intermediateSender, err := sdk.AccAddressFromBech32(ibchooks.DeriveIntermediateSender("channel-0", data.GetSender()))
 	require.NoError(t, err)
-	localDenom := ibchooks.LocalDenom(channeltypes.Packet{
+	localDenom := ibchookstypes.GetReceivedTokenDenom(channeltypes.Packet{
 		Data:               dataBz,
 		DestinationPort:    "wasm",
 		DestinationChannel: "channel-0",
-	}, data.GetDenom())
+	}, data)
 	input.Faucet.Fund(ctx, intermediateSender, sdk.NewCoin(localDenom, math.NewInt(10000)))
 
 	// failed to due to acl
-	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, transfertypes.V1, channeltypes.Packet{
 		Data:               dataBz,
 		DestinationPort:    "wasm",
 		DestinationChannel: "channel-0",
@@ -112,7 +113,7 @@ func Test_onReceivePacket_memo(t *testing.T) {
 	require.NoError(t, input.IBCHooksKeeper.SetAllowed(ctx, contractAddr, true))
 
 	// success
-	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, transfertypes.V1, channeltypes.Packet{
 		Data:               dataBz,
 		DestinationPort:    "wasm",
 		DestinationChannel: "channel-0",
@@ -175,7 +176,7 @@ func Test_onReceiveIcs20Packet_memo_migrated(t *testing.T) {
 	}
 
 	// mint for approval test
-	localDenom := ibchooks.LocalDenom(pk, data.Denom)
+	localDenom := ibchookstypes.GetReceivedTokenDenom(pk, data)
 	// set the denom migration in OPChildKeeper
 	l2Denom := "l2/" + localDenom
 	input.OPChildKeeper.IBCToL2DenomMap[localDenom] = l2Denom
@@ -183,7 +184,7 @@ func Test_onReceiveIcs20Packet_memo_migrated(t *testing.T) {
 	input.Faucet.Fund(ctx, intermediateSender, sdk.NewInt64Coin(l2Denom, 1000000000))
 
 	// failed to due to acl
-	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, transfertypes.V1, channeltypes.Packet{
 		Data:               dataBz,
 		DestinationPort:    "wasm",
 		DestinationChannel: "channel-0",
@@ -196,7 +197,7 @@ func Test_onReceiveIcs20Packet_memo_migrated(t *testing.T) {
 	require.NoError(t, input.IBCHooksKeeper.SetAllowed(ctx, contractAddr, true))
 
 	// success
-	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, pk, addr)
+	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, transfertypes.V1, pk, addr)
 	require.True(t, ack.Success())
 
 	// check the contract state
@@ -229,7 +230,7 @@ func Test_OnReceivePacket_ICS721(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, nfttransfertypes.Version, channeltypes.Packet{
 		Data: dataBz,
 	}, addr)
 
@@ -284,7 +285,7 @@ func Test_onReceivePacket_memo_ICS721(t *testing.T) {
 	require.NoError(t, err)
 
 	// failed to due to acl
-	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack := input.IBCHooksMiddleware.OnRecvPacket(ctx, nfttransfertypes.Version, channeltypes.Packet{
 		Data: dataBz,
 	}, addr)
 	require.False(t, ack.Success())
@@ -295,7 +296,7 @@ func Test_onReceivePacket_memo_ICS721(t *testing.T) {
 	require.NoError(t, input.IBCHooksKeeper.SetAllowed(ctx, contractAddr, true))
 
 	// success
-	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, channeltypes.Packet{
+	ack = input.IBCHooksMiddleware.OnRecvPacket(ctx, nfttransfertypes.Version, channeltypes.Packet{
 		Data: dataBz,
 	}, addr)
 	require.True(t, ack.Success())

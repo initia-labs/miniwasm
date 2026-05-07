@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,33 +19,36 @@ import (
 func (h WasmHooks) onAckIcs20Packet(
 	ctx sdk.Context,
 	im ibchooks.IBCMiddleware,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 	_ transfertypes.FungibleTokenPacketData,
 ) error {
-	return h.handleOnAck(ctx, im, packet, acknowledgement, relayer)
+	return h.handleOnAck(ctx, im, channelVersion, packet, acknowledgement, relayer)
 }
 
 func (h WasmHooks) onAckIcs721Packet(
 	ctx sdk.Context,
 	im ibchooks.IBCMiddleware,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 	_ nfttransfertypes.NonFungibleTokenPacketData,
 ) error {
-	return h.handleOnAck(ctx, im, packet, acknowledgement, relayer)
+	return h.handleOnAck(ctx, im, channelVersion, packet, acknowledgement, relayer)
 }
 
 func (h WasmHooks) handleOnAck(
 	ctx sdk.Context,
 	im ibchooks.IBCMiddleware,
+	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	if err := im.App.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer); err != nil {
+	if err := im.App.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer); err != nil {
 		return err
 	}
 

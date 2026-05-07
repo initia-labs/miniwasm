@@ -6,15 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"cosmossdk.io/log"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/cosmos/cosmos-db"
-
-	"github.com/cosmos/ibc-go/modules/capability"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,9 +26,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
-	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 
 	opchild "github.com/initia-labs/OPinit/x/opchild"
 
@@ -92,7 +89,6 @@ func TestInitGenesisOnMigration(t *testing.T) {
 			"auth":               auth.AppModule{}.ConsensusVersion(),
 			"authz":              authzmodule.AppModule{}.ConsensusVersion(),
 			"upgrade":            upgrade.AppModule{}.ConsensusVersion(),
-			"capability":         capability.AppModule{}.ConsensusVersion(),
 			"group":              groupmodule.AppModule{}.ConsensusVersion(),
 			"consensus":          consensus.AppModule{}.ConsensusVersion(),
 			"ibc":                ibc.AppModule{}.ConsensusVersion(),
@@ -127,5 +123,4 @@ func TestGetKey(t *testing.T) {
 		db, nil, true, []wasmkeeper.Option{}, EmptyAppOptions{homeDir: t.TempDir()})
 
 	require.NotEmpty(t, app.GetKey(banktypes.StoreKey))
-	require.NotEmpty(t, app.GetMemKey(capabilitytypes.MemStoreKey))
 }
