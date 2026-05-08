@@ -308,12 +308,13 @@ func NewAppKeeper(
 	////////////////////////////
 	// Transfer configuration //
 	////////////////////////////
-	// Send   : transfer -> packet forward -> rate limit -> channel
+	// Send   : transfer -> packet forward -> rate limit -> ibchooks -> channel
 	// Receive: channel  -> legacyfeeack   -> ibchooks(wasm) -> opchild-migration -> rate limit -> packet forward -> forwarding -> transfer
 	var transferStack porttypes.IBCModule
 	{
 		packetForwardKeeper := &packetforwardkeeper.Keeper{}
 		rateLimitKeeper := &ratelimitkeeper.Keeper{}
+		ibcHooksICS4Wrapper := &ibchooks.ICS4Middleware{}
 
 		// Create Transfer Keeper
 		transferKeeper := ibctransferkeeper.NewKeeper(
@@ -368,8 +369,8 @@ func NewAppKeeper(
 			appKeepers.BankKeeper,
 			appKeepers.IBCKeeper.ChannelKeeper,
 			appKeepers.IBCKeeper.ClientKeeper,
-			// ics4wrapper: transfer -> packet forward -> rate limit -> channel
-			appKeepers.IBCKeeper.ChannelKeeper,
+			// ics4wrapper: transfer -> packet forward -> rate limit -> ibchooks
+			ibcHooksICS4Wrapper,
 		)
 		appKeepers.RatelimitKeeper = rateLimitKeeper
 
@@ -392,14 +393,16 @@ func NewAppKeeper(
 		)
 
 		// create wasm middleware for transfer
+		*ibcHooksICS4Wrapper = *ibchooks.NewICS4Middleware(
+			// ics4wrapper: ibchooks -> channel
+			appKeepers.IBCKeeper.ChannelKeeper,
+			appKeepers.IBCHooksKeeper,
+			ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
+		)
 		transferStack = ibchooks.NewIBCMiddleware(
 			// receive: wasm -> migration -> rate limit -> packet forward -> forwarding -> transfer
 			transferStack,
-			ibchooks.NewICS4Middleware(
-				nil, /* ics4wrapper: not used */
-				appKeepers.IBCHooksKeeper,
-				ibcwasmhooks.NewWasmHooks(appCodec, ac, appKeepers.WasmKeeper, appKeepers.OPChildKeeper),
-			),
+			ibcHooksICS4Wrapper,
 			appKeepers.IBCHooksKeeper,
 		)
 
