@@ -10,8 +10,8 @@ import (
 
 	"cosmossdk.io/collections"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	nfttransfertypes "github.com/initia-labs/initia/x/ibc/nft-transfer/types"
 )
@@ -33,7 +33,7 @@ func Test_SendPacket_asyncCallback_only(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "transfer", "channel-0", clienttypes.ZeroHeight(), 0, dataBz)
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, "transfer", "channel-0", clienttypes.ZeroHeight(), 0, dataBz)
 	require.NoError(t, err)
 	require.Equal(t, uint64(42), seq)
 
@@ -64,7 +64,7 @@ func Test_SendPacket_asyncCallback_invalid(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "transfer", "channel-invalid", clienttypes.ZeroHeight(), 0, dataBz)
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, "transfer", "channel-invalid", clienttypes.ZeroHeight(), 0, dataBz)
 	require.Error(t, err)
 	require.Zero(t, seq)
 	require.Nil(t, input.MockIBCMiddleware.lastData)
@@ -102,7 +102,7 @@ func Test_SendPacket_asyncCallback_with_message(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "transfer", "channel-1", clienttypes.ZeroHeight(), 0, dataBz)
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, "transfer", "channel-1", clienttypes.ZeroHeight(), 0, dataBz)
 	require.NoError(t, err)
 	require.Equal(t, uint64(7), seq)
 
@@ -146,7 +146,7 @@ func Test_SendPacket_asyncCallback_ics721(t *testing.T) {
 	}
 	dataBz := data.GetBytes()
 
-	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "nft-transfer", "channel-2", clienttypes.ZeroHeight(), 0, dataBz)
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, "nft-transfer", "channel-2", clienttypes.ZeroHeight(), 0, dataBz)
 	require.NoError(t, err)
 	require.Equal(t, uint64(11), seq)
 
@@ -177,7 +177,7 @@ func Test_SendPacket_not_routed_passthrough(t *testing.T) {
 	dataBz, err := json.Marshal(&data)
 	require.NoError(t, err)
 
-	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, nil, "transfer", "channel-9", clienttypes.ZeroHeight(), 0, dataBz)
+	seq, err := input.IBCHooksMiddleware.ICS4Middleware.SendPacket(ctx, "transfer", "channel-9", clienttypes.ZeroHeight(), 0, dataBz)
 	require.NoError(t, err)
 	require.Equal(t, uint64(5), seq)
 	var sent transfertypes.FungibleTokenPacketData

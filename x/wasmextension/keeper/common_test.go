@@ -284,7 +284,6 @@ func _createTestInput(
 		nil,
 		nil,
 		nil,
-		nil,
 		t.TempDir(),
 		wasmtypes.DefaultNodeConfig(),
 		wasmtypes.VMConfig{},

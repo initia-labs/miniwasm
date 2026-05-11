@@ -323,7 +323,6 @@ func _createTestInput(
 		nil,
 		nil,
 		nil,
-		nil,
 		msgRouter,
 		nil,
 		t.TempDir(),
