@@ -32,13 +32,13 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "ARCH_NAME=aarch64" >> $GITHUB_ENV
-          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | awk '{print $2}')    
+          WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v3 | awk '{print $2}')    
           echo "WASMVM_VERSION=${WASMVM_VERSION}" >> $GITHUB_ENV
 
       - name: Ensure dependencies
         run: |
           go mod tidy
-          go get github.com/CosmWasm/wasmvm/v2@${WASMVM_VERSION}
+          go get github.com/CosmWasm/wasmvm/v3@${WASMVM_VERSION}
 
       - name: Print environment variables
         run: |
