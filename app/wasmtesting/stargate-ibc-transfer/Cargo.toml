@@ -1,0 +1,25 @@
+[package]
+name = "stargate-ibc-transfer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "abort"
+incremental = false
+overflow-checks = true
+
+[dependencies]
+cosmwasm-schema = "=2.0.4"
+cosmwasm-std = { version = "=2.0.4", features = ["stargate"] }

@@ -46,6 +46,7 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
+	ibctransfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	"github.com/skip-mev/connect/v2/x/oracle"
 	oraclekeeper "github.com/skip-mev/connect/v2/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/connect/v2/x/oracle/types"
@@ -55,6 +56,7 @@ var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	bank.AppModuleBasic{},
 	wasm.AppModuleBasic{},
+	ibctransfer.AppModuleBasic{},
 	oracle.AppModuleBasic{},
 )
 
@@ -169,6 +171,7 @@ type TestKeepers struct {
 	BankKeeper    bankkeeper.Keeper
 	WasmKeeper    wasmkeeper.Keeper
 	OracleKeeper  oraclekeeper.Keeper
+	MsgRouter     *baseapp.MsgServiceRouter
 
 	EncodingConfig EncodingConfig
 	Faucet         *TestFaucet
@@ -327,6 +330,7 @@ func _createTestInput(
 		WasmKeeper:     wasmKeeper,
 		BankKeeper:     bankKeeper,
 		OracleKeeper:   oracleKeeper,
+		MsgRouter:      msgRouter,
 		EncodingConfig: encodingConfig,
 		Faucet:         faucet,
 		MultiStore:     ms,
