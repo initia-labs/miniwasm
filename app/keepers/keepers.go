@@ -509,7 +509,7 @@ func NewAppKeeper(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icaauthtypes.ModuleName, icaControllerStack).
 		AddRoute(wasmtypes.ModuleName, wasmIBCStack).
-		AddRoute(opchildtypes.ModuleName, opchildStack)
+		AddRoute(opchildtypes.PortID, opchildStack)
 
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 	appKeepers.OPChildKeeper.
