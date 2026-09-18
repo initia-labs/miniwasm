@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS go-builder
+FROM golang:1.26-alpine AS go-builder
 #ARG arch=x86_64
 
 ARG VERSION
@@ -35,8 +35,8 @@ RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a
 # force it to use static lib (from above) not standard libwasmvm.so file
 RUN VERSION=${VERSION} COMMIT=${COMMIT} LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS="-linkmode=external -extldflags \"-L/code/mimalloc/build -lmimalloc -Wl,-z,muldefs -static\"" make build
 
-# use bullseye-slim as base image for rly binary at launch
-FROM debian:bullseye-slim
+# use bookworm-slim as base image for rly binary at launch
+FROM debian:bookworm-slim
 
 # install curl for health check
 RUN apt-get update && \
