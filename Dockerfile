@@ -5,7 +5,7 @@ ARG VERSION
 ARG COMMIT
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ENV LIBWASMVM_VERSION=v2.2.4
+ENV LIBWASMVM_VERSION=v2.2.9
 ENV MIMALLOC_VERSION=v2.2.2
 
 # this comes from standard alpine nightly file
@@ -26,8 +26,8 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/li
 ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASMVM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
 
 # Highly recommend to verify the version hash
-# RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep a5e63292ec67f5bdefab51b42c3fbc3fa307c6aefeb6b409d971f1df909c3927
-# RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep 762307147bf8f550bd5324b7f7c4f17ee20805ff93dc06cc073ffbd909438320
+RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep 4b632c22534d330b5111d7279faa7c96374e2097cbdff208cc5e040f1df41982
+RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep 56e7c590fe11a6a51381c80c2710f71af1244acfb8cd1d5839d638313b7bd401
 # Copy the library you want to the final location that will be found by the linker flag `-linitia_muslc`
 
 RUN cp /lib/libwasmvm_muslc.`uname -m`.a /lib/libwasmvm_muslc.a

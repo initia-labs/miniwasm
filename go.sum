@@ -239,8 +239,8 @@ github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CosmWasm/wasmvm/v2 v2.2.4 h1:V3UwXJMA8TNOuQETppDQkaXAevF7gOWLYpKvrThPv7o=
-github.com/CosmWasm/wasmvm/v2 v2.2.4/go.mod h1:Aj/rB2KMRM8nAdbWxkO23rnQYb5KsoPuH9ZizSi0sVg=
+github.com/CosmWasm/wasmvm/v2 v2.2.9 h1:SdMuA2RAGE0IBkKvHn4GoBqnaWmdanCAGl7oadZdxNw=
+github.com/CosmWasm/wasmvm/v2 v2.2.9/go.mod h1:Aj/rB2KMRM8nAdbWxkO23rnQYb5KsoPuH9ZizSi0sVg=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=
 github.com/DataDog/datadog-go v4.8.3+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
@@ -802,8 +802,8 @@ github.com/initia-labs/store/memiavl v0.1.4 h1:Gpdxzo4QrvSPG3iAaN9b33O+1AUHb1d1g
 github.com/initia-labs/store/memiavl v0.1.4/go.mod h1:510W4Nf6QAWmFLYPhqhOhO1tagdeocM0b89a/M0zMRk=
 github.com/initia-labs/store/versiondb v0.1.0 h1:8lQK7Q6GUwwAc8R3IIBbj9MOlIkKCq0nwnRpjT20Ahc=
 github.com/initia-labs/store/versiondb v0.1.0/go.mod h1:fP27G3qPUluu7yM8j2xcW05Brmj0QBT7nlTTFvEszNc=
-github.com/initia-labs/wasmd v0.54.3-initia.1 h1:64jScETijwqiX4FP77IxSAzt3zIUABhNOZWdSrXOmLo=
-github.com/initia-labs/wasmd v0.54.3-initia.1/go.mod h1:2FX9+3mf0FmlRHUoUwF8Vg/kkNdtey9TogE5N6nX4Ng=
+github.com/initia-labs/wasmd v0.54.10-initia.0 h1:dHX8GRehJJsMoWffV6GSFX6ru1SA6NZzeHTd8GofNdA=
+github.com/initia-labs/wasmd v0.54.10-initia.0/go.mod h1:vj2tGXyqjKSk9jm04VCi5VVwdsJ5DacijspfaMGWyRM=
 github.com/jhump/protoreflect v1.15.3 h1:6SFRuqU45u9hIZPJAoZ8c28T3nK64BNdp9w6jFonzls=
 github.com/jhump/protoreflect v1.15.3/go.mod h1:4ORHmSBmlCW8fh3xHmJMGyul1zNqZK4Elxc8qKP+p1k=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
